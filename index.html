@@ -142,7 +142,7 @@
   }
 
   /* ============ SILK WAVES (animated 3D shader) ============ */
-  .silk-waves{position:fixed;inset:0;z-index:-3;width:100%;height:100%;pointer-events:none;display:block;}
+  .silk-waves{position:fixed;inset:0;z-index:-3;width:100vw;height:100vh;height:100dvh;pointer-events:none;display:block;}
   @media (prefers-reduced-motion: reduce){
     .silk-waves{display:none;}
   }
@@ -1194,17 +1194,17 @@
       return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
     }
 
-    // Render at a capped internal resolution for perf, upscaled via CSS (imperceptible on a soft noise field).
+    // The element's visible box is sized purely by CSS (inset:0 + width/height:100%) so it
+    // tracks the viewport instantly, even mid-scroll while a mobile browser's address bar is
+    // collapsing/expanding. Only the internal render resolution (backing store) is set from JS,
+    // capped for perf and upscaled via CSS - a lag here just means a brief soft stretch, never a gap.
     const MAX_DIM = 1000;
-    let w = 0, h = 0;
     function resize() {
-      w = window.innerWidth;
-      h = window.innerHeight;
+      const w = canvas.clientWidth || window.innerWidth;
+      const h = canvas.clientHeight || window.innerHeight;
       const scale = Math.min(1, MAX_DIM / Math.max(w, h));
       canvas.width = Math.max(1, Math.round(w * scale));
       canvas.height = Math.max(1, Math.round(h * scale));
-      canvas.style.width = w + 'px';
-      canvas.style.height = h + 'px';
       gl.viewport(0, 0, canvas.width, canvas.height);
     }
     window.addEventListener('resize', resize);
