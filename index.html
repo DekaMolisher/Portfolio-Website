@@ -421,18 +421,16 @@
   .about{display:grid;grid-template-columns:1.15fr 1fr;gap:70px;align-items:center;}
   .about-frame{position:relative;border:1px solid var(--line);padding:18px;overflow:hidden;}
   .about-frame img{width:100%;height:100%;object-fit:cover;aspect-ratio:3/4;position:relative;z-index:1;}
-  .about-frame::before, .about-frame::after{
-    content:"";position:absolute;left:18px;bottom:18px;
-    background:var(--accent);z-index:2;pointer-events:none;
-    box-shadow:0 0 0 0 transparent;
-    transition:box-shadow .5s ease;
+  .frame-corner{position:absolute;left:18px;bottom:18px;width:60px;height:60px;z-index:3;pointer-events:none;}
+  .frame-corner .edge{position:absolute;left:0;bottom:0;background:var(--accent);}
+  .frame-corner .edge-v{width:2px;height:100%;}
+  .frame-corner .edge-h{width:100%;height:2px;}
+  .frame-corner .glow{
+    position:absolute;left:0;bottom:0;width:170px;height:170px;
+    background:radial-gradient(circle at 0% 100%, var(--accent-pale) 0%, transparent 68%);
+    opacity:0;transition:opacity .5s ease;
   }
-  .about-frame::before{width:2px;height:58px;} /* vertical edge */
-  .about-frame::after{width:58px;height:2px;} /* horizontal edge */
-  .about-frame.is-hover::before,
-  .about-frame.is-hover::after{
-    box-shadow:0 0 10px 1px var(--accent-pale), 0 0 20px 4px var(--accent-pale);
-  }
+  .about-frame.is-hover .frame-corner .glow{opacity:1;}
   .about-copy .eyebrow{margin-bottom:16px;}
   .about-copy h2{font-size:clamp(28px,5vw,50px);margin-bottom:22px;line-height:1.1;}
   .about-copy p{color:var(--ink-soft);font-size:15.5px;line-height:1.85;margin-bottom:16px;font-family:var(--font-body);}
@@ -753,6 +751,11 @@
       <div class="about">
         <div class="about-frame" id="aboutFrame">
           <img src="creator-about.jpg" alt="Giancarlo (Deka) Rosete portrait" style="aspect-ratio:3/4;object-position:center 18%;">
+          <span class="frame-corner">
+            <span class="glow"></span>
+            <span class="edge edge-v"></span>
+            <span class="edge edge-h"></span>
+          </span>
         </div>
         <div class="about-copy" id="aboutCopy">
           <span class="eyebrow">Meet your friendly creator</span>
