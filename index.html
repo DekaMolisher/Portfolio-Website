@@ -104,7 +104,7 @@
   .script{font-family:var(--font-script);font-weight:400;}
 
   /* ============ SILK BACKGROUND ============ */
-  .silk{position:fixed;inset:0;z-index:-3;overflow:hidden;transform:translateZ(0);}
+  .silk{position:fixed;inset:0;z-index:-3;overflow:hidden;transform:translateZ(0);backface-visibility:hidden;}
 
   [data-theme="dark"] .silk{
     background:linear-gradient(125deg, #0b0a08 0%, #171310 22%, #0d0b09 40%, #1a1512 58%, #0c0a08 76%, #171210 100%);
@@ -143,7 +143,19 @@
   }
 
   /* ============ SILK WAVES (animated 3D shader) ============ */
-  .silk-waves{position:fixed;inset:0;z-index:-3;width:100vw;height:100vh;height:100dvh;pointer-events:none;display:block;transform:translateZ(0);will-change:transform;}
+  .silk-waves{
+    position:fixed;inset:0;z-index:-3;width:100vw;height:100vh;height:100dvh;
+    pointer-events:none;display:block;
+    transform:translateZ(0);will-change:transform;backface-visibility:hidden;
+  }
+  /* Matches .silk's flat gradient so the canvas's own box never shows a mismatched/blank
+     color if a scroll-heavy frame is ever a beat behind on drawing new WebGL content. */
+  [data-theme="dark"] .silk-waves{
+    background:linear-gradient(125deg, #0b0a08 0%, #171310 22%, #0d0b09 40%, #1a1512 58%, #0c0a08 76%, #171210 100%);
+  }
+  [data-theme="light"] .silk-waves{
+    background:linear-gradient(125deg, #f3ece0 0%, #fffdf9 22%, #ede2cd 40%, #fffdfa 58%, #f0e6d4 76%, #fffcf7 100%);
+  }
   @media (prefers-reduced-motion: reduce){
     .silk-waves{display:none;}
   }
@@ -1199,7 +1211,7 @@
     // tracks the viewport instantly, even mid-scroll while a mobile browser's address bar is
     // collapsing/expanding. Only the internal render resolution (backing store) is set from JS,
     // capped for perf and upscaled via CSS - a lag here just means a brief soft stretch, never a gap.
-    const MAX_DIM = 1000;
+    const MAX_DIM = 720;
     function resize() {
       const w = canvas.clientWidth || window.innerWidth;
       const h = canvas.clientHeight || window.innerHeight;
