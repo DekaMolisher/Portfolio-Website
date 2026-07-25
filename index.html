@@ -631,6 +631,10 @@
   [data-theme="light"] .field input[type="time"]{color-scheme:light;}
 
   .submit-btn{align-self:flex-start;margin-top:8px;}
+  .submit-btn[disabled]{opacity:.6;cursor:not-allowed;}
+  .form-error{display:none;font-family:var(--font-body);font-size:13.5px;color:var(--ink-soft);margin-top:14px;line-height:1.6;}
+  .form-error.visible{display:block;}
+  .form-error a{color:var(--accent-deep);text-decoration:underline;}
 
   .contact-success{display:none;text-align:center;padding:50px 10px 20px;}
   .contact-success.visible{display:block;}
@@ -888,6 +892,7 @@
         </div>
 
         <button type="submit" class="btn-accent submit-btn"><span>Send Inquiry</span></button>
+        <p class="form-error" id="contactError">Something went wrong sending that — please try again, or email me directly at <a href="mailto:giancarlorrv@gmail.com">giancarlorrv@gmail.com</a>.</p>
       </form>
 
       <div class="contact-success" id="contactSuccess">
@@ -924,9 +929,23 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <script>
   gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+
+  /* ============ EMAILJS CONFIG ============ */
+  /* Fill these in from your EmailJS dashboard (Account > General for the public key,
+     Email Services for the service ID, Email Templates for the template ID) before
+     inquiries will actually send. Until then the form falls back to a mailto: link. */
+  const EMAILJS_PUBLIC_KEY = 'YOUR_PUBLIC_KEY';
+  const EMAILJS_SERVICE_ID = 'YOUR_SERVICE_ID';
+  const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';
+  const INQUIRY_TO_EMAIL = 'giancarlorrv@gmail.com';
+
+  if (EMAILJS_PUBLIC_KEY !== 'YOUR_PUBLIC_KEY' && window.emailjs) {
+    emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+  }
 
   /* ============ DATA ============ */
   const shoots = [
@@ -1654,9 +1673,11 @@
   function setupContactForm() {
     const form = document.getElementById('contactForm');
     const success = document.getElementById('contactSuccess');
+    const errorMsg = document.getElementById('contactError');
+    const submitBtn = form.querySelector('.submit-btn');
+    const submitLabel = submitBtn.querySelector('span');
 
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
+    function revealSuccess() {
       gsap.to(form, {
         duration: 0.35, opacity: 0, y: -10, ease: 'power2.in',
         onComplete: () => {
@@ -1665,10 +1686,53 @@
           gsap.from(success, { duration: 0.5, opacity: 0, y: 14, ease: 'power3.out' });
         }
       });
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      errorMsg.classList.remove('visible');
+
+      const isConfigured = EMAILJS_PUBLIC_KEY !== 'YOUR_PUBLIC_KEY' && window.emailjs;
+      if (!isConfigured) {
+        errorMsg.classList.add('visible');
+        return;
+      }
+
+      const data = new FormData(form);
+      const templateParams = {
+        first_name: data.get('firstName'),
+        last_name: data.get('lastName'),
+        nickname: data.get('nickname') || '—',
+        instagram: data.get('instagram') || '—',
+        whatsapp: data.get('whatsapp') || '—',
+        email: data.get('email'),
+        brief: data.get('brief') || '—',
+        date: data.get('date') || '—',
+        time: data.get('time') || '—',
+        to_email: INQUIRY_TO_EMAIL,
+        reply_to: data.get('email')
+      };
+
+      submitBtn.disabled = true;
+      submitLabel.textContent = 'Sending…';
+
+      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+        .then(() => {
+          revealSuccess();
+        })
+        .catch((err) => {
+          console.error('EmailJS send failed:', err);
+          submitBtn.disabled = false;
+          submitLabel.textContent = 'Send Inquiry';
+          errorMsg.classList.add('visible');
+        });
     });
 
     document.getElementById('contactAnother').addEventListener('click', () => {
       success.classList.remove('visible');
+      errorMsg.classList.remove('visible');
+      submitBtn.disabled = false;
+      submitLabel.textContent = 'Send Inquiry';
       form.reset();
       form.style.display = '';
       gsap.fromTo(form, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power3.out' });
