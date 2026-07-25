@@ -1095,6 +1095,9 @@
       }
     `;
 
+    const RIPPLE_COUNT = 8;
+    const RIPPLE_LIFETIME = 1.6; // seconds a touch/cursor point keeps pushing the flow away
+
     const fragSrc = `
       precision highp float;
       uniform vec2 uResolution;
@@ -1102,6 +1105,7 @@
       uniform vec3 uColorBase;
       uniform vec3 uColorAccent;
       uniform vec3 uColorHighlight;
+      uniform vec3 uRipples[${RIPPLE_COUNT}]; // xy = normalized position, z = creation time (uTime units)
 
       float hash(vec2 p){
         p = fract(p * vec2(123.34, 456.21));
@@ -1131,7 +1135,25 @@
 
       void main(){
         vec2 uv = gl_FragCoord.xy / uResolution.xy;
-        vec2 p = (uv - 0.5) * vec2(uResolution.x / uResolution.y, 1.0) * 1.8 + 0.5;
+        vec2 aspect = vec2(uResolution.x / uResolution.y, 1.0);
+        vec2 p = (uv - 0.5) * aspect * 1.8 + 0.5;
+
+        // Push the sampling position away from each recent cursor/tap point, so the
+        // flow field visibly parts around wherever the pointer has been. Pushing along
+        // the raw (unnormalized) offset - rather than a unit direction - keeps this
+        // stable right at the ripple center instead of producing a sharp starburst there.
+        for(int i = 0; i < ${RIPPLE_COUNT}; i++){
+          vec3 r = uRipples[i];
+          float age = uTime - r.z;
+          if(age >= 0.0 && age < ${RIPPLE_LIFETIME}){
+            vec2 rp = (r.xy - 0.5) * aspect * 1.8 + 0.5;
+            vec2 diff = p - rp;
+            float dist = length(diff);
+            float life = 1.0 - age / ${RIPPLE_LIFETIME};
+            float falloff = exp(-dist * dist * 10.0) * life * life;
+            p += diff * falloff * 0.5;
+          }
+        }
 
         float t = uTime * 0.045;
         vec2 flow = vec2(fbm(p + t), fbm(p - t + 3.1)) * 1.6;
@@ -1192,6 +1214,35 @@
     const uColorBase = gl.getUniformLocation(program, 'uColorBase');
     const uColorAccent = gl.getUniformLocation(program, 'uColorAccent');
     const uColorHighlight = gl.getUniformLocation(program, 'uColorHighlight');
+    const uRipples = gl.getUniformLocation(program, 'uRipples');
+
+    // Ring buffer of recent cursor/tap points. Inactive slots start with t far in the
+    // past so they never register as an active ripple before their first real use.
+    const rippleData = new Float32Array(RIPPLE_COUNT * 3);
+    for (let i = 0; i < RIPPLE_COUNT; i++) rippleData[i * 3 + 2] = -1000;
+    let rippleCursor = 0;
+    let lastRippleAt = -1000;
+    let currentT = 0;
+
+    function addRipple(nx, ny) {
+      if (currentT - lastRippleAt < 0.045) return; // ~22/s cap while dragging/moving
+      lastRippleAt = currentT;
+      const i = rippleCursor;
+      rippleData[i * 3 + 0] = nx;
+      rippleData[i * 3 + 1] = ny;
+      rippleData[i * 3 + 2] = currentT;
+      rippleCursor = (rippleCursor + 1) % RIPPLE_COUNT;
+    }
+    function pointerToRipple(clientX, clientY) {
+      addRipple(clientX / window.innerWidth, 1.0 - clientY / window.innerHeight);
+    }
+    window.addEventListener('pointermove', (e) => pointerToRipple(e.clientX, e.clientY), { passive: true });
+    window.addEventListener('touchstart', (e) => {
+      if (e.touches[0]) pointerToRipple(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: true });
+    window.addEventListener('touchmove', (e) => {
+      if (e.touches[0]) pointerToRipple(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: true });
 
     function hexToRgb01(hex) {
       const r = parseInt(hex.substring(0,2),16) / 255;
@@ -1224,12 +1275,14 @@
     resize();
 
     function frame(t) {
+      currentT = t * 0.001;
       const theme = palette[currentTheme()];
       gl.uniform2f(uResolution, canvas.width, canvas.height);
-      gl.uniform1f(uTime, t * 0.001);
+      gl.uniform1f(uTime, currentT);
       gl.uniform3f(uColorBase, theme.base[0], theme.base[1], theme.base[2]);
       gl.uniform3f(uColorAccent, theme.accent[0], theme.accent[1], theme.accent[2]);
       gl.uniform3f(uColorHighlight, theme.highlight[0], theme.highlight[1], theme.highlight[2]);
+      gl.uniform3fv(uRipples, rippleData);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       requestAnimationFrame(frame);
     }
