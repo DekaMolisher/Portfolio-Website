@@ -1771,5 +1771,17 @@
   });
 </script>
 
+<!-- TEMP DEBUG CONSOLE: visit any page with ?debug=1 in the URL to get an on-screen
+     console (useful for checking errors on mobile, where DevTools isn't available).
+     Safe to remove once the EmailJS issue is sorted - it's a no-op for everyone else. -->
+<script>
+  if (location.search.indexOf('debug=1') !== -1) {
+    var erudaScript = document.createElement('script');
+    erudaScript.src = 'https://cdn.jsdelivr.net/npm/eruda';
+    document.body.appendChild(erudaScript);
+    erudaScript.onload = function () { eruda.init(); };
+  }
+</script>
+
 </body>
 </html>
