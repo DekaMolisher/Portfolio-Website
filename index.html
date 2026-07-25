@@ -1107,6 +1107,7 @@
       uniform vec3 uColorBase;
       uniform vec3 uColorAccent;
       uniform vec3 uColorHighlight;
+      uniform vec2 uBrightRange; // x = darkest multiplier (diffuse=0), y = added range up to diffuse=1
       uniform vec3 uRipples[${RIPPLE_COUNT}]; // xy = normalized position, z = creation time (uTime units)
 
       float hash(vec2 p){
@@ -1174,7 +1175,7 @@
         float spec = pow(max(dot(normal, halfV), 0.0), 34.0);
 
         vec3 col = mix(uColorBase, uColorAccent, smoothstep(0.28, 0.74, h) * 1.15);
-        col *= (0.45 + 0.75 * diffuse);
+        col *= (uBrightRange.x + uBrightRange.y * diffuse);
         col += uColorHighlight * spec * 1.1;
 
         gl_FragColor = vec4(col, 1.0);
@@ -1217,6 +1218,7 @@
     const uColorBase = gl.getUniformLocation(program, 'uColorBase');
     const uColorAccent = gl.getUniformLocation(program, 'uColorAccent');
     const uColorHighlight = gl.getUniformLocation(program, 'uColorHighlight');
+    const uBrightRange = gl.getUniformLocation(program, 'uBrightRange');
     const uRipples = gl.getUniformLocation(program, 'uRipples');
 
     // Ring buffer of recent click/tap points. Inactive slots start with t far in the
@@ -1245,8 +1247,9 @@
       return [r, g, b];
     }
     const palette = {
-      dark:  { base: hexToRgb01('120f0c'), accent: hexToRgb01('9E76D6'), highlight: hexToRgb01('F3EAD9') },
-      light: { base: hexToRgb01('f3ece0'), accent: hexToRgb01('B8894A'), highlight: hexToRgb01('FFFFFF') }
+      // bright: [x = darkest multiplier, y = extra range added by full diffuse light]
+      dark:  { base: hexToRgb01('120f0c'), accent: hexToRgb01('9E76D6'), highlight: hexToRgb01('F3EAD9'), bright: [0.45, 0.75] },
+      light: { base: hexToRgb01('faf5ea'), accent: hexToRgb01('e8cfa0'), highlight: hexToRgb01('FFFFFF'), bright: [0.82, 0.32] }
     };
     function currentTheme() {
       return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
@@ -1276,6 +1279,7 @@
       gl.uniform3f(uColorBase, theme.base[0], theme.base[1], theme.base[2]);
       gl.uniform3f(uColorAccent, theme.accent[0], theme.accent[1], theme.accent[2]);
       gl.uniform3f(uColorHighlight, theme.highlight[0], theme.highlight[1], theme.highlight[2]);
+      gl.uniform2f(uBrightRange, theme.bright[0], theme.bright[1]);
       gl.uniform3fv(uRipples, rippleData);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       requestAnimationFrame(frame);
