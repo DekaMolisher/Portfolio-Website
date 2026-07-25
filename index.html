@@ -1083,10 +1083,16 @@
     const canvas = document.getElementById('silkWaves');
     if(!canvas) return;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if(reduceMotion) return;
+    if(reduceMotion) {
+      console.warn('Silk waves: skipped because prefers-reduced-motion is enabled on this browser/OS.');
+      return;
+    }
 
     const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-    if(!gl) return; // no WebGL support: the static .silk gradient behind it still shows
+    if(!gl) {
+      console.warn('Silk waves: WebGL context unavailable (blocked by browser/extension, or unsupported). Falling back to the static .silk gradient.');
+      return;
+    }
 
     const vertSrc = `
       attribute vec2 aPos;
@@ -1295,6 +1301,7 @@
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       requestAnimationFrame(frame);
     }
+    console.info('Silk waves: WebGL context created and shader linked, starting render loop.');
     requestAnimationFrame(frame);
   }
 
