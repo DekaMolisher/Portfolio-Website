@@ -1100,6 +1100,30 @@
     const WAVE_SPEED = 0.62; // how fast the ring expands, in shader domain units/sec
     const WAVE_BAND = 90.0; // higher = thinner ring
 
+    // GLSL ES 1.00 (WebGL1) doesn't guarantee support for indexing a uniform array with a
+    // non-constant expression in a fragment shader - some real GPU drivers reject it outright
+    // even though lenient implementations (e.g. SwiftShader) accept it fine. Unrolling with
+    // literal indices sidesteps the restriction entirely.
+    let rippleBlocks = '';
+    for (let idx = 0; idx < RIPPLE_COUNT; idx++) {
+      rippleBlocks += `
+        {
+          vec3 r = uRipples[${idx}];
+          float age = uTime - r.z;
+          if(age >= 0.0 && age < ${RIPPLE_LIFETIME.toFixed(4)}){
+            vec2 rp = (r.xy - 0.5) * aspect * 1.8 + 0.5;
+            vec2 diff = p - rp;
+            float dist = length(diff);
+            float waveRadius = age * ${WAVE_SPEED.toFixed(4)};
+            float band = exp(-pow(dist - waveRadius, 2.0) * ${WAVE_BAND.toFixed(4)});
+            float life = 1.0 - age / ${RIPPLE_LIFETIME.toFixed(4)};
+            vec2 dir = diff / (dist + 0.025);
+            p += dir * band * life * 0.16;
+          }
+        }
+      `;
+    }
+
     const fragSrc = `
       precision highp float;
       uniform vec2 uResolution;
@@ -1144,20 +1168,7 @@
         // Each click/tap spawns a small ring wave that expands outward and pushes the
         // flow along with it, rather than a static distortion pinned at the point - the
         // pushed band tracks the ring's radius over the ripple's lifetime.
-        for(int i = 0; i < ${RIPPLE_COUNT}; i++){
-          vec3 r = uRipples[i];
-          float age = uTime - r.z;
-          if(age >= 0.0 && age < ${RIPPLE_LIFETIME.toFixed(4)}){
-            vec2 rp = (r.xy - 0.5) * aspect * 1.8 + 0.5;
-            vec2 diff = p - rp;
-            float dist = length(diff);
-            float waveRadius = age * ${WAVE_SPEED.toFixed(4)};
-            float band = exp(-pow(dist - waveRadius, 2.0) * ${WAVE_BAND.toFixed(4)});
-            float life = 1.0 - age / ${RIPPLE_LIFETIME.toFixed(4)};
-            vec2 dir = diff / (dist + 0.025); // softened normalize: stays finite at dist=0
-            p += dir * band * life * 0.16;
-          }
-        }
+        ${rippleBlocks}
 
         float t = uTime * 0.045;
         vec2 flow = vec2(fbm(p + t), fbm(p - t + 3.1)) * 1.6;
