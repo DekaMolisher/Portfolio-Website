@@ -1096,7 +1096,9 @@
     `;
 
     const RIPPLE_COUNT = 8;
-    const RIPPLE_LIFETIME = 1.6; // seconds a touch/cursor point keeps pushing the flow away
+    const RIPPLE_LIFETIME = 1.1; // seconds a click/tap wave stays alive
+    const WAVE_SPEED = 0.62; // how fast the ring expands, in shader domain units/sec
+    const WAVE_BAND = 90.0; // higher = thinner ring
 
     const fragSrc = `
       precision highp float;
@@ -1138,20 +1140,21 @@
         vec2 aspect = vec2(uResolution.x / uResolution.y, 1.0);
         vec2 p = (uv - 0.5) * aspect * 1.8 + 0.5;
 
-        // Push the sampling position away from each recent cursor/tap point, so the
-        // flow field visibly parts around wherever the pointer has been. Pushing along
-        // the raw (unnormalized) offset - rather than a unit direction - keeps this
-        // stable right at the ripple center instead of producing a sharp starburst there.
+        // Each click/tap spawns a small ring wave that expands outward and pushes the
+        // flow along with it, rather than a static distortion pinned at the point - the
+        // pushed band tracks the ring's radius over the ripple's lifetime.
         for(int i = 0; i < ${RIPPLE_COUNT}; i++){
           vec3 r = uRipples[i];
           float age = uTime - r.z;
-          if(age >= 0.0 && age < ${RIPPLE_LIFETIME}){
+          if(age >= 0.0 && age < ${RIPPLE_LIFETIME.toFixed(4)}){
             vec2 rp = (r.xy - 0.5) * aspect * 1.8 + 0.5;
             vec2 diff = p - rp;
             float dist = length(diff);
-            float life = 1.0 - age / ${RIPPLE_LIFETIME};
-            float falloff = exp(-dist * dist * 10.0) * life * life;
-            p += diff * falloff * 0.5;
+            float waveRadius = age * ${WAVE_SPEED.toFixed(4)};
+            float band = exp(-pow(dist - waveRadius, 2.0) * ${WAVE_BAND.toFixed(4)});
+            float life = 1.0 - age / ${RIPPLE_LIFETIME.toFixed(4)};
+            vec2 dir = diff / (dist + 0.025); // softened normalize: stays finite at dist=0
+            p += dir * band * life * 0.16;
           }
         }
 
@@ -1216,32 +1219,23 @@
     const uColorHighlight = gl.getUniformLocation(program, 'uColorHighlight');
     const uRipples = gl.getUniformLocation(program, 'uRipples');
 
-    // Ring buffer of recent cursor/tap points. Inactive slots start with t far in the
-    // past so they never register as an active ripple before their first real use.
+    // Ring buffer of recent click/tap points. Inactive slots start with t far in the
+    // past so they never register as an active wave before their first real use.
     const rippleData = new Float32Array(RIPPLE_COUNT * 3);
     for (let i = 0; i < RIPPLE_COUNT; i++) rippleData[i * 3 + 2] = -1000;
     let rippleCursor = 0;
-    let lastRippleAt = -1000;
     let currentT = 0;
 
     function addRipple(nx, ny) {
-      if (currentT - lastRippleAt < 0.045) return; // ~22/s cap while dragging/moving
-      lastRippleAt = currentT;
       const i = rippleCursor;
       rippleData[i * 3 + 0] = nx;
       rippleData[i * 3 + 1] = ny;
       rippleData[i * 3 + 2] = currentT;
       rippleCursor = (rippleCursor + 1) % RIPPLE_COUNT;
     }
-    function pointerToRipple(clientX, clientY) {
-      addRipple(clientX / window.innerWidth, 1.0 - clientY / window.innerHeight);
-    }
-    window.addEventListener('pointermove', (e) => pointerToRipple(e.clientX, e.clientY), { passive: true });
-    window.addEventListener('touchstart', (e) => {
-      if (e.touches[0]) pointerToRipple(e.touches[0].clientX, e.touches[0].clientY);
-    }, { passive: true });
-    window.addEventListener('touchmove', (e) => {
-      if (e.touches[0]) pointerToRipple(e.touches[0].clientX, e.touches[0].clientY);
+    // pointerdown covers both a mouse click and a tap the instant it starts, on one listener.
+    window.addEventListener('pointerdown', (e) => {
+      addRipple(e.clientX / window.innerWidth, 1.0 - e.clientY / window.innerHeight);
     }, { passive: true });
 
     function hexToRgb01(hex) {
