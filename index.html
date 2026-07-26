@@ -463,11 +463,8 @@
   /* ============ SOCIAL SHOWCASE ============ */
   .social-showcase{display:grid;grid-template-columns:0.8fr 1fr;gap:70px;align-items:center;}
   .social-frame{position:relative;border:1px solid var(--line);padding:18px;overflow:hidden;max-width:374px;}
-  .social-frame img{width:100%;height:100%;object-fit:cover;aspect-ratio:9/16;display:block;}
-  .social-frame::before{
-    content:"";position:absolute;top:-14px;right:-14px;left:14px;bottom:14px;
-    border:1px solid var(--accent);z-index:-1;
-  }
+  .social-frame img{width:100%;height:100%;object-fit:cover;aspect-ratio:9/16;display:block;position:relative;z-index:1;}
+  .social-frame.is-hover .frame-corner .glow{opacity:1;}
   .social-copy .eyebrow{margin-bottom:16px;display:inline-block;}
   .social-copy h2{font-size:clamp(28px,5vw,50px);margin-bottom:16px;line-height:1.1;}
   .social-copy p{color:var(--ink-soft);font-size:15.5px;line-height:1.85;margin-bottom:32px;font-family:var(--font-body);max-width:420px;}
@@ -768,7 +765,7 @@
           <h2>Every creative project<br>starts with a<br>conversation.</h2>
           <p>I'm a portrait and editorial photographer working across studio and natural light, drawn to quiet gestures more than posed perfection. Every session opens with time spent simply talking — about the light you love, the mood you're after, the version of yourself you want kept.</p>
           <p>From golden-hour warmth to the hush of a studio backdrop, the goal is always the same: images that feel like you, years from now.</p>
-          <button class="btn-accent" id="collaborateBtn"><span>Let's Collaborate</span></button>
+          <button class="btn-accent" id="collaborateBtn"><span>Let's Create Together</span></button>
           <a href="#social" class="know-more" id="knowMoreLink">
             <span>Want to know more about me?</span>
             <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
@@ -779,8 +776,15 @@
 
     <section id="social">
       <div class="social-showcase">
-        <div class="social-frame">
-          <img src="creator-social.jpg" alt="Giancarlo (Deka) Rosete portrait">
+        <div class="social-frame" id="socialFrame">
+          <div class="frame-inner" id="socialFrameInner">
+            <img src="creator-social.jpg" alt="Giancarlo (Deka) Rosete portrait">
+            <span class="frame-corner">
+              <span class="glow"></span>
+              <span class="edge edge-v"></span>
+              <span class="edge edge-h"></span>
+            </span>
+          </div>
         </div>
         <div class="social-copy">
           <span class="eyebrow">Stay Connected</span>
@@ -1440,8 +1444,8 @@
     });
   }
 
-  function setupAboutHover() {
-    const frame = document.getElementById('aboutFrame');
+  function setupFrameCornerHover(frameId) {
+    const frame = document.getElementById(frameId);
     if(!frame) return;
     const isTouchDevice = window.matchMedia('(hover: none)').matches;
 
@@ -1773,7 +1777,8 @@
     setupAboutReveal();
     setupSocialReveal();
     setupShotHovers();
-    setupAboutHover();
+    setupFrameCornerHover('aboutFrame');
+    setupFrameCornerHover('socialFrame');
     setupHeaderScroll();
     setupBurgerMenu();
     setupThemeToggle();
