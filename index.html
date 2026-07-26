@@ -1754,8 +1754,25 @@
     setupThemeToggle();
     setupContactForm();
 
+    // The page's CSS scroll-behavior:smooth fights with GSAP's own scrollTo tween (the
+    // browser tries to smooth-animate every intermediate frame GSAP sets), which makes the
+    // scroll noticeably slower/janky than the tween's own duration. Switching to 'auto' for
+    // the duration of a GSAP-driven scroll avoids the double animation.
+    function gsapScrollTo(target) {
+      document.documentElement.style.scrollBehavior = 'auto';
+      gsap.to(window, {
+        duration: 0.6, scrollTo: target, ease: 'power2.out',
+        onComplete: () => { document.documentElement.style.scrollBehavior = ''; }
+      });
+    }
+
     document.getElementById('viewGalleryBtn').addEventListener('click', () => {
-      gsap.to(window, { duration: 0.6, scrollTo: { y: '#portfolio', offsetY: 0 }, ease: 'power2.out' });
+      gsapScrollTo({ y: '#portfolio', offsetY: 0 });
+    });
+    // "Home" links should always jump to the hero, even when the hash is already '#/' and
+    // no hashchange event fires (e.g. scrolled down on the home page and clicking Home).
+    document.querySelectorAll('a[href="#/"]').forEach((link) => {
+      link.addEventListener('click', () => gsapScrollTo({ y: 0 }));
     });
     document.getElementById('collaborateBtn').addEventListener('click', () => {
       location.hash = '#/contact';
