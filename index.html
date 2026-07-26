@@ -1059,13 +1059,14 @@
     if(!layers.length) return;
     let idx = 0;
     const HOLD = 6000;
+    let intervalId = null;
 
     // fade the very first frame in as part of the page's opening animation
     gsap.set(layers[0], { opacity: 0, scale: 1.1 });
     gsap.to(layers[0], { opacity: 1, duration: 2.2, ease: 'power2.out', delay: 0.2 });
     gsap.to(layers[0], { scale: 1, duration: 10, ease: 'sine.out', delay: 0.2 });
 
-    setInterval(() => {
+    function advance() {
       const current = layers[idx];
       const nextIdx = (idx + 1) % layers.length;
       const next = layers[nextIdx];
@@ -1076,7 +1077,31 @@
       gsap.to(current, { opacity: 0, duration: 1.8, ease: 'power2.inOut' });
 
       idx = nextIdx;
-    }, HOLD);
+    }
+
+    function startInterval() {
+      if(intervalId) return;
+      intervalId = setInterval(advance, HOLD);
+    }
+
+    // A backgrounded tab throttles/pauses setInterval and rAF-driven GSAP tweens, so
+    // resuming after a while back could replay several queued-up transitions at once,
+    // in a burst (photos flickering rather than a smooth crossfade). Pausing the
+    // interval and snapping to a clean single-layer state while hidden avoids that,
+    // and a fresh interval on return means the next transition is a full HOLD away
+    // instead of firing immediately with stale backlog.
+    document.addEventListener('visibilitychange', () => {
+      if(document.hidden) {
+        clearInterval(intervalId);
+        intervalId = null;
+        gsap.killTweensOf(layers);
+        layers.forEach((layer, i) => gsap.set(layer, { opacity: i === idx ? 1 : 0, scale: 1 }));
+      } else {
+        startInterval();
+      }
+    });
+
+    startInterval();
   }
 
   /* ============ THEME TOGGLE ============ */
