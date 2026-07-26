@@ -77,13 +77,14 @@
   }
 
   *{box-sizing:border-box;margin:0;padding:0;}
-  html{scroll-behavior:smooth;}
+  html{scroll-behavior:smooth;overscroll-behavior-y:none;}
   body{
     background:var(--bg);
     color:var(--ink);
     font-family:var(--font-body);
     -webkit-font-smoothing:antialiased;
     overflow-x:hidden;
+    overscroll-behavior-y:none;
     transition:background .4s ease, color .4s ease;
   }
   a{color:inherit;text-decoration:none;}
@@ -103,7 +104,7 @@
   .script{font-family:var(--font-script);font-weight:400;}
 
   /* ============ SILK BACKGROUND ============ */
-  .silk{position:fixed;inset:0;z-index:-3;overflow:hidden;}
+  .silk{position:fixed;inset:0;z-index:-3;overflow:hidden;transform:translateZ(0);backface-visibility:hidden;}
 
   [data-theme="dark"] .silk{
     background:linear-gradient(125deg, #0b0a08 0%, #171310 22%, #0d0b09 40%, #1a1512 58%, #0c0a08 76%, #171210 100%);
@@ -121,16 +122,6 @@
     filter:blur(10px);
     mix-blend-mode:screen;
     opacity:.55;
-  }
-  [data-theme="dark"] .silk::after{
-    content:"";position:absolute;inset:-20%;
-    background:
-      radial-gradient(40% 30% at 20% 15%, rgba(243,234,217,0.10), transparent 60%),
-      radial-gradient(34% 28% at 85% 10%, rgba(217,143,134,0.08), transparent 58%),
-      radial-gradient(48% 40% at 75% 85%, rgba(243,234,217,0.05), transparent 62%),
-      radial-gradient(30% 30% at 8% 88%, rgba(217,143,134,0.06), transparent 58%);
-    filter:blur(60px);
-    opacity:.85;
   }
 
   [data-theme="light"] .silk{
@@ -150,16 +141,23 @@
     mix-blend-mode:soft-light;
     opacity:.9;
   }
-  [data-theme="light"] .silk::after{
-    content:"";position:absolute;inset:-20%;
-    background:
-      radial-gradient(42% 30% at 15% 18%, rgba(255,255,255,0.95), transparent 60%),
-      radial-gradient(36% 30% at 85% 10%, rgba(255,255,255,0.8), transparent 55%),
-      radial-gradient(50% 42% at 72% 82%, rgba(184,137,74,0.10), transparent 62%),
-      radial-gradient(32% 30% at 6% 88%, rgba(255,255,255,0.7), transparent 58%),
-      radial-gradient(26% 24% at 50% 46%, rgba(184,137,74,0.06), transparent 60%);
-    filter:blur(55px);
-    opacity:.75;
+
+  /* ============ SILK WAVES (animated 3D shader) ============ */
+  .silk-waves{
+    position:fixed;inset:0;z-index:-3;width:100vw;height:100vh;height:100dvh;
+    pointer-events:none;display:block;
+    transform:translateZ(0);will-change:transform;backface-visibility:hidden;
+  }
+  /* Matches .silk's flat gradient so the canvas's own box never shows a mismatched/blank
+     color if a scroll-heavy frame is ever a beat behind on drawing new WebGL content. */
+  [data-theme="dark"] .silk-waves{
+    background:linear-gradient(125deg, #0b0a08 0%, #171310 22%, #0d0b09 40%, #1a1512 58%, #0c0a08 76%, #171210 100%);
+  }
+  [data-theme="light"] .silk-waves{
+    background:linear-gradient(125deg, #f3ece0 0%, #fffdf9 22%, #ede2cd 40%, #fffdfa 58%, #f0e6d4 76%, #fffcf7 100%);
+  }
+  @media (prefers-reduced-motion: reduce){
+    .silk-waves{display:none;}
   }
 
   .frame-border{position:fixed;inset:14px;z-index:2;pointer-events:none;border:1px solid var(--line);}
@@ -595,7 +593,7 @@
   .contact-page{padding:150px 40px 120px;max-width:720px;margin:0 auto;}
 
   .contact-header{max-width:640px;margin-bottom:48px;}
-  .contact-header .eyebrow{margin-bottom:14px;display:inline-block;}
+  .contact-header .eyebrow{margin-bottom:8px;display:inline-block;}
   .contact-header h1{font-size:clamp(32px,6.5vw,58px);line-height:0.98;margin-bottom:18px;}
   .contact-header p{font-family:var(--font-body);color:var(--ink-soft);font-size:15.5px;line-height:1.7;max-width:480px;}
 
@@ -633,6 +631,10 @@
   [data-theme="light"] .field input[type="time"]{color-scheme:light;}
 
   .submit-btn{align-self:flex-start;margin-top:8px;}
+  .submit-btn[disabled]{opacity:.6;cursor:not-allowed;}
+  .form-error{display:none;font-family:var(--font-body);font-size:13.5px;color:var(--ink-soft);margin-top:14px;line-height:1.6;}
+  .form-error.visible{display:block;}
+  .form-error a{color:var(--accent-deep);text-decoration:underline;}
 
   .contact-success{display:none;text-align:center;padding:50px 10px 20px;}
   .contact-success.visible{display:block;}
@@ -695,6 +697,7 @@
 <body>
 
   <div class="silk"></div>
+  <canvas class="silk-waves" id="silkWaves"></canvas>
   <div class="frame-border"></div>
 
   <header id="siteHeader">
@@ -833,7 +836,7 @@
       </button>
 
       <div class="contact-header">
-        <span class="eyebrow">Let's Collaborate</span>
+        <span class="eyebrow">Let's Create Together</span>
         <h1>Tell Me About<br>Your Shoot</h1>
         <p>Fill out the form below and I'll follow up to lock in the details.</p>
       </div>
@@ -889,6 +892,7 @@
         </div>
 
         <button type="submit" class="btn-accent submit-btn"><span>Send Inquiry</span></button>
+        <p class="form-error" id="contactError">Something went wrong sending that — please try again, or email me directly at <a href="mailto:giancarlorrv@gmail.com">giancarlorrv@gmail.com</a>.</p>
       </form>
 
       <div class="contact-success" id="contactSuccess">
@@ -925,9 +929,23 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <script>
   gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+
+  /* ============ EMAILJS CONFIG ============ */
+  /* Fill these in from your EmailJS dashboard (Account > General for the public key,
+     Email Services for the service ID, Email Templates for the template ID) before
+     inquiries will actually send. Until then the form falls back to a mailto: link. */
+  const EMAILJS_PUBLIC_KEY = 'PMqRE4dUNYBK6sNon';
+  const EMAILJS_SERVICE_ID = 'service_md9heal';
+  const EMAILJS_TEMPLATE_ID = 'template_q92iudp';
+  const INQUIRY_TO_EMAIL = 'giancarlorrv@gmail.com';
+
+  if (EMAILJS_PUBLIC_KEY !== 'YOUR_PUBLIC_KEY' && window.emailjs) {
+    emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+  }
 
   /* ============ DATA ============ */
   const shoots = [
@@ -939,7 +957,7 @@
   ];
   const EMPTY_SLOTS = 9;
   const INSTAGRAM_URL = 'https://www.instagram.com/dekagrophy/';
-  const FACEBOOK_URL  = 'https://www.facebook.com/profile.php?id=61589771938194';
+  const FACEBOOK_URL  = 'https://www.facebook.com/Dekagrophy';
 
   const iconInstagram = `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1"/></svg>`;
   const iconFacebook  = `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 8h-2a2 2 0 0 0-2 2v10M8 13h6"/><rect x="3" y="3" width="18" height="18" rx="5"/></svg>`;
@@ -1071,6 +1089,239 @@
       root.setAttribute('data-theme', next);
       try { localStorage.setItem('dekagrophy-theme', next); } catch(e){}
     });
+  }
+
+  /* ============ SILK WAVES BACKGROUND (WebGL, pseudo-3D) ============ */
+  /*
+    Fullscreen fragment shader: an fbm noise field is treated as a height map,
+    a normal is derived from it via finite differences, then lit with a
+    diffuse + specular term. That lighting is what reads as "3D" folds of
+    fabric rather than a flat printed pattern, even though it's one flat quad.
+  */
+  function setupSilkWaves() {
+    const canvas = document.getElementById('silkWaves');
+    if(!canvas) return;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduceMotion) {
+      console.warn('Silk waves: skipped because prefers-reduced-motion is enabled on this browser/OS.');
+      return;
+    }
+
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    if(!gl) {
+      console.warn('Silk waves: WebGL context unavailable (blocked by browser/extension, or unsupported). Falling back to the static .silk gradient.');
+      return;
+    }
+
+    const vertSrc = `
+      attribute vec2 aPos;
+      void main(){
+        gl_Position = vec4(aPos, 0.0, 1.0);
+      }
+    `;
+
+    const RIPPLE_COUNT = 8;
+    const RIPPLE_LIFETIME = 1.1; // seconds a click/tap wave stays alive
+    const WAVE_SPEED = 0.62; // how fast the ring expands, in shader domain units/sec
+    const WAVE_BAND = 90.0; // higher = thinner ring
+
+    // GLSL ES 1.00 (WebGL1) doesn't guarantee support for indexing a uniform array with a
+    // non-constant expression in a fragment shader - some real GPU drivers reject it outright
+    // even though lenient implementations (e.g. SwiftShader) accept it fine. Unrolling with
+    // literal indices sidesteps the restriction entirely.
+    let rippleBlocks = '';
+    for (let idx = 0; idx < RIPPLE_COUNT; idx++) {
+      rippleBlocks += `
+        {
+          vec3 r = uRipples[${idx}];
+          float age = uTime - r.z;
+          if(age >= 0.0 && age < ${RIPPLE_LIFETIME.toFixed(4)}){
+            vec2 rp = (r.xy - 0.5) * aspect * 1.8 + 0.5;
+            vec2 diff = p - rp;
+            float dist = length(diff);
+            float waveRadius = age * ${WAVE_SPEED.toFixed(4)};
+            float band = exp(-pow(dist - waveRadius, 2.0) * ${WAVE_BAND.toFixed(4)});
+            float life = 1.0 - age / ${RIPPLE_LIFETIME.toFixed(4)};
+            vec2 dir = diff / (dist + 0.025);
+            p += dir * band * life * 0.16;
+          }
+        }
+      `;
+    }
+
+    const fragSrc = `
+      precision highp float;
+      uniform vec2 uResolution;
+      uniform float uTime;
+      uniform vec3 uColorBase;
+      uniform vec3 uColorAccent;
+      uniform vec3 uColorHighlight;
+      uniform vec2 uBrightRange; // x = darkest multiplier (diffuse=0), y = added range up to diffuse=1
+      uniform vec3 uRipples[${RIPPLE_COUNT}]; // xy = normalized position, z = creation time (uTime units)
+
+      float hash(vec2 p){
+        p = fract(p * vec2(123.34, 456.21));
+        p += dot(p, p + 45.32);
+        return fract(p.x * p.y);
+      }
+      float noise(vec2 p){
+        vec2 i = floor(p);
+        vec2 f = fract(p);
+        float a = hash(i);
+        float b = hash(i + vec2(1.0, 0.0));
+        float c = hash(i + vec2(0.0, 1.0));
+        float d = hash(i + vec2(1.0, 1.0));
+        vec2 u = f * f * (3.0 - 2.0 * f);
+        return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+      }
+      float fbm(vec2 p){
+        float v = 0.0;
+        float amp = 0.5;
+        for(int i = 0; i < 3; i++){
+          v += amp * noise(p);
+          p *= 2.05;
+          amp *= 0.55;
+        }
+        return v;
+      }
+
+      void main(){
+        vec2 uv = gl_FragCoord.xy / uResolution.xy;
+        vec2 aspect = vec2(uResolution.x / uResolution.y, 1.0);
+        vec2 p = (uv - 0.5) * aspect * 1.8 + 0.5;
+
+        // Each click/tap spawns a small ring wave that expands outward and pushes the
+        // flow along with it, rather than a static distortion pinned at the point - the
+        // pushed band tracks the ring's radius over the ripple's lifetime.
+        ${rippleBlocks}
+
+        float t = uTime * 0.045;
+        vec2 flow = vec2(fbm(p + t), fbm(p - t + 3.1)) * 1.6;
+
+        float h  = fbm(p + flow + t * 0.6);
+        float eps = 0.0035;
+        float hx = fbm(p + vec2(eps, 0.0) + flow + t * 0.6);
+        float hy = fbm(p + vec2(0.0, eps) + flow + t * 0.6);
+        vec3 normal = normalize(vec3(h - hx, h - hy, 0.16));
+
+        vec3 lightDir = normalize(vec3(-0.4, 0.55, 0.7));
+        float diffuse = max(dot(normal, lightDir), 0.0);
+        vec3 viewDir = vec3(0.0, 0.0, 1.0);
+        vec3 halfV = normalize(lightDir + viewDir);
+        float spec = pow(max(dot(normal, halfV), 0.0), 34.0);
+
+        vec3 col = mix(uColorBase, uColorAccent, smoothstep(0.28, 0.74, h) * 1.15);
+        col *= (uBrightRange.x + uBrightRange.y * diffuse);
+        col += uColorHighlight * spec * 1.1;
+
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `;
+
+    function compile(type, src) {
+      const s = gl.createShader(type);
+      gl.shaderSource(s, src);
+      gl.compileShader(s);
+      if(!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+        console.warn('Silk waves shader error:', gl.getShaderInfoLog(s));
+        return null;
+      }
+      return s;
+    }
+    const vs = compile(gl.VERTEX_SHADER, vertSrc);
+    const fs = compile(gl.FRAGMENT_SHADER, fragSrc);
+    if(!vs || !fs) return;
+
+    const program = gl.createProgram();
+    gl.attachShader(program, vs);
+    gl.attachShader(program, fs);
+    gl.linkProgram(program);
+    if(!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.warn('Silk waves program error:', gl.getProgramInfoLog(program));
+      return;
+    }
+    gl.useProgram(program);
+
+    const posBuf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+    const posLoc = gl.getAttribLocation(program, 'aPos');
+    gl.enableVertexAttribArray(posLoc);
+    gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+
+    const uResolution = gl.getUniformLocation(program, 'uResolution');
+    const uTime = gl.getUniformLocation(program, 'uTime');
+    const uColorBase = gl.getUniformLocation(program, 'uColorBase');
+    const uColorAccent = gl.getUniformLocation(program, 'uColorAccent');
+    const uColorHighlight = gl.getUniformLocation(program, 'uColorHighlight');
+    const uBrightRange = gl.getUniformLocation(program, 'uBrightRange');
+    const uRipples = gl.getUniformLocation(program, 'uRipples');
+
+    // Ring buffer of recent click/tap points. Inactive slots start with t far in the
+    // past so they never register as an active wave before their first real use.
+    const rippleData = new Float32Array(RIPPLE_COUNT * 3);
+    for (let i = 0; i < RIPPLE_COUNT; i++) rippleData[i * 3 + 2] = -1000;
+    let rippleCursor = 0;
+    let currentT = 0;
+
+    function addRipple(nx, ny) {
+      const i = rippleCursor;
+      rippleData[i * 3 + 0] = nx;
+      rippleData[i * 3 + 1] = ny;
+      rippleData[i * 3 + 2] = currentT;
+      rippleCursor = (rippleCursor + 1) % RIPPLE_COUNT;
+    }
+    // pointerdown covers both a mouse click and a tap the instant it starts, on one listener.
+    window.addEventListener('pointerdown', (e) => {
+      addRipple(e.clientX / window.innerWidth, 1.0 - e.clientY / window.innerHeight);
+    }, { passive: true });
+
+    function hexToRgb01(hex) {
+      const r = parseInt(hex.substring(0,2),16) / 255;
+      const g = parseInt(hex.substring(2,4),16) / 255;
+      const b = parseInt(hex.substring(4,6),16) / 255;
+      return [r, g, b];
+    }
+    const palette = {
+      // bright: [x = darkest multiplier, y = extra range added by full diffuse light]
+      dark:  { base: hexToRgb01('120f0c'), accent: hexToRgb01('9E76D6'), highlight: hexToRgb01('F3EAD9'), bright: [0.45, 0.75] },
+      light: { base: hexToRgb01('faf5ea'), accent: hexToRgb01('e8cfa0'), highlight: hexToRgb01('CEC3AB'), bright: [0.82, 0.32] }
+    };
+    function currentTheme() {
+      return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    }
+
+    // The element's visible box is sized purely by CSS (inset:0 + width/height:100%) so it
+    // tracks the viewport instantly, even mid-scroll while a mobile browser's address bar is
+    // collapsing/expanding. Only the internal render resolution (backing store) is set from JS,
+    // capped for perf and upscaled via CSS - a lag here just means a brief soft stretch, never a gap.
+    const MAX_DIM = 720;
+    function resize() {
+      const w = canvas.clientWidth || window.innerWidth;
+      const h = canvas.clientHeight || window.innerHeight;
+      const scale = Math.min(1, MAX_DIM / Math.max(w, h));
+      canvas.width = Math.max(1, Math.round(w * scale));
+      canvas.height = Math.max(1, Math.round(h * scale));
+      gl.viewport(0, 0, canvas.width, canvas.height);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    function frame(t) {
+      currentT = t * 0.001;
+      const theme = palette[currentTheme()];
+      gl.uniform2f(uResolution, canvas.width, canvas.height);
+      gl.uniform1f(uTime, currentT);
+      gl.uniform3f(uColorBase, theme.base[0], theme.base[1], theme.base[2]);
+      gl.uniform3f(uColorAccent, theme.accent[0], theme.accent[1], theme.accent[2]);
+      gl.uniform3f(uColorHighlight, theme.highlight[0], theme.highlight[1], theme.highlight[2]);
+      gl.uniform2f(uBrightRange, theme.bright[0], theme.bright[1]);
+      gl.uniform3fv(uRipples, rippleData);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      requestAnimationFrame(frame);
+    }
+    console.info('Silk waves: WebGL context created and shader linked, starting render loop.');
+    requestAnimationFrame(frame);
   }
 
   /* ============ GSAP ANIMATIONS ============ */
@@ -1422,9 +1673,11 @@
   function setupContactForm() {
     const form = document.getElementById('contactForm');
     const success = document.getElementById('contactSuccess');
+    const errorMsg = document.getElementById('contactError');
+    const submitBtn = form.querySelector('.submit-btn');
+    const submitLabel = submitBtn.querySelector('span');
 
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
+    function revealSuccess() {
       gsap.to(form, {
         duration: 0.35, opacity: 0, y: -10, ease: 'power2.in',
         onComplete: () => {
@@ -1433,10 +1686,53 @@
           gsap.from(success, { duration: 0.5, opacity: 0, y: 14, ease: 'power3.out' });
         }
       });
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      errorMsg.classList.remove('visible');
+
+      const isConfigured = EMAILJS_PUBLIC_KEY !== 'YOUR_PUBLIC_KEY' && window.emailjs;
+      if (!isConfigured) {
+        errorMsg.classList.add('visible');
+        return;
+      }
+
+      const data = new FormData(form);
+      const templateParams = {
+        first_name: data.get('firstName'),
+        last_name: data.get('lastName'),
+        nickname: data.get('nickname') || '—',
+        instagram: data.get('instagram') || '—',
+        whatsapp: data.get('whatsapp') || '—',
+        email: data.get('email'),
+        brief: data.get('brief') || '—',
+        date: data.get('date') || '—',
+        time: data.get('time') || '—',
+        to_email: INQUIRY_TO_EMAIL,
+        reply_to: data.get('email')
+      };
+
+      submitBtn.disabled = true;
+      submitLabel.textContent = 'Sending…';
+
+      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+        .then(() => {
+          revealSuccess();
+        })
+        .catch((err) => {
+          console.error('EmailJS send failed:', err);
+          submitBtn.disabled = false;
+          submitLabel.textContent = 'Send Inquiry';
+          errorMsg.classList.add('visible');
+        });
     });
 
     document.getElementById('contactAnother').addEventListener('click', () => {
       success.classList.remove('visible');
+      errorMsg.classList.remove('visible');
+      submitBtn.disabled = false;
+      submitLabel.textContent = 'Send Inquiry';
       form.reset();
       form.style.display = '';
       gsap.fromTo(form, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power3.out' });
@@ -1445,6 +1741,7 @@
 
   /* ============ INIT ============ */
   document.addEventListener('DOMContentLoaded', () => {
+    setupSilkWaves();
     heroAnimation();
     heroBgSlideshow();
     setupPortfolioReveal();
@@ -1472,6 +1769,18 @@
 
     router();
   });
+</script>
+
+<!-- TEMP DEBUG CONSOLE: visit any page with ?debug=1 in the URL to get an on-screen
+     console (useful for checking errors on mobile, where DevTools isn't available).
+     Safe to remove once the EmailJS issue is sorted - it's a no-op for everyone else. -->
+<script>
+  if (location.search.indexOf('debug=1') !== -1) {
+    var erudaScript = document.createElement('script');
+    erudaScript.src = 'https://cdn.jsdelivr.net/npm/eruda';
+    document.body.appendChild(erudaScript);
+    erudaScript.onload = function () { eruda.init(); };
+  }
 </script>
 
 </body>
