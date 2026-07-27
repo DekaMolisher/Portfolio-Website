@@ -679,10 +679,24 @@
     color:#E4CFA6;font-size:12px;font-weight:600;
   }
   .viewer-btn svg{width:14px;height:14px;stroke:currentColor;}
+  .viewer-nav{
+    position:absolute;top:50%;transform:translateY(-50%);z-index:5;
+    width:46px;height:46px;border-radius:50%;border:1px solid rgba(228,207,166,0.4);
+    background:rgba(30,26,22,0.4);backdrop-filter:blur(6px);
+    display:flex;align-items:center;justify-content:center;color:#E4CFA6;cursor:pointer;
+    transition:background .25s ease, border-color .25s ease;
+  }
+  .viewer-nav:hover{background:rgba(30,26,22,0.7);border-color:rgba(228,207,166,0.75);}
+  .viewer-nav svg{width:18px;height:18px;stroke:currentColor;}
+  .viewer-prev{left:22px;}
+  .viewer-next{right:22px;}
 
   @media (max-width:900px){
     .viewer-stage{padding:90px 26px 130px;}
     .viewer-img{max-width:86vw;max-height:54vh;}
+    .viewer-nav{width:38px;height:38px;}
+    .viewer-prev{left:8px;}
+    .viewer-next{right:8px;}
   }
 
   @media (max-width:640px){
@@ -915,6 +929,12 @@
       <svg viewBox="0 0 24 24" stroke-width="1.4" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
     </button>
     <div class="viewer-stage">
+      <button class="viewer-nav viewer-prev" id="viewerPrevBtn" aria-label="Previous photo">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+      </button>
+      <button class="viewer-nav viewer-next" id="viewerNextBtn" aria-label="Next photo">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+      </button>
       <div class="viewer-canvas">
         <img class="viewer-img" id="viewerImg" src="" alt="">
       </div>
@@ -953,7 +973,10 @@
 
   /* ============ DATA ============ */
   const shoots = [
-    { id:'grace',    file:'grace.jpg',    name:'Grace',    tag:'Golden Hour Portrait', ratio:'3/4'  },
+    { id:'grace',    file:'grace-01.jpg', name:'Grace',    tag:'Golden Hour Portrait', ratio:'9/16', images:[
+      'grace-01.jpg','grace-02.jpg','grace-03.jpg','grace-04.jpg','grace-05.jpg','grace-06.jpg','grace-07.jpg','grace-08.jpg',
+      'grace-09.jpg','grace-10.jpg','grace-11.jpg','grace-12.jpg','grace-13.jpg','grace-14.jpg','grace-15.jpg','grace-16.jpg'
+    ] },
     { id:'saira',    file:'saira.jpg',    name:'Saira',    tag:'Studio Boudoir',       ratio:'3/4'  },
     { id:'lucy',     file:'lucy.jpg',     name:'Lucy',     tag:'Urban Noir',           ratio:'16/9' },
     { id:'thelma',   file:'denisse.jpg',  name:'Thelma',   tag:'Studio Boudoir',       ratio:'3/4'  },
@@ -1516,22 +1539,27 @@
     const grid = document.getElementById('shootGrid');
     grid.innerHTML = '';
 
-    const filled = document.createElement('div');
-    filled.className = 'cell filled';
-    filled.innerHTML = `
-      <img src="${s.file}" alt="${s.name}" loading="eager">
-      <span class="cell-edge"><span class="bar bar-top"></span><span class="bar bar-left"></span><span class="bar bar-bottom"></span><span class="bar bar-right"></span><span class="glow"></span></span>
-      <span class="code">${s.id.slice(0,2).toUpperCase()}-01</span>
-      <span class="label">${s.name}</span>
-    `;
-    filled.addEventListener('click', () => openViewer(s.file, s.name, 0, EMPTY_SLOTS + 1));
-    grid.appendChild(filled);
+    const images = s.images || [s.file];
+    const totalCells = Math.max(images.length, EMPTY_SLOTS + 1);
 
-    for(let i=0; i<EMPTY_SLOTS; i++) {
+    images.forEach((file, i) => {
+      const filled = document.createElement('div');
+      filled.className = 'cell filled';
+      filled.innerHTML = `
+        <img src="${file}" alt="${s.name}" loading="${i === 0 ? 'eager' : 'lazy'}">
+        <span class="cell-edge"><span class="bar bar-top"></span><span class="bar bar-left"></span><span class="bar bar-bottom"></span><span class="bar bar-right"></span><span class="glow"></span></span>
+        <span class="code">${s.id.slice(0,2).toUpperCase()}-${String(i+1).padStart(2,'0')}</span>
+        <span class="label">${s.name}</span>
+      `;
+      filled.addEventListener('click', () => openViewer(images, i, s.name));
+      grid.appendChild(filled);
+    });
+
+    for(let i=images.length; i<totalCells; i++) {
       const cell = document.createElement('div');
       cell.className = 'cell empty';
       cell.innerHTML = `
-        <span class="code">${s.id.slice(0,2).toUpperCase()}-${String(i+2).padStart(2,'0')}</span>
+        <span class="code">${s.id.slice(0,2).toUpperCase()}-${String(i+1).padStart(2,'0')}</span>
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
         <span class="label">Awaiting frame</span>
       `;
@@ -1557,29 +1585,55 @@
   /* ============ FULLSCREEN VIEWER WITH ZOOM ============ */
 
   let viewerState = { zoom: 1, panX: 0, panY: 0, isDragging: false, startX: 0, startY: 0 };
+  let viewerImages = [];
+  let viewerIndex = 0;
+  let viewerName = '';
 
-  function openViewer(src, name, index, total) {
+  function openViewer(images, index, name) {
+    viewerImages = images;
+    viewerIndex = index;
+    viewerName = name;
+
     const viewer = document.getElementById('viewer');
-    const img = document.getElementById('viewerImg');
-
     gsap.killTweensOf(viewer);
+
+    const hasMultiple = viewerImages.length > 1;
+    document.getElementById('viewerPrevBtn').style.display = hasMultiple ? 'flex' : 'none';
+    document.getElementById('viewerNextBtn').style.display = hasMultiple ? 'flex' : 'none';
+
+    showViewerImage();
+
+    gsap.set(viewer, { opacity: 0 });
+    viewer.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    gsap.to(viewer, { opacity: 1, duration: 0.35, ease: 'power2.out' });
+  }
+
+  function showViewerImage() {
+    const img = document.getElementById('viewerImg');
     gsap.killTweensOf(img);
 
-    img.src = src;
-    img.alt = name;
-    document.getElementById('viewerInfo').textContent = String(index+1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
+    img.src = viewerImages[viewerIndex];
+    img.alt = viewerName;
+    document.getElementById('viewerInfo').textContent = String(viewerIndex+1).padStart(2,'0') + ' / ' + String(viewerImages.length).padStart(2,'0');
 
     viewerState = { zoom: 1, panX: 0, panY: 0, isDragging: false, startX: 0, startY: 0 };
     document.getElementById('zoomLevel').textContent = '100%';
 
-    gsap.set(viewer, { opacity: 0 });
     gsap.set(img, { opacity: 0, scale: 0.92, x: 0, y: 0 });
-
-    viewer.classList.add('open');
-    document.body.style.overflow = 'hidden';
-
-    gsap.to(viewer, { opacity: 1, duration: 0.35, ease: 'power2.out' });
     gsap.to(img, { opacity: 1, scale: 1, duration: 0.5, ease: 'power3.out', delay: 0.05 });
+  }
+
+  function viewerPrev() {
+    if(viewerImages.length < 2) return;
+    viewerIndex = (viewerIndex - 1 + viewerImages.length) % viewerImages.length;
+    showViewerImage();
+  }
+
+  function viewerNext() {
+    if(viewerImages.length < 2) return;
+    viewerIndex = (viewerIndex + 1) % viewerImages.length;
+    showViewerImage();
   }
 
   function closeViewer() {
@@ -1620,6 +1674,8 @@
   document.getElementById('zoomInBtn').addEventListener('click', zoomIn);
   document.getElementById('zoomOutBtn').addEventListener('click', zoomOut);
   document.getElementById('resetBtn').addEventListener('click', resetZoom);
+  document.getElementById('viewerPrevBtn').addEventListener('click', viewerPrev);
+  document.getElementById('viewerNextBtn').addEventListener('click', viewerNext);
 
   const viewerImgEl = document.getElementById('viewerImg');
   viewerImgEl.addEventListener('mousedown', (e) => {
@@ -1648,6 +1704,8 @@
     if(e.key === 'Escape') closeViewer();
     if(e.key === '+' || e.key === '=') zoomIn();
     if(e.key === '-') zoomOut();
+    if(e.key === 'ArrowLeft') viewerPrev();
+    if(e.key === 'ArrowRight') viewerNext();
   });
 
   document.getElementById('viewer').addEventListener('click', (e) => {
