@@ -350,11 +350,8 @@
   .section-head .rule{width:56px;height:1px;background:var(--accent);margin:22px auto;}
   .section-head p{color:var(--ink-soft);font-size:15.5px;line-height:1.8;font-family:var(--font-body);}
 
-  /* ============ MASONRY GRID (3D floating environment) ============ */
-  .masonry{
-    display:grid;grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));gap:24px;
-    perspective:1600px;
-  }
+  /* ============ MASONRY GRID ============ */
+  .masonry{display:grid;grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));gap:24px;}
   @media (max-width:980px){.masonry{grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));}}
   @media (max-width:640px){.masonry{grid-template-columns:1fr;}}
 
@@ -362,7 +359,6 @@
     cursor:pointer;background:var(--surface);border:1px solid transparent;
     position:relative;overflow:hidden;display:flex;flex-direction:column;
     transition:border-color .3s ease, box-shadow .5s var(--ease);
-    will-change:transform;
   }
   .shot:hover{border-color:var(--accent-pale);}
   .shot.is-hover{box-shadow:0 32px 56px -20px var(--accent-pale), 0 0 0 1px var(--accent-pale);}
@@ -1016,7 +1012,7 @@
       onComplete: () => {
         location.hash = '#/shoot/' + id;
         gsap.set(viewHome, { clearProps: 'transform,opacity,transformOrigin' });
-        el.__resetPortfolioCard ? el.__resetPortfolioCard() : gsap.set(el, { clearProps: 'transform,opacity' });
+        gsap.set(el, { clearProps: 'transform,opacity' });
         document.body.style.overflow = '';
         sweep.remove();
       }
@@ -1408,68 +1404,25 @@
   function setupShotHovers() {
     const isTouchDevice = window.matchMedia('(hover: none)').matches;
 
-    // Each card floats at its own resting depth (z) and gently bobs forever. Depth also maps
-    // to a very slight opacity dip for cards sitting farther back. On hover/tap, a card lifts
-    // to a Z well beyond any resting depth and gets an elevated z-index, so it always ends up
-    // in front of every other floating card - then eases back to its own depth on release.
-    const DEPTHS = [-32, 18, -14, 30, -22];
-    const minDepth = Math.min(...DEPTHS);
-    const maxDepth = Math.max(...DEPTHS);
-    const depthRange = maxDepth - minDepth || 1;
-    const FRONT_Z = 140;
-
-    gsap.utils.toArray('.shot').forEach((shot, i) => {
+    gsap.utils.toArray('.shot').forEach((shot) => {
       const img = shot.querySelector('.shot-media img');
       const view = shot.querySelector('.shot-view');
       const media = shot.querySelector('.shot-media');
 
-      const baseZ = DEPTHS[i % DEPTHS.length];
-      const baseOpacity = 0.94 + ((baseZ - minDepth) / depthRange) * 0.06;
-
-      gsap.set(shot, { z: baseZ, opacity: baseOpacity, transformOrigin: '50% 50%' });
-
-      const idleFloat = gsap.to(shot, {
-        z: baseZ + (i % 2 === 0 ? 16 : -16),
-        y: i % 2 === 0 ? -8 : 8,
-        duration: 3.6 + i * 0.35,
-        ease: 'sine.inOut',
-        yoyo: true,
-        repeat: -1,
-        delay: i * 0.25
-      });
-
       function enter() {
         shot.classList.add('is-hover');
-        idleFloat.pause();
-        gsap.set(shot, { zIndex: 50 });
-        gsap.to(shot, { duration: 0.5, z: FRONT_Z, y: -14, scale: 1.1, opacity: 1, ease: 'power3.out' });
+        gsap.to(shot, { duration: 0.45, y: -10, ease: 'power3.out' });
         gsap.to(img, { duration: 0.8, scale: 1.09, ease: 'power3.out' });
         gsap.to(view, { duration: 0.4, opacity: 1, scale: 1, ease: 'power3.out' });
         media.style.setProperty('--overlay-opacity', '1');
       }
       function leave() {
         shot.classList.remove('is-hover');
-        gsap.to(shot, {
-          duration: 0.5, z: baseZ, y: 0, scale: 1, opacity: baseOpacity, ease: 'power3.out',
-          onComplete: () => { gsap.set(shot, { zIndex: 'auto' }); idleFloat.resume(); }
-        });
+        gsap.to(shot, { duration: 0.45, y: 0, ease: 'power3.out' });
         gsap.to(img, { duration: 0.8, scale: 1, ease: 'power3.out' });
         gsap.to(view, { duration: 0.4, opacity: 0, scale: 0.85, ease: 'power3.out' });
         media.style.setProperty('--overlay-opacity', '0');
       }
-
-      // Called instead of a generic clearProps when returning from a shoot page, so the
-      // card snaps back to its resting depth/opacity and keeps floating rather than freezing.
-      shot.__resetPortfolioCard = () => {
-        shot.classList.remove('is-hover');
-        gsap.killTweensOf([shot, img, view]);
-        gsap.set(shot, { z: baseZ, y: 0, scale: 1, opacity: baseOpacity, zIndex: 'auto' });
-        gsap.set(img, { scale: 1 });
-        gsap.set(view, { opacity: 0, scale: 0.85 });
-        media.style.setProperty('--overlay-opacity', '0');
-        idleFloat.pause(0);
-        idleFloat.play();
-      };
 
       if(isTouchDevice) {
         // first tap reveals the glow/edge, second tap on an already-revealed card navigates
