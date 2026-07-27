@@ -534,13 +534,16 @@
   .shoot-note p{font-family:var(--font-accent);font-style:italic;font-size:17px;line-height:1.6;color:var(--ink-soft);}
 
   .shoot-grid{
-    display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
-    gap:3px;background:var(--line);
+    --gallery-gap:14px;
+    column-count:2;column-gap:var(--gallery-gap);
   }
-  .cell{position:relative;aspect-ratio:4/5;overflow:hidden;background:var(--surface);}
+  @media (min-width:640px){.shoot-grid{column-count:3;--gallery-gap:18px;}}
+  @media (min-width:1000px){.shoot-grid{column-count:4;--gallery-gap:20px;}}
+  @media (min-width:1440px){.shoot-grid{column-count:5;--gallery-gap:24px;}}
+  .cell{position:relative;overflow:hidden;background:var(--surface);break-inside:avoid;margin-bottom:var(--gallery-gap);}
   .cell.filled{cursor:pointer;transition:box-shadow .5s var(--ease);}
   .cell.filled.is-hover{box-shadow:0 32px 56px -20px var(--accent-pale), 0 0 0 1px var(--accent-pale);}
-  .cell.filled img{width:100%;height:100%;object-fit:cover;display:block;}
+  .cell.filled img{width:100%;height:auto;display:block;}
   .cell-edge{position:absolute;inset:0;z-index:4;pointer-events:none;}
   .cell-edge .bar{position:absolute;background:var(--accent);transition:transform .3s var(--ease);}
   .cell-edge .bar-top{top:0;left:0;right:0;height:2px;transform-origin:right center;transform:scaleX(0);}
@@ -577,14 +580,6 @@
     font-family:var(--font-ui);font-size:10.5px;letter-spacing:.12em;
     text-transform:uppercase;color:#fff;
   }
-
-  .cell.empty{
-    border:1px dashed var(--accent-pale);
-    display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;
-  }
-  .cell.empty svg{width:17px;height:17px;stroke:var(--accent-pale);}
-  .cell.empty .label{font-family:var(--font-ui);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);opacity:.7;}
-  .cell.empty .code{color:var(--ink-soft);opacity:.55;}
 
   /* ============ CONTACT FORM ============ */
   .contact-page{padding:150px 40px 120px;max-width:720px;margin:0 auto;}
@@ -664,7 +659,7 @@
   }
   .viewer-stage{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:100px 60px 120px;}
   .viewer-canvas{position:relative;display:flex;align-items:center;justify-content:center;}
-  .viewer-img{max-width:64vw;max-height:60vh;width:auto;height:auto;display:block;cursor:grab;}
+  .viewer-img{max-width:64vw;max-height:60vh;width:auto;height:auto;display:block;cursor:grab;touch-action:none;}
   .viewer-img:active{cursor:grabbing;}
   .viewer-controls{
     position:absolute;bottom:36px;left:50%;transform:translateX(-50%);z-index:5;
@@ -973,16 +968,15 @@
 
   /* ============ DATA ============ */
   const shoots = [
-    { id:'grace',    file:'grace-01.jpg', name:'Grace',    tag:'Golden Hour Portrait', ratio:'9/16', images:[
-      'grace-01.jpg','grace-02.jpg','grace-03.jpg','grace-04.jpg','grace-05.jpg','grace-06.jpg','grace-07.jpg','grace-08.jpg',
-      'grace-09.jpg','grace-10.jpg','grace-11.jpg','grace-12.jpg','grace-13.jpg','grace-14.jpg','grace-15.jpg','grace-16.jpg'
+    { id:'mavee',    file:'mavee-01.jpg', name:'Mavee',    tag:'Urban-Neon Tijuana', ratio:'9/16', images:[
+      'mavee-01.jpg','mavee-02.jpg','mavee-03.jpg','mavee-04.jpg','mavee-05.jpg','mavee-06.jpg','mavee-07.jpg','mavee-08.jpg',
+      'mavee-09.jpg','mavee-10.jpg','mavee-11.jpg','mavee-12.jpg','mavee-13.jpg','mavee-14.jpg','mavee-15.jpg','mavee-16.jpg'
     ] },
     { id:'saira',    file:'saira.jpg',    name:'Saira',    tag:'Studio Boudoir',       ratio:'3/4'  },
     { id:'lucy',     file:'lucy.jpg',     name:'Lucy',     tag:'Urban Noir',           ratio:'16/9' },
     { id:'thelma',   file:'denisse.jpg',  name:'Thelma',   tag:'Studio Boudoir',       ratio:'3/4'  },
     { id:'cristina', file:'cristina.jpg', name:'Cristina', tag:'Golden Hour Portrait', ratio:'16/9' }
   ];
-  const EMPTY_SLOTS = 9;
   const INSTAGRAM_URL = 'https://www.instagram.com/dekagrophy/';
   const FACEBOOK_URL  = 'https://www.facebook.com/Dekagrophy';
 
@@ -1540,7 +1534,6 @@
     grid.innerHTML = '';
 
     const images = s.images || [s.file];
-    const totalCells = Math.max(images.length, EMPTY_SLOTS + 1);
 
     images.forEach((file, i) => {
       const filled = document.createElement('div');
@@ -1554,17 +1547,6 @@
       filled.addEventListener('click', () => openViewer(images, i, s.name));
       grid.appendChild(filled);
     });
-
-    for(let i=images.length; i<totalCells; i++) {
-      const cell = document.createElement('div');
-      cell.className = 'cell empty';
-      cell.innerHTML = `
-        <span class="code">${s.id.slice(0,2).toUpperCase()}-${String(i+1).padStart(2,'0')}</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-        <span class="label">Awaiting frame</span>
-      `;
-      grid.appendChild(cell);
-    }
 
     gsap.from('.cell', { opacity: 0, y: 14, duration: 0.6, stagger: 0.04, ease: 'power3.out' });
 
@@ -1620,21 +1602,32 @@
     viewerState = { zoom: 1, panX: 0, panY: 0, isDragging: false, startX: 0, startY: 0 };
     document.getElementById('zoomLevel').textContent = '100%';
 
-    gsap.set(img, { opacity: 0, scale: 0.92, x: 0, y: 0 });
+    gsap.set(img, { opacity: 0, scale: 0.92, x: 0, y: 0, filter: 'blur(0px)' });
     gsap.to(img, { opacity: 1, scale: 1, duration: 0.5, ease: 'power3.out', delay: 0.05 });
   }
 
-  function viewerPrev() {
+  /* Directional blur+slide crossfade used for prev/next nav (buttons, keyboard, swipe) */
+  function transitionViewerImage(direction) {
     if(viewerImages.length < 2) return;
-    viewerIndex = (viewerIndex - 1 + viewerImages.length) % viewerImages.length;
-    showViewerImage();
+    const img = document.getElementById('viewerImg');
+    gsap.killTweensOf(img);
+
+    const tl = gsap.timeline();
+    tl.to(img, { duration: 0.2, x: direction * -70, opacity: 0, filter: 'blur(10px)', ease: 'power2.in' })
+      .call(() => {
+        viewerIndex = (viewerIndex + direction + viewerImages.length) % viewerImages.length;
+        img.src = viewerImages[viewerIndex];
+        img.alt = viewerName;
+        document.getElementById('viewerInfo').textContent = String(viewerIndex+1).padStart(2,'0') + ' / ' + String(viewerImages.length).padStart(2,'0');
+        viewerState = { zoom: 1, panX: 0, panY: 0, isDragging: false, startX: 0, startY: 0 };
+        document.getElementById('zoomLevel').textContent = '100%';
+        gsap.set(img, { x: direction * 70, opacity: 0, scale: 1, filter: 'blur(10px)' });
+      })
+      .to(img, { duration: 0.32, x: 0, opacity: 1, filter: 'blur(0px)', ease: 'power3.out', onComplete: () => gsap.set(img, { clearProps: 'filter' }) });
   }
 
-  function viewerNext() {
-    if(viewerImages.length < 2) return;
-    viewerIndex = (viewerIndex + 1) % viewerImages.length;
-    showViewerImage();
-  }
+  function viewerPrev() { transitionViewerImage(-1); }
+  function viewerNext() { transitionViewerImage(1); }
 
   function closeViewer() {
     const viewer = document.getElementById('viewer');
@@ -1697,6 +1690,68 @@
   document.addEventListener('mouseup', () => {
     viewerState.isDragging = false;
     viewerImgEl.style.cursor = 'grab';
+  });
+
+  /* Touch: swipe left/right to change photos, drag to pan while zoomed, double-tap to zoom */
+  let touchStartX = 0, touchStartY = 0, touchDragging = false, touchPanStartX = 0, touchPanStartY = 0;
+  let lastTapTime = 0, lastTapX = 0, lastTapY = 0;
+
+  viewerImgEl.addEventListener('touchstart', (e) => {
+    if(e.touches.length !== 1) return;
+    const t = e.touches[0];
+    touchStartX = t.clientX;
+    touchStartY = t.clientY;
+    touchDragging = false;
+    touchPanStartX = viewerState.panX;
+    touchPanStartY = viewerState.panY;
+  }, { passive: true });
+
+  viewerImgEl.addEventListener('touchmove', (e) => {
+    if(e.touches.length !== 1) return;
+    const t = e.touches[0];
+    const dx = t.clientX - touchStartX;
+    const dy = t.clientY - touchStartY;
+
+    if(viewerState.zoom > 1) {
+      touchDragging = true;
+      viewerState.panX = touchPanStartX + dx;
+      viewerState.panY = touchPanStartY + dy;
+      gsap.set(viewerImgEl, { x: viewerState.panX, y: viewerState.panY });
+      e.preventDefault();
+    } else if(viewerImages.length > 1 && Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) {
+      touchDragging = true;
+      gsap.set(viewerImgEl, { x: dx * 0.7 });
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  viewerImgEl.addEventListener('touchend', (e) => {
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchStartX;
+    const dy = t.clientY - touchStartY;
+
+    if(viewerState.zoom <= 1 && viewerImages.length > 1 && touchDragging) {
+      if(Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) {
+        transitionViewerImage(dx < 0 ? 1 : -1);
+      } else {
+        gsap.to(viewerImgEl, { duration: 0.3, x: 0, ease: 'power2.out' });
+      }
+    }
+
+    if(!touchDragging && Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+      const now = Date.now();
+      if(now - lastTapTime < 320 && Math.abs(t.clientX - lastTapX) < 30 && Math.abs(t.clientY - lastTapY) < 30) {
+        if(viewerState.zoom > 1) { resetZoom(); }
+        else { viewerState.zoom = 2; applyZoom(); }
+        lastTapTime = 0;
+      } else {
+        lastTapTime = now;
+        lastTapX = t.clientX;
+        lastTapY = t.clientY;
+      }
+    }
+
+    touchDragging = false;
   });
 
   document.addEventListener('keydown', (e) => {
