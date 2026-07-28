@@ -274,13 +274,16 @@
 
   /* ============ HERO ============ */
   .hero{
-    min-height:100vh;min-height:100dvh;
+    min-height:100vh;min-height:100svh;
     max-width:none;width:100%;margin:0;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
     text-align:center;padding:140px 24px 80px;position:relative;overflow:hidden;
   }
 
-  .hero-bg{position:absolute;inset:0;z-index:0;overflow:hidden;}
+  /* Matches the page background so a hero-bg-img layer that's a beat behind on a resize
+     (e.g. a mobile browser's toolbar retracting mid-scroll) reveals a plain, consistent
+     color underneath instead of the silk canvas's swirl pattern showing through. */
+  .hero-bg{position:absolute;inset:0;z-index:0;overflow:hidden;background:var(--bg);}
   .hero-bg-img{
     position:absolute;inset:0;
     background-size:cover;background-position:center 25%;
