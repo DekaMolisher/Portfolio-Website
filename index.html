@@ -961,6 +961,11 @@
   const EMAILJS_PUBLIC_KEY = 'PMqRE4dUNYBK6sNon';
   const EMAILJS_SERVICE_ID = 'service_md9heal';
   const EMAILJS_TEMPLATE_ID = 'template_q92iudp';
+  /* Client confirmation ("auto-reply") template — sends a copy of the inquiry back to the
+     person who submitted the form. Set this once the template exists in the EmailJS
+     dashboard; until then the confirmation send is skipped (the notification to Deka is
+     unaffected either way). */
+  const EMAILJS_CLIENT_TEMPLATE_ID = 'YOUR_CLIENT_TEMPLATE_ID';
   const INQUIRY_TO_EMAIL = 'giancarlorrv@gmail.com';
 
   if (EMAILJS_PUBLIC_KEY !== 'YOUR_PUBLIC_KEY' && window.emailjs) {
@@ -1987,6 +1992,11 @@
       emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
         .then(() => {
           revealSuccess();
+          // Best-effort: a copy for the client shouldn't block or fail the booking itself.
+          if (EMAILJS_CLIENT_TEMPLATE_ID !== 'YOUR_CLIENT_TEMPLATE_ID') {
+            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_CLIENT_TEMPLATE_ID, templateParams)
+              .catch((err) => console.error('EmailJS client confirmation failed:', err));
+          }
         })
         .catch((err) => {
           console.error('EmailJS send failed:', err);
