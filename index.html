@@ -354,13 +354,18 @@
   .section-head p{color:var(--ink-soft);font-size:15.5px;line-height:1.8;font-family:var(--font-body);}
 
   /* ============ MASONRY GRID ============ */
-  .masonry{position:relative;margin:0 auto;}
+  .masonry{
+    --gallery-gap:16px;
+    display:grid;grid-template-columns:repeat(2, 1fr);gap:var(--gallery-gap);
+  }
+  @media (min-width:640px){.masonry{--gallery-gap:24px;}}
 
   .shot{
     cursor:pointer;background:var(--surface);border:1px solid transparent;
-    position:absolute;top:0;left:0;overflow:hidden;display:flex;flex-direction:column;
+    position:relative;overflow:hidden;display:flex;flex-direction:column;
     transition:border-color .3s ease, box-shadow .5s var(--ease);
   }
+  .shot.wide{grid-column:1 / -1;}
   .shot:hover{border-color:var(--accent-pale);}
   .shot.is-hover{box-shadow:0 32px 56px -20px var(--accent-pale), 0 0 0 1px var(--accent-pale);}
   .shot-media{position:relative;overflow:hidden;aspect-ratio:3/4;} /* fallback; overridden per-card by JS based on image orientation */
@@ -1052,7 +1057,7 @@
       onComplete: () => {
         location.hash = '#/shoot/' + id;
         gsap.set(viewHome, { clearProps: 'transform,opacity,transformOrigin' });
-        layoutMasonry();
+        gsap.set(el, { clearProps: 'transform,opacity' });
         document.body.style.overflow = '';
         sweep.remove();
       }
@@ -1063,12 +1068,48 @@
       .to(viewHome, { opacity: 0, duration: 0.4, ease: 'power2.in' }, 0.42);
   }
 
+  function ratioIsWide(ratio) {
+    if(!ratio) return false;
+    const [w, h] = ratio.split('/').map(Number);
+    return w > h;
+  }
+
+  /* Shared by the home portfolio grid and each shoot's gallery: landscape items always
+     get their own full-width row, portraits pair up two at a time, and a lone leftover
+     portrait (whether stranded before a landscape run or trailing at the very end) is
+     rendered full-width too instead of leaving a gap next to it. */
+  function buildWidePairOrder(items) {
+    const order = [];
+    const wideOverride = new Set();
+    let pendingPortrait = null;
+    items.forEach((item, i) => {
+      if(item.wide) {
+        order.push(i);
+      } else if(pendingPortrait === null) {
+        pendingPortrait = i;
+      } else {
+        order.push(pendingPortrait, i);
+        pendingPortrait = null;
+      }
+    });
+    if(pendingPortrait !== null) {
+      order.push(pendingPortrait);
+      wideOverride.add(pendingPortrait);
+    }
+    return { order, wideOverride };
+  }
+
   /* Build portfolio grid */
   function buildPortfolioGrid() {
     const grid = document.getElementById('masonryGrid');
-    shoots.forEach((s) => {
+    const withWide = shoots.map((s) => ({ ...s, wide: ratioIsWide(s.ratio) }));
+    const { order, wideOverride } = buildWidePairOrder(withWide);
+
+    order.forEach((i) => {
+      const s = shoots[i];
+      const isWide = withWide[i].wide || wideOverride.has(i);
       const el = document.createElement('div');
-      el.className = 'shot';
+      el.className = 'shot' + (isWide ? ' wide' : '');
       el.innerHTML = `
         <div class="shot-media" style="aspect-ratio:${s.ratio};">
           <img src="${s.cardThumb || s.file}" alt="${s.name} — ${s.tag}" loading="lazy" decoding="async">
@@ -1085,51 +1126,6 @@
     });
   }
   buildPortfolioGrid();
-
-  /* True masonry: places each card in whichever column is currently shortest, then sizes
-     the grid to exactly the used columns' width so it centers instead of hugging the left
-     edge. Driven purely by the current card count/heights, so it stays correct as shoots
-     are added. */
-  function layoutMasonry() {
-    const container = document.getElementById('masonryGrid');
-    const items = Array.from(container.children);
-    if(!items.length) return;
-
-    const GAP = 24;
-    const TARGET_COL_WIDTH = 280;
-
-    container.style.width = '';
-    container.style.height = '';
-    const availableWidth = container.clientWidth;
-
-    const isMobile = window.matchMedia('(max-width:640px)').matches;
-    const numCols = isMobile ? 1 : Math.max(1, Math.min(items.length, Math.floor((availableWidth + GAP) / (TARGET_COL_WIDTH + GAP))));
-    const colWidth = (availableWidth - (numCols - 1) * GAP) / numCols;
-    const colHeights = new Array(numCols).fill(0);
-
-    items.forEach((item) => {
-      let col = 0;
-      for(let c = 1; c < numCols; c++) { if(colHeights[c] < colHeights[col]) col = c; }
-
-      const x = col * (colWidth + GAP);
-      const y = colHeights[col];
-      gsap.set(item, { x, y, width: colWidth });
-      item.dataset.baseY = y;
-
-      colHeights[col] = y + item.getBoundingClientRect().height + GAP;
-    });
-
-    container.style.width = (numCols * colWidth + (numCols - 1) * GAP) + 'px';
-    container.style.height = (Math.max(...colHeights) - GAP) + 'px';
-  }
-  layoutMasonry();
-  if(document.fonts && document.fonts.ready) document.fonts.ready.then(layoutMasonry);
-
-  let masonryResizeTimeout;
-  window.addEventListener('resize', () => {
-    clearTimeout(masonryResizeTimeout);
-    masonryResizeTimeout = setTimeout(layoutMasonry, 150);
-  });
 
   /* ============ HERO BACKGROUND SLIDESHOW ============ */
   function buildHeroBg() {
@@ -1496,16 +1492,14 @@
 
       function enter() {
         shot.classList.add('is-hover');
-        const baseY = parseFloat(shot.dataset.baseY || '0');
-        gsap.to(shot, { duration: 0.45, y: baseY - 10, ease: 'power3.out' });
+        gsap.to(shot, { duration: 0.45, y: -10, ease: 'power3.out' });
         gsap.to(img, { duration: 0.8, scale: 1.09, ease: 'power3.out' });
         gsap.to(view, { duration: 0.4, opacity: 1, scale: 1, ease: 'power3.out' });
         media.style.setProperty('--overlay-opacity', '1');
       }
       function leave() {
         shot.classList.remove('is-hover');
-        const baseY = parseFloat(shot.dataset.baseY || '0');
-        gsap.to(shot, { duration: 0.45, y: baseY, ease: 'power3.out' });
+        gsap.to(shot, { duration: 0.45, y: 0, ease: 'power3.out' });
         gsap.to(img, { duration: 0.8, scale: 1, ease: 'power3.out' });
         gsap.to(view, { duration: 0.4, opacity: 0, scale: 0.85, ease: 'power3.out' });
         media.style.setProperty('--overlay-opacity', '0');
@@ -1603,35 +1597,15 @@
     const grid = document.getElementById('shootGrid');
     grid.innerHTML = '';
 
-    const ratioIsWide = (ratio) => {
-      if(!ratio) return false;
-      const [w, h] = ratio.split('/').map(Number);
-      return w > h;
-    };
     const images = s.images || [{ file: s.file, thumb: s.file, wide: ratioIsWide(s.ratio) }];
     const fullFiles = images.map((im) => im.file);
-
-    // Landscape photos always get their own full-width row; portraits pair up two at a
-    // time. A lone leftover portrait is carried forward across any landscape run so it
-    // always lands in a full pair instead of leaving an empty gap in the grid.
-    const order = [];
-    let pendingPortrait = null;
-    images.forEach((im, i) => {
-      if(im.wide) {
-        order.push(i);
-      } else if(pendingPortrait === null) {
-        pendingPortrait = i;
-      } else {
-        order.push(pendingPortrait, i);
-        pendingPortrait = null;
-      }
-    });
-    if(pendingPortrait !== null) order.push(pendingPortrait);
+    const { order, wideOverride } = buildWidePairOrder(images);
 
     order.forEach((i, pos) => {
       const im = images[i];
+      const isWide = im.wide || wideOverride.has(i);
       const filled = document.createElement('div');
-      filled.className = 'cell filled' + (im.wide ? ' wide' : '');
+      filled.className = 'cell filled' + (isWide ? ' wide' : '');
       filled.innerHTML = `
         <img src="${im.thumb}" alt="${s.name}" loading="${pos === 0 ? 'eager' : 'lazy'}" decoding="async">
         <span class="cell-edge"><span class="bar bar-top"></span><span class="bar bar-left"></span><span class="bar bar-bottom"></span><span class="bar bar-right"></span><span class="glow"></span></span>
