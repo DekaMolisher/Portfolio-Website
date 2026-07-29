@@ -549,16 +549,16 @@
   .shoot-note svg{width:16px;height:16px;stroke:var(--accent-deep);flex-shrink:0;margin-top:3px;}
   .shoot-note p{font-family:var(--font-accent);font-style:italic;font-size:17px;line-height:1.6;color:var(--ink-soft);}
 
+  /* Every photo sits in exactly one column at its own natural ratio, whatever its
+     orientation — no cell ever spans multiple columns, so a single-photo gallery (or a
+     landscape shot mixed into a mostly-portrait set) never blows up to full width. */
   .shoot-grid{
-    --gallery-gap:14px;
+    --gallery-gap:20px;
     display:grid;grid-template-columns:repeat(2, 1fr);gap:var(--gallery-gap);
     align-items:start;
   }
-  @media (min-width:640px){.shoot-grid{grid-template-columns:repeat(3, 1fr);--gallery-gap:18px;}}
-  @media (min-width:1000px){.shoot-grid{grid-template-columns:repeat(4, 1fr);--gallery-gap:20px;}}
-  @media (min-width:1440px){.shoot-grid{grid-template-columns:repeat(5, 1fr);--gallery-gap:24px;}}
+  @media (min-width:640px){.shoot-grid{grid-template-columns:repeat(3, 1fr);--gallery-gap:24px;}}
   .cell{position:relative;overflow:hidden;background:var(--surface);}
-  .cell.wide{grid-column:1 / -1;}
   .cell.filled{cursor:pointer;transition:box-shadow .5s var(--ease);}
   .cell.filled.is-hover{box-shadow:0 32px 56px -20px var(--accent-pale), 0 0 0 1px var(--accent-pale);}
   .cell.filled img{width:100%;height:auto;display:block;}
@@ -717,7 +717,6 @@
 
   @media (max-width:640px){
     .shoot-page{padding:130px 22px 90px;}
-    .shoot-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));}
   }
 </style>
 </head>
@@ -1667,17 +1666,14 @@
     const grid = document.getElementById('shootGrid');
     grid.innerHTML = '';
 
-    const images = s.images || [{ file: s.file, thumb: s.file, wide: ratioIsWide(s.ratio) }];
+    const images = s.images || [{ file: s.file, thumb: s.file }];
     const fullFiles = images.map((im) => im.file);
-    const { order, wideOverride } = buildWidePairOrder(images);
 
-    order.forEach((i, pos) => {
-      const im = images[i];
-      const isWide = im.wide || wideOverride.has(i);
+    images.forEach((im, i) => {
       const filled = document.createElement('div');
-      filled.className = 'cell filled' + (isWide ? ' wide' : '');
+      filled.className = 'cell filled';
       filled.innerHTML = `
-        <img src="${im.thumb}" alt="${s.name}" loading="${pos === 0 ? 'eager' : 'lazy'}" decoding="async">
+        <img src="${im.thumb}" alt="${s.name}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async">
         <span class="cell-edge"><span class="bar bar-top"></span><span class="bar bar-left"></span><span class="bar bar-bottom"></span><span class="bar bar-right"></span><span class="glow"></span></span>
         <span class="code">${s.id.slice(0,2).toUpperCase()}-${String(i+1).padStart(2,'0')}</span>
         <span class="label">${s.name}</span>
