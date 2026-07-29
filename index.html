@@ -1744,11 +1744,17 @@
     gsap.to(viewer, { opacity: 1, duration: 0.35, ease: 'power2.out' });
   }
 
+  /* Both functions below wait for the image's load (or error) event before running the
+     reveal-in animation — assigning img.src is asynchronous, and the element keeps
+     showing whatever it last rendered until the new bytes actually arrive. Animating
+     straight to opacity:1 without waiting means the fade briefly plays over the OLD
+     photo's still-visible pixels, then pops to the new photo once it's actually ready. */
   function showViewerImage() {
     const img = document.getElementById('viewerImg');
     gsap.killTweensOf(img);
+    img.onload = null;
+    img.onerror = null;
 
-    img.src = viewerImages[viewerIndex];
     img.alt = viewerName;
     document.getElementById('viewerInfo').textContent = String(viewerIndex+1).padStart(2,'0') + ' / ' + String(viewerImages.length).padStart(2,'0');
 
@@ -1759,7 +1765,13 @@
     updateNavVisibility();
 
     gsap.set(img, { opacity: 0, scale: 0.92, x: 0, y: 0, filter: 'blur(0px)' });
-    gsap.to(img, { opacity: 1, scale: 1, duration: 0.5, ease: 'power3.out', delay: 0.05 });
+
+    const reveal = () => {
+      gsap.to(img, { opacity: 1, scale: 1, duration: 0.5, ease: 'power3.out', delay: 0.05 });
+    };
+    img.onload = reveal;
+    img.onerror = reveal;
+    img.src = viewerImages[viewerIndex];
   }
 
   /* Directional blur+slide crossfade used for prev/next nav (buttons, keyboard, swipe) */
@@ -1767,12 +1779,13 @@
     if(viewerImages.length < 2) return;
     const img = document.getElementById('viewerImg');
     gsap.killTweensOf(img);
+    img.onload = null;
+    img.onerror = null;
 
     const tl = gsap.timeline();
     tl.to(img, { duration: 0.2, x: direction * -70, opacity: 0, filter: 'blur(10px)', ease: 'power2.in' })
       .call(() => {
         viewerIndex = (viewerIndex + direction + viewerImages.length) % viewerImages.length;
-        img.src = viewerImages[viewerIndex];
         img.alt = viewerName;
         document.getElementById('viewerInfo').textContent = String(viewerIndex+1).padStart(2,'0') + ' / ' + String(viewerImages.length).padStart(2,'0');
         viewerState = { zoom: 1, panX: 0, panY: 0, isDragging: false, startX: 0, startY: 0 };
@@ -1781,8 +1794,14 @@
         updateZoomToggleIcon();
         updateNavVisibility();
         gsap.set(img, { x: direction * 70, opacity: 0, scale: 1, filter: 'blur(10px)' });
-      })
-      .to(img, { duration: 0.32, x: 0, opacity: 1, filter: 'blur(0px)', ease: 'power3.out', onComplete: () => gsap.set(img, { clearProps: 'filter' }) });
+
+        const reveal = () => {
+          gsap.to(img, { duration: 0.32, x: 0, opacity: 1, filter: 'blur(0px)', ease: 'power3.out', onComplete: () => gsap.set(img, { clearProps: 'filter' }) });
+        };
+        img.onload = reveal;
+        img.onerror = reveal;
+        img.src = viewerImages[viewerIndex];
+      });
   }
 
   function viewerPrev() { transitionViewerImage(-1); }
