@@ -353,48 +353,71 @@
   .section-head .rule{width:56px;height:1px;background:var(--accent);margin:22px auto;}
   .section-head p{color:var(--ink-soft);font-size:15.5px;line-height:1.8;font-family:var(--font-body);}
 
-  /* ============ CATEGORY SCROLL SECTIONS ============ */
-  /* Six full-viewport "hero" panels stacked in normal scroll flow, one per category. Each
-     panel's content starts lower + faded and animates up into its centered resting spot
-     as it scrolls into view (see setupPortfolioReveal). Clicking anywhere on a panel
-     reuses navigateToShoot's sweep+zoom transition into that category's gallery page. */
-  .category-list{display:flex;flex-direction:column;}
-  .category-hero{
-    position:relative;min-height:100vh;min-height:100svh;
-    display:flex;align-items:center;justify-content:center;
-    overflow:hidden;cursor:pointer;
+  /* ============ CATEGORY SECTIONS (magazine style) ============ */
+  /* Six alternating image/copy spreads stacked in normal scroll flow, one per category —
+     a big element, not a full-viewport hero. Each image starts slightly smaller and
+     grows into its resting size as it scrolls into view (see setupPortfolioReveal), and
+     carries the same corner-glow hover treatment the old portfolio grid used. Clicking
+     anywhere on a row reuses navigateToShoot's sweep+zoom transition into that
+     category's gallery page. */
+  .category-list{display:flex;flex-direction:column;gap:110px;padding:20px 0 40px;}
+  .category-row{
+    display:grid;grid-template-columns:1.1fr 1fr;gap:60px;align-items:center;
+    cursor:pointer;
   }
-  .category-hero-media{position:absolute;inset:0;z-index:0;overflow:hidden;}
-  .category-hero-media img{
-    width:100%;height:100%;object-fit:cover;display:block;
-    transform:scale(1.02);transition:transform 1.2s var(--ease);
-  }
-  .category-hero.is-hover .category-hero-media img{transform:scale(1.08);}
-  .category-hero-overlay{position:absolute;inset:0;z-index:1;}
-  [data-theme="dark"] .category-hero-overlay{
-    background:linear-gradient(180deg, rgba(8,7,6,0.55) 0%, rgba(8,7,6,0.32) 45%, rgba(8,7,6,0.78) 100%);
-  }
-  [data-theme="light"] .category-hero-overlay{
-    background:linear-gradient(180deg, rgba(250,247,241,0.72) 0%, rgba(250,247,241,0.48) 45%, rgba(250,247,241,0.82) 100%);
-  }
-  .category-hero-content{
-    position:relative;z-index:2;text-align:center;
-    display:flex;flex-direction:column;align-items:center;
-    padding:40px 24px;
-  }
-  .category-hero-index{
+  .category-row:nth-child(even){grid-template-columns:1fr 1.1fr;}
+  .category-row:nth-child(even) .category-media{order:2;}
+  .category-row:nth-child(even) .category-copy{order:1;}
+
+  .category-media{position:relative;overflow:hidden;background:var(--surface);aspect-ratio:4/5;max-height:78vh;}
+  .category-media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 1.2s var(--ease);}
+  .category-row.is-hover .category-media img{transform:scale(1.06);}
+
+  .category-copy{padding:0 8px;}
+  .category-index{
     font-family:var(--font-ui);font-size:12px;letter-spacing:.3em;
-    color:var(--hero-accent);margin-bottom:18px;
+    color:var(--accent-deep);display:block;margin-bottom:14px;
   }
-  .category-hero-name{font-size:clamp(40px,8vw,88px);line-height:0.98;margin:0;}
-  .category-hero-cta{
-    margin-top:26px;display:inline-flex;align-items:center;gap:10px;
+  .category-name{font-size:clamp(32px,4.4vw,52px);line-height:1.02;margin-bottom:18px;}
+  .category-desc{color:var(--ink-soft);font-size:15.5px;line-height:1.75;max-width:440px;margin-bottom:26px;}
+  .category-cta{
+    display:inline-flex;align-items:center;gap:10px;
     font-family:var(--font-ui);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
-    color:var(--hero-accent-soft);
-    opacity:0.8;transition:opacity .3s ease, gap .3s ease;
+    color:var(--accent-deep);
+    transition:gap .3s ease;
   }
-  .category-hero.is-hover .category-hero-cta{opacity:1;gap:16px;}
-  .category-hero-cta svg{width:14px;height:14px;stroke:currentColor;}
+  .category-row.is-hover .category-cta{gap:16px;}
+  .category-cta svg{width:14px;height:14px;stroke:currentColor;}
+
+  /* Corner-glow hover, same pattern as the old portfolio grid / gallery cells */
+  .category-media .shot-edge{position:absolute;inset:0;z-index:3;pointer-events:none;}
+  .category-media .shot-edge .bar{position:absolute;background:var(--accent);transition:transform .3s var(--ease);}
+  .category-media .shot-edge .bar-top{top:0;left:0;right:0;height:2px;transform-origin:right center;transform:scaleX(0);}
+  .category-media .shot-edge .bar-left{left:0;top:0;bottom:0;width:2px;transform-origin:top center;transform:scaleY(0);}
+  .category-media .shot-edge .bar-bottom{bottom:0;left:0;right:0;height:2px;transform-origin:left center;transform:scaleX(0);}
+  .category-media .shot-edge .bar-right{right:0;top:0;bottom:0;width:2px;transform-origin:bottom center;transform:scaleY(0);}
+  .category-row.is-hover .category-media .shot-edge .bar-top{transform:scaleX(1);transition-delay:0s;}
+  .category-row.is-hover .category-media .shot-edge .bar-left{transform:scaleY(1);transition-delay:.22s;}
+  .category-row.is-hover .category-media .shot-edge .bar-bottom{transform:scaleX(1);transition-delay:.44s;}
+  .category-row.is-hover .category-media .shot-edge .bar-right{transform:scaleY(1);transition-delay:.66s;}
+  .category-media .shot-edge .glow{
+    position:absolute;inset:0;opacity:0;
+    box-shadow:inset 0 0 0 0 transparent;
+    transition:opacity .4s ease, box-shadow .4s ease;
+  }
+  .category-row.is-hover .category-media .shot-edge .glow{
+    opacity:1;
+    box-shadow:inset 0 0 22px 2px var(--accent-pale), 0 0 26px 4px var(--accent-pale);
+    transition-delay:.8s;
+  }
+
+  @media (max-width:860px){
+    .category-list{gap:70px;}
+    .category-row, .category-row:nth-child(even){grid-template-columns:1fr;gap:26px;}
+    .category-row .category-media, .category-row:nth-child(even) .category-media{order:1;}
+    .category-row .category-copy, .category-row:nth-child(even) .category-copy{order:2;}
+    .category-media{aspect-ratio:3/4;max-height:60vh;}
+  }
 
   .gradient-sweep{
     position:absolute;inset:0;z-index:5;pointer-events:none;
@@ -989,12 +1012,18 @@
      placeholder (sourceShootId) until a real batch arrives for that category — at that
      point just give the category its own `images`/`file`/`ratio` here instead. */
   const categories = [
-    { id:'fashion',   name:'Fashion / Runways',  tag:'Editorial & Runway',    sourceShootId:'mavee'    },
-    { id:'couples',   name:'Couples / Weddings', tag:'Love & Commitment',    sourceShootId:'mavee'    },
-    { id:'social',    name:'Social Events',      tag:'Gatherings & Moments', sourceShootId:'lucy'     },
-    { id:'portraits', name:'Creative Portraits', tag:'Personal & Expressive',sourceShootId:'cristina' },
-    { id:'boudoir',   name:'Boudoir',            tag:'Intimate & Empowering',sourceShootId:'saira'    },
-    { id:'family',    name:'Family',             tag:'Generations & Bonds',  sourceShootId:'thelma'   }
+    { id:'fashion',   name:'Fashion / Runways',  tag:'Editorial & Runway',    sourceShootId:'mavee',
+      description:'Placeholder copy — a short line here will set the mood for editorial and runway work: bold styling, confident movement, images built for print.' },
+    { id:'couples',   name:'Couples / Weddings', tag:'Love & Commitment',    sourceShootId:'mavee',
+      description:'Placeholder copy — a short line here will speak to the quiet, real moments between two people, from engagements to the big day itself.' },
+    { id:'social',    name:'Social Events',      tag:'Gatherings & Moments', sourceShootId:'lucy',
+      description:'Placeholder copy — a short line here will cover the energy of a room: parties, launches, and nights worth remembering.' },
+    { id:'portraits', name:'Creative Portraits', tag:'Personal & Expressive',sourceShootId:'cristina',
+      description:'Placeholder copy — a short line here will describe portraits built around a single person’s story, mood, and light.' },
+    { id:'boudoir',   name:'Boudoir',            tag:'Intimate & Empowering',sourceShootId:'saira',
+      description:'Placeholder copy — a short line here will frame boudoir work as intimate, confident, and entirely on the client’s terms.' },
+    { id:'family',    name:'Family',             tag:'Generations & Bonds',  sourceShootId:'thelma',
+      description:'Placeholder copy — a short line here will center the warmth of family sessions: generations, pets, and everyday bonds.' }
   ];
 
   const INSTAGRAM_URL = 'https://www.instagram.com/dekagrophy/';
@@ -1035,7 +1064,7 @@
 
   /* Bottom-to-top gradient glow sweep on the card, then a full-screen zoom+fade into the shoot page */
   function navigateToShoot(el, id) {
-    const media = el.querySelector('.shot-media, .category-hero-media');
+    const media = el.querySelector('.shot-media');
     const sweep = document.createElement('div');
     sweep.className = 'gradient-sweep';
     media.appendChild(sweep);
@@ -1066,16 +1095,17 @@
     categories.forEach((cat, i) => {
       const source = shoots.find(x => x.id === cat.sourceShootId);
       const el = document.createElement('div');
-      el.className = 'category-hero';
+      el.className = 'category-row';
       el.innerHTML = `
-        <div class="category-hero-media">
-          <img src="${source ? source.file : ''}" alt="${cat.name}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async">
+        <div class="shot-media category-media">
+          <img src="${source ? (source.cardThumb || source.file) : ''}" alt="${cat.name}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async">
+          <span class="shot-edge"><span class="bar bar-top"></span><span class="bar bar-left"></span><span class="bar bar-bottom"></span><span class="bar bar-right"></span><span class="glow"></span></span>
         </div>
-        <div class="category-hero-overlay"></div>
-        <div class="category-hero-content">
-          <span class="category-hero-index">${String(i+1).padStart(2,'0')} / ${String(categories.length).padStart(2,'0')}</span>
-          <h3 class="category-hero-name">${cat.name}</h3>
-          <span class="category-hero-cta">
+        <div class="category-copy">
+          <span class="category-index">${String(i+1).padStart(2,'0')} / ${String(categories.length).padStart(2,'0')}</span>
+          <h3 class="category-name">${cat.name}</h3>
+          <p class="category-desc">${cat.description}</p>
+          <span class="category-cta">
             View Gallery
             <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           </span>
@@ -1466,13 +1496,18 @@
       opacity: 0, y: 30, duration: 0.9
     });
 
-    // Each category panel's content starts lower + faded, then moves up and settles
-    // into its centered resting position as that panel scrolls into view.
-    gsap.utils.toArray('.category-hero').forEach((hero) => {
-      const content = hero.querySelector('.category-hero-content');
-      gsap.from(content, {
-        scrollTrigger: { trigger: hero, start: 'top 65%', once: true },
-        opacity: 0, y: 70, duration: 1, ease: 'power3.out'
+    // Each row's image starts slightly smaller and grows into its resting size, while
+    // its copy fades/slides in, as that row scrolls into view.
+    gsap.utils.toArray('.category-row').forEach((row) => {
+      const media = row.querySelector('.category-media');
+      const copy = row.querySelector('.category-copy');
+      gsap.from(media, {
+        scrollTrigger: { trigger: row, start: 'top 85%', once: true },
+        scale: 0.88, opacity: 0, duration: 1.1, ease: 'power3.out'
+      });
+      gsap.from(copy, {
+        scrollTrigger: { trigger: row, start: 'top 80%', once: true },
+        opacity: 0, y: 30, duration: 0.9, ease: 'power3.out'
       });
     });
   }
@@ -1502,26 +1537,26 @@
   function setupCategoryHovers() {
     const isTouchDevice = window.matchMedia('(hover: none)').matches;
 
-    gsap.utils.toArray('.category-hero').forEach((hero) => {
-      function enter() { hero.classList.add('is-hover'); }
-      function leave() { hero.classList.remove('is-hover'); }
+    gsap.utils.toArray('.category-row').forEach((row) => {
+      function enter() { row.classList.add('is-hover'); }
+      function leave() { row.classList.remove('is-hover'); }
 
       if(isTouchDevice) {
-        // first tap reveals the CTA/zoom, second tap on an already-revealed panel navigates
-        hero.addEventListener('click', (e) => {
-          if(!hero.classList.contains('is-hover')) {
+        // first tap reveals the corner-glow/zoom, second tap on an already-revealed row navigates
+        row.addEventListener('click', (e) => {
+          if(!row.classList.contains('is-hover')) {
             e.preventDefault();
-            gsap.utils.toArray('.category-hero.is-hover').forEach(h => { if(h !== hero) h.dispatchEvent(new Event('force-leave')); });
+            gsap.utils.toArray('.category-row.is-hover').forEach(r => { if(r !== row) r.dispatchEvent(new Event('force-leave')); });
             enter();
             return;
           }
-          navigateToShoot(hero, hero.dataset.shootId);
+          navigateToShoot(row, row.dataset.shootId);
         });
-        hero.addEventListener('force-leave', leave);
+        row.addEventListener('force-leave', leave);
       } else {
-        hero.addEventListener('mouseenter', enter);
-        hero.addEventListener('mouseleave', leave);
-        hero.addEventListener('click', () => navigateToShoot(hero, hero.dataset.shootId));
+        row.addEventListener('mouseenter', enter);
+        row.addEventListener('mouseleave', leave);
+        row.addEventListener('click', () => navigateToShoot(row, row.dataset.shootId));
       }
     });
   }
