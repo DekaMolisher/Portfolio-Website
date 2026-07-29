@@ -353,53 +353,49 @@
   .section-head .rule{width:56px;height:1px;background:var(--accent);margin:22px auto;}
   .section-head p{color:var(--ink-soft);font-size:15.5px;line-height:1.8;font-family:var(--font-body);}
 
-  /* ============ MASONRY GRID ============ */
-  /* Mobile: fixed 2-column grid, same pattern as the shoot-detail gallery (landscape
-     shoots span both columns). Desktop (>=768px): rolled back to the dynamic JS masonry
-     below — an uneven, shortest-column-first layout sized to center as a block. */
-  .masonry{
-    --gallery-gap:16px;
-    display:grid;grid-template-columns:repeat(2, 1fr);gap:var(--gallery-gap);
-    align-items:start;
+  /* ============ CATEGORY SCROLL SECTIONS ============ */
+  /* Six full-viewport "hero" panels stacked in normal scroll flow, one per category. Each
+     panel's content starts lower + faded and animates up into its centered resting spot
+     as it scrolls into view (see setupPortfolioReveal). Clicking anywhere on a panel
+     reuses navigateToShoot's sweep+zoom transition into that category's gallery page. */
+  .category-list{display:flex;flex-direction:column;}
+  .category-hero{
+    position:relative;min-height:100vh;min-height:100svh;
+    display:flex;align-items:center;justify-content:center;
+    overflow:hidden;cursor:pointer;
   }
-  @media (min-width:640px){.masonry{--gallery-gap:24px;}}
-  @media (min-width:768px){
-    .masonry{display:block;position:relative;margin:0 auto;}
+  .category-hero-media{position:absolute;inset:0;z-index:0;overflow:hidden;}
+  .category-hero-media img{
+    width:100%;height:100%;object-fit:cover;display:block;
+    transform:scale(1.02);transition:transform 1.2s var(--ease);
   }
+  .category-hero.is-hover .category-hero-media img{transform:scale(1.08);}
+  .category-hero-overlay{position:absolute;inset:0;z-index:1;}
+  [data-theme="dark"] .category-hero-overlay{
+    background:linear-gradient(180deg, rgba(8,7,6,0.55) 0%, rgba(8,7,6,0.32) 45%, rgba(8,7,6,0.78) 100%);
+  }
+  [data-theme="light"] .category-hero-overlay{
+    background:linear-gradient(180deg, rgba(250,247,241,0.72) 0%, rgba(250,247,241,0.48) 45%, rgba(250,247,241,0.82) 100%);
+  }
+  .category-hero-content{
+    position:relative;z-index:2;text-align:center;
+    display:flex;flex-direction:column;align-items:center;
+    padding:40px 24px;
+  }
+  .category-hero-index{
+    font-family:var(--font-ui);font-size:12px;letter-spacing:.3em;
+    color:var(--hero-accent);margin-bottom:18px;
+  }
+  .category-hero-name{font-size:clamp(40px,8vw,88px);line-height:0.98;margin:0;}
+  .category-hero-cta{
+    margin-top:26px;display:inline-flex;align-items:center;gap:10px;
+    font-family:var(--font-ui);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--hero-accent-soft);
+    opacity:0.8;transition:opacity .3s ease, gap .3s ease;
+  }
+  .category-hero.is-hover .category-hero-cta{opacity:1;gap:16px;}
+  .category-hero-cta svg{width:14px;height:14px;stroke:currentColor;}
 
-  .shot{
-    cursor:pointer;background:var(--surface);border:1px solid transparent;
-    position:relative;overflow:hidden;display:flex;flex-direction:column;
-    transition:border-color .3s ease, box-shadow .5s var(--ease);
-  }
-  .shot.wide{grid-column:1 / -1;}
-  @media (min-width:768px){
-    .shot{position:absolute;top:0;left:0;}
-  }
-  .shot:hover{border-color:var(--accent-pale);}
-  .shot.is-hover{box-shadow:0 32px 56px -20px var(--accent-pale), 0 0 0 1px var(--accent-pale);}
-  .shot-media{position:relative;overflow:hidden;aspect-ratio:3/4;} /* fallback; overridden per-card by JS based on image orientation */
-  .shot-media img{width:100%;height:100%;object-fit:cover;display:block;}
-  .shot-edge{position:absolute;inset:0;z-index:3;pointer-events:none;}
-  .shot-edge .bar{position:absolute;background:var(--accent);transition:transform .3s var(--ease);}
-  .shot-edge .bar-top{top:0;left:0;right:0;height:2px;transform-origin:right center;transform:scaleX(0);}
-  .shot-edge .bar-left{left:0;top:0;bottom:0;width:2px;transform-origin:top center;transform:scaleY(0);}
-  .shot-edge .bar-bottom{bottom:0;left:0;right:0;height:2px;transform-origin:left center;transform:scaleX(0);}
-  .shot-edge .bar-right{right:0;top:0;bottom:0;width:2px;transform-origin:bottom center;transform:scaleY(0);}
-  .shot.is-hover .shot-edge .bar-top{transform:scaleX(1);transition-delay:0s;}
-  .shot.is-hover .shot-edge .bar-left{transform:scaleY(1);transition-delay:.22s;}
-  .shot.is-hover .shot-edge .bar-bottom{transform:scaleX(1);transition-delay:.44s;}
-  .shot.is-hover .shot-edge .bar-right{transform:scaleY(1);transition-delay:.66s;}
-  .shot-edge .glow{
-    position:absolute;inset:0;opacity:0;
-    box-shadow:inset 0 0 0 0 transparent;
-    transition:opacity .4s ease, box-shadow .4s ease;
-  }
-  .shot.is-hover .shot-edge .glow{
-    opacity:1;
-    box-shadow:inset 0 0 22px 2px var(--accent-pale), 0 0 26px 4px var(--accent-pale);
-    transition-delay:.8s;
-  }
   .gradient-sweep{
     position:absolute;inset:0;z-index:5;pointer-events:none;
     background:linear-gradient(0deg, var(--accent) 0%, var(--accent-pale) 55%, transparent 100%);
@@ -408,28 +404,6 @@
     opacity:0.9;
     mix-blend-mode:screen;
   }
-  .shot-view{
-    position:absolute;left:50%;top:50%;z-index:2;
-    width:46px;height:46px;border:1px solid #fff;border-radius:50%;
-    display:flex;align-items:center;justify-content:center;
-    opacity:0;transform:translate(-50%, -50%) scale(0.85);
-  }
-  .shot-view svg{width:16px;height:16px;stroke:#fff;}
-  .shot-media{--overlay-opacity: 0;}
-  .shot-media::after{
-    content:"";position:absolute;inset:0;
-    background:linear-gradient(180deg, rgba(10,8,6,0.02) 45%, rgba(10,8,6,0.55) 100%);
-    opacity:var(--overlay-opacity);pointer-events:none;
-    transition:opacity 0.5s ease;
-  }
-
-  .shot-caption{
-    padding:16px 18px 18px;
-    display:flex;align-items:baseline;justify-content:space-between;gap:10px;
-    border-top:1px solid var(--line);
-  }
-  .shot-caption .tag{font-size:16px;color:var(--ink);}
-  .shot-caption .name{font-family:var(--font-ui);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);}
 
   /* ============ ABOUT ============ */
   .about{display:grid;grid-template-columns:1.15fr 1fr;gap:70px;align-items:center;}
@@ -768,9 +742,9 @@
         <span class="eyebrow">Selected Work</span>
         <h2>The Portfolio</h2>
         <div class="rule"></div>
-        <p>Five photoshoots, five moods. Click any frame to step into the full set from that session.</p>
+        <p>Six kinds of stories. Scroll through, then step into the one that speaks to you.</p>
       </div>
-      <div class="masonry" id="masonryGrid"></div>
+      <div class="category-list" id="categoryList"></div>
     </section>
 
     <section id="about">
@@ -1010,6 +984,19 @@
     { id:'thelma',   file:'denisse.webp',  name:'Thelma',   tag:'Studio Boudoir',       ratio:'3/4'  },
     { id:'cristina', file:'cristina.webp', name:'Cristina', tag:'Golden Hour Portrait', ratio:'16/9' }
   ];
+
+  /* The six home-page categories. Each borrows an existing shoot's photos as a
+     placeholder (sourceShootId) until a real batch arrives for that category — at that
+     point just give the category its own `images`/`file`/`ratio` here instead. */
+  const categories = [
+    { id:'fashion',   name:'Fashion / Runways',  tag:'Editorial & Runway',    sourceShootId:'mavee'    },
+    { id:'couples',   name:'Couples / Weddings', tag:'Love & Commitment',    sourceShootId:'mavee'    },
+    { id:'social',    name:'Social Events',      tag:'Gatherings & Moments', sourceShootId:'lucy'     },
+    { id:'portraits', name:'Creative Portraits', tag:'Personal & Expressive',sourceShootId:'cristina' },
+    { id:'boudoir',   name:'Boudoir',            tag:'Intimate & Empowering',sourceShootId:'saira'    },
+    { id:'family',    name:'Family',             tag:'Generations & Bonds',  sourceShootId:'thelma'   }
+  ];
+
   const INSTAGRAM_URL = 'https://www.instagram.com/dekagrophy/';
   const FACEBOOK_URL  = 'https://www.facebook.com/Dekagrophy';
 
@@ -1048,7 +1035,7 @@
 
   /* Bottom-to-top gradient glow sweep on the card, then a full-screen zoom+fade into the shoot page */
   function navigateToShoot(el, id) {
-    const media = el.querySelector('.shot-media');
+    const media = el.querySelector('.shot-media, .category-hero-media');
     const sweep = document.createElement('div');
     sweep.className = 'gradient-sweep';
     media.appendChild(sweep);
@@ -1062,7 +1049,6 @@
       onComplete: () => {
         location.hash = '#/shoot/' + id;
         gsap.set(viewHome, { clearProps: 'transform,opacity,transformOrigin' });
-        layoutMasonry();
         document.body.style.overflow = '';
         sweep.remove();
       }
@@ -1073,64 +1059,33 @@
       .to(viewHome, { opacity: 0, duration: 0.4, ease: 'power2.in' }, 0.42);
   }
 
-  function ratioIsWide(ratio) {
-    if(!ratio) return false;
-    const [w, h] = ratio.split('/').map(Number);
-    return w > h;
-  }
-
-  /* Shared by the home portfolio grid and each shoot's gallery: landscape items always
-     get their own full-width row, portraits pair up two at a time, and a lone leftover
-     portrait (whether stranded before a landscape run or trailing at the very end) is
-     rendered full-width too instead of leaving a gap next to it. */
-  function buildWidePairOrder(items) {
-    const order = [];
-    const wideOverride = new Set();
-    let pendingPortrait = null;
-    items.forEach((item, i) => {
-      if(item.wide) {
-        order.push(i);
-      } else if(pendingPortrait === null) {
-        pendingPortrait = i;
-      } else {
-        order.push(pendingPortrait, i);
-        pendingPortrait = null;
-      }
-    });
-    if(pendingPortrait !== null) {
-      order.push(pendingPortrait);
-      wideOverride.add(pendingPortrait);
-    }
-    return { order, wideOverride };
-  }
-
-  /* Build portfolio grid */
-  function buildPortfolioGrid() {
-    const grid = document.getElementById('masonryGrid');
-    const withWide = shoots.map((s) => ({ ...s, wide: ratioIsWide(s.ratio) }));
-    const { order, wideOverride } = buildWidePairOrder(withWide);
-
-    order.forEach((i) => {
-      const s = shoots[i];
-      const isWide = withWide[i].wide || wideOverride.has(i);
+  /* Build the six category hero sections. Each uses its sourceShootId's photo as a
+     placeholder background until it gets a real batch of its own. */
+  function buildCategoryList() {
+    const list = document.getElementById('categoryList');
+    categories.forEach((cat, i) => {
+      const source = shoots.find(x => x.id === cat.sourceShootId);
       const el = document.createElement('div');
-      el.className = 'shot' + (isWide ? ' wide' : '');
+      el.className = 'category-hero';
       el.innerHTML = `
-        <div class="shot-media" style="aspect-ratio:${s.ratio};">
-          <img src="${s.cardThumb || s.file}" alt="${s.name} — ${s.tag}" loading="lazy" decoding="async">
-          <span class="shot-edge"><span class="bar bar-top"></span><span class="bar bar-left"></span><span class="bar bar-bottom"></span><span class="bar bar-right"></span><span class="glow"></span></span>
-          <span class="shot-view"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg></span>
+        <div class="category-hero-media">
+          <img src="${source ? source.file : ''}" alt="${cat.name}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async">
         </div>
-        <div class="shot-caption">
-          <span class="tag italic-tag">${s.tag}</span>
-          <span class="name">${s.name}</span>
+        <div class="category-hero-overlay"></div>
+        <div class="category-hero-content">
+          <span class="category-hero-index">${String(i+1).padStart(2,'0')} / ${String(categories.length).padStart(2,'0')}</span>
+          <h3 class="category-hero-name">${cat.name}</h3>
+          <span class="category-hero-cta">
+            View Gallery
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </span>
         </div>
       `;
-      el.dataset.shootId = s.id;
-      grid.appendChild(el);
+      el.dataset.shootId = cat.id;
+      list.appendChild(el);
     });
   }
-  buildPortfolioGrid();
+  buildCategoryList();
 
   /* Shared true-masonry engine: places each child of `container` in whichever column is
      currently shortest, then sizes the container to exactly the used columns' width so
@@ -1169,32 +1124,6 @@
     container.style.height = (Math.max(...colHeights) - gap) + 'px';
   }
 
-  /* Desktop-only (>=768px) for the home portfolio grid; below that the CSS grid on
-     .masonry takes over and this just clears any leftover inline positioning. */
-  function isDesktopMasonry() {
-    return window.matchMedia('(min-width:768px)').matches;
-  }
-
-  function layoutMasonry() {
-    const container = document.getElementById('masonryGrid');
-    const items = Array.from(container.children);
-    if(!items.length) return;
-
-    if(!isDesktopMasonry()) {
-      container.style.width = '';
-      container.style.height = '';
-      items.forEach((item) => {
-        gsap.set(item, { clearProps: 'transform,width' });
-        delete item.dataset.baseY;
-      });
-      return;
-    }
-
-    layoutMasonryGrid(container, { targetColWidth: 280, gap: 24 });
-  }
-  layoutMasonry();
-  if(document.fonts && document.fonts.ready) document.fonts.ready.then(layoutMasonry);
-
   /* Shoot-detail gallery: always a true masonry (Pic-Time-style), at every viewport
      width, since a photo gallery is the primary "browse many images" experience. */
   function layoutShootGrid() {
@@ -1206,10 +1135,7 @@
   let masonryResizeTimeout;
   window.addEventListener('resize', () => {
     clearTimeout(masonryResizeTimeout);
-    masonryResizeTimeout = setTimeout(() => {
-      layoutMasonry();
-      layoutShootGrid();
-    }, 150);
+    masonryResizeTimeout = setTimeout(layoutShootGrid, 150);
   });
 
   /* ============ HERO BACKGROUND SLIDESHOW ============ */
@@ -1539,9 +1465,15 @@
       scrollTrigger: { trigger: '#portfolio', start: 'top 70%', once: true },
       opacity: 0, y: 30, duration: 0.9
     });
-    gsap.from('.shot', {
-      scrollTrigger: { trigger: '#portfolio', start: 'top 60%', once: true },
-      opacity: 0, y: '+=30', duration: 0.9, stagger: 0.08
+
+    // Each category panel's content starts lower + faded, then moves up and settles
+    // into its centered resting position as that panel scrolls into view.
+    gsap.utils.toArray('.category-hero').forEach((hero) => {
+      const content = hero.querySelector('.category-hero-content');
+      gsap.from(content, {
+        scrollTrigger: { trigger: hero, start: 'top 65%', once: true },
+        opacity: 0, y: 70, duration: 1, ease: 'power3.out'
+      });
     });
   }
 
@@ -1567,47 +1499,29 @@
     });
   }
 
-  function setupShotHovers() {
+  function setupCategoryHovers() {
     const isTouchDevice = window.matchMedia('(hover: none)').matches;
 
-    gsap.utils.toArray('.shot').forEach((shot) => {
-      const img = shot.querySelector('.shot-media img');
-      const view = shot.querySelector('.shot-view');
-      const media = shot.querySelector('.shot-media');
-
-      function enter() {
-        shot.classList.add('is-hover');
-        const baseY = parseFloat(shot.dataset.baseY || '0');
-        gsap.to(shot, { duration: 0.45, y: baseY - 10, ease: 'power3.out' });
-        gsap.to(img, { duration: 0.8, scale: 1.09, ease: 'power3.out' });
-        gsap.to(view, { duration: 0.4, opacity: 1, scale: 1, ease: 'power3.out' });
-        media.style.setProperty('--overlay-opacity', '1');
-      }
-      function leave() {
-        shot.classList.remove('is-hover');
-        const baseY = parseFloat(shot.dataset.baseY || '0');
-        gsap.to(shot, { duration: 0.45, y: baseY, ease: 'power3.out' });
-        gsap.to(img, { duration: 0.8, scale: 1, ease: 'power3.out' });
-        gsap.to(view, { duration: 0.4, opacity: 0, scale: 0.85, ease: 'power3.out' });
-        media.style.setProperty('--overlay-opacity', '0');
-      }
+    gsap.utils.toArray('.category-hero').forEach((hero) => {
+      function enter() { hero.classList.add('is-hover'); }
+      function leave() { hero.classList.remove('is-hover'); }
 
       if(isTouchDevice) {
-        // first tap reveals the glow/edge, second tap on an already-revealed card navigates
-        shot.addEventListener('click', (e) => {
-          if(!shot.classList.contains('is-hover')) {
+        // first tap reveals the CTA/zoom, second tap on an already-revealed panel navigates
+        hero.addEventListener('click', (e) => {
+          if(!hero.classList.contains('is-hover')) {
             e.preventDefault();
-            gsap.utils.toArray('.shot.is-hover').forEach(s => { if(s !== shot) s.dispatchEvent(new Event('force-leave')); });
+            gsap.utils.toArray('.category-hero.is-hover').forEach(h => { if(h !== hero) h.dispatchEvent(new Event('force-leave')); });
             enter();
             return;
           }
-          navigateToShoot(shot, shot.dataset.shootId);
+          navigateToShoot(hero, hero.dataset.shootId);
         });
-        shot.addEventListener('force-leave', leave);
+        hero.addEventListener('force-leave', leave);
       } else {
-        shot.addEventListener('mouseenter', enter);
-        shot.addEventListener('mouseleave', leave);
-        shot.addEventListener('click', () => navigateToShoot(shot, shot.dataset.shootId));
+        hero.addEventListener('mouseenter', enter);
+        hero.addEventListener('mouseleave', leave);
+        hero.addEventListener('click', () => navigateToShoot(hero, hero.dataset.shootId));
       }
     });
   }
@@ -1675,11 +1589,16 @@
   /* ============ SHOOT PAGE ============ */
 
   function renderShoot(id) {
-    const s = shoots.find(x => x.id === id);
+    const cat = categories.find(c => c.id === id);
+    const s = cat ? shoots.find(x => x.id === cat.sourceShootId) : shoots.find(x => x.id === id);
     if(!s) return;
 
-    document.getElementById('shootTag').textContent = s.tag;
-    document.getElementById('shootName').textContent = s.name;
+    const displayName = cat ? cat.name : s.name;
+    const displayTag = cat ? cat.tag : s.tag;
+    const codePrefix = (cat ? cat.id : s.id).slice(0,2).toUpperCase();
+
+    document.getElementById('shootTag').textContent = displayTag;
+    document.getElementById('shootName').textContent = displayName;
 
     const grid = document.getElementById('shootGrid');
     grid.innerHTML = '';
@@ -1692,12 +1611,12 @@
       filled.className = 'cell filled';
       filled.style.aspectRatio = im.ratio;
       filled.innerHTML = `
-        <img src="${im.thumb}" alt="${s.name}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async">
+        <img src="${im.thumb}" alt="${displayName}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async">
         <span class="cell-edge"><span class="bar bar-top"></span><span class="bar bar-left"></span><span class="bar bar-bottom"></span><span class="bar bar-right"></span><span class="glow"></span></span>
-        <span class="code">${s.id.slice(0,2).toUpperCase()}-${String(i+1).padStart(2,'0')}</span>
-        <span class="label">${s.name}</span>
+        <span class="code">${codePrefix}-${String(i+1).padStart(2,'0')}</span>
+        <span class="label">${displayName}</span>
       `;
-      filled.addEventListener('click', () => openViewer(fullFiles, i, s.name));
+      filled.addEventListener('click', () => openViewer(fullFiles, i, displayName));
       grid.appendChild(filled);
     });
 
@@ -2007,7 +1926,8 @@
       gsap.from(viewShoot, { duration: 0.5, opacity: 0, y: 20, ease: 'power3.out' });
 
       window.scrollTo(0,0);
-      document.title = shoots.find(s => s.id === id)?.name + ' — Dekagrophy';
+      const titleName = categories.find(c => c.id === id)?.name || shoots.find(s => s.id === id)?.name;
+      document.title = titleName + ' — Dekagrophy';
     } else if(isContact) {
       viewHome.classList.add('hidden');
       viewShoot.classList.remove('visible');
@@ -2111,7 +2031,7 @@
     setupPortfolioReveal();
     setupAboutReveal();
     setupSocialReveal();
-    setupShotHovers();
+    setupCategoryHovers();
     setupFrameCornerHover('aboutFrame');
     setupFrameCornerHover('socialFrame');
     setupHeaderScroll();
