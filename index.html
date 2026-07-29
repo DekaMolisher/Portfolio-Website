@@ -1137,7 +1137,7 @@
      it centers instead of hugging the left edge. Every child must already be able to
      report its natural height at an arbitrary width without waiting on anything async
      (e.g. via a CSS aspect-ratio) since this reads getBoundingClientRect() synchronously. */
-  function layoutMasonryGrid(container, { targetColWidth = 280, gap = 24, minCols = 1 } = {}) {
+  function layoutMasonryGrid(container, { targetColWidth = 280, gap = 24, minCols = 1, maxColWidth = Infinity } = {}) {
     const items = Array.from(container.children);
     if(!items.length) return;
 
@@ -1145,8 +1145,12 @@
     container.style.height = '';
     const availableWidth = container.clientWidth;
 
-    const numCols = Math.max(minCols, Math.min(items.length, Math.floor((availableWidth + gap) / (targetColWidth + gap))));
-    const colWidth = (availableWidth - (numCols - 1) * gap) / numCols;
+    // minCols is a floor applied only when there are enough items to fill it — a
+    // single-photo gallery should never be split into empty extra columns just to
+    // satisfy a mobile minimum.
+    const naturalCols = Math.floor((availableWidth + gap) / (targetColWidth + gap));
+    const numCols = Math.min(items.length, Math.max(1, minCols, naturalCols));
+    const colWidth = Math.min(maxColWidth, (availableWidth - (numCols - 1) * gap) / numCols);
     const colHeights = new Array(numCols).fill(0);
 
     items.forEach((item) => {
@@ -1196,7 +1200,7 @@
   function layoutShootGrid() {
     const container = document.getElementById('shootGrid');
     if(!container.children.length) return;
-    layoutMasonryGrid(container, { targetColWidth: 260, gap: 20, minCols: 2 });
+    layoutMasonryGrid(container, { targetColWidth: 260, gap: 20, minCols: 2, maxColWidth: 480 });
   }
 
   let masonryResizeTimeout;
