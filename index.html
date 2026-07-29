@@ -549,16 +549,12 @@
   .shoot-note svg{width:16px;height:16px;stroke:var(--accent-deep);flex-shrink:0;margin-top:3px;}
   .shoot-note p{font-family:var(--font-accent);font-style:italic;font-size:17px;line-height:1.6;color:var(--ink-soft);}
 
-  /* Every photo sits in exactly one column at its own natural ratio, whatever its
-     orientation — no cell ever spans multiple columns, so a single-photo gallery (or a
-     landscape shot mixed into a mostly-portrait set) never blows up to full width. */
-  .shoot-grid{
-    --gallery-gap:20px;
-    display:grid;grid-template-columns:repeat(2, 1fr);gap:var(--gallery-gap);
-    align-items:start;
-  }
-  @media (min-width:640px){.shoot-grid{grid-template-columns:repeat(3, 1fr);--gallery-gap:24px;}}
-  .cell{position:relative;overflow:hidden;background:var(--surface);}
+  /* True masonry (JS-positioned, see layoutShootGrid): each photo is placed in whichever
+     column is currently shortest and sits at its own natural ratio, so the gallery reads
+     as an uneven, waterfall-style grid instead of forced equal rows — no cell ever spans
+     multiple columns, so a single-photo gallery never blows up to full width either. */
+  .shoot-grid{position:relative;margin:0 auto;}
+  .cell{position:absolute;top:0;left:0;overflow:hidden;background:var(--surface);}
   .cell.filled{cursor:pointer;transition:box-shadow .5s var(--ease);}
   .cell.filled.is-hover{box-shadow:0 32px 56px -20px var(--accent-pale), 0 0 0 1px var(--accent-pale);}
   .cell.filled img{width:100%;height:auto;display:block;}
@@ -992,22 +988,22 @@
   /* ============ DATA ============ */
   const shoots = [
     { id:'mavee',    file:'mavee-01.jpg', cardThumb:'mavee-01-thumb.jpg', name:'Mavee', tag:'Urban-Neon Tijuana', ratio:'9/16', images:[
-      { file:'mavee-01.jpg', thumb:'mavee-01-thumb.jpg', wide:false },
-      { file:'mavee-02.jpg', thumb:'mavee-02-thumb.jpg', wide:false },
-      { file:'mavee-03.jpg', thumb:'mavee-03-thumb.jpg', wide:false },
-      { file:'mavee-04.jpg', thumb:'mavee-04-thumb.jpg', wide:false },
-      { file:'mavee-05.jpg', thumb:'mavee-05-thumb.jpg', wide:false },
-      { file:'mavee-06.jpg', thumb:'mavee-06-thumb.jpg', wide:true  },
-      { file:'mavee-07.jpg', thumb:'mavee-07-thumb.jpg', wide:true  },
-      { file:'mavee-08.jpg', thumb:'mavee-08-thumb.jpg', wide:true  },
-      { file:'mavee-09.jpg', thumb:'mavee-09-thumb.jpg', wide:false },
-      { file:'mavee-10.jpg', thumb:'mavee-10-thumb.jpg', wide:false },
-      { file:'mavee-11.jpg', thumb:'mavee-11-thumb.jpg', wide:false },
-      { file:'mavee-12.jpg', thumb:'mavee-12-thumb.jpg', wide:false },
-      { file:'mavee-13.jpg', thumb:'mavee-13-thumb.jpg', wide:false },
-      { file:'mavee-14.jpg', thumb:'mavee-14-thumb.jpg', wide:false },
-      { file:'mavee-15.jpg', thumb:'mavee-15-thumb.jpg', wide:false },
-      { file:'mavee-16.jpg', thumb:'mavee-16-thumb.jpg', wide:true  }
+      { file:'mavee-01.jpg', thumb:'mavee-01-thumb.jpg', ratio:'1013/1800' },
+      { file:'mavee-02.jpg', thumb:'mavee-02-thumb.jpg', ratio:'1013/1800' },
+      { file:'mavee-03.jpg', thumb:'mavee-03-thumb.jpg', ratio:'1013/1800' },
+      { file:'mavee-04.jpg', thumb:'mavee-04-thumb.jpg', ratio:'1013/1800' },
+      { file:'mavee-05.jpg', thumb:'mavee-05-thumb.jpg', ratio:'1350/1800' },
+      { file:'mavee-06.jpg', thumb:'mavee-06-thumb.jpg', ratio:'1800/1013' },
+      { file:'mavee-07.jpg', thumb:'mavee-07-thumb.jpg', ratio:'1800/1013' },
+      { file:'mavee-08.jpg', thumb:'mavee-08-thumb.jpg', ratio:'1800/1013' },
+      { file:'mavee-09.jpg', thumb:'mavee-09-thumb.jpg', ratio:'1012/1800' },
+      { file:'mavee-10.jpg', thumb:'mavee-10-thumb.jpg', ratio:'1013/1800' },
+      { file:'mavee-11.jpg', thumb:'mavee-11-thumb.jpg', ratio:'1012/1800' },
+      { file:'mavee-12.jpg', thumb:'mavee-12-thumb.jpg', ratio:'1013/1800' },
+      { file:'mavee-13.jpg', thumb:'mavee-13-thumb.jpg', ratio:'1013/1800' },
+      { file:'mavee-14.jpg', thumb:'mavee-14-thumb.jpg', ratio:'1013/1800' },
+      { file:'mavee-15.jpg', thumb:'mavee-15-thumb.jpg', ratio:'1013/1800' },
+      { file:'mavee-16.jpg', thumb:'mavee-16-thumb.jpg', ratio:'1800/1013' }
     ] },
     { id:'saira',    file:'saira.jpg',    name:'Saira',    tag:'Studio Boudoir',       ratio:'3/4'  },
     { id:'lucy',     file:'lucy.jpg',     name:'Lucy',     tag:'Urban Noir',           ratio:'16/9' },
@@ -1136,10 +1132,41 @@
   }
   buildPortfolioGrid();
 
-  /* Desktop-only (>=768px): true masonry that places each card in whichever column is
-     currently shortest, then sizes the grid to exactly the used columns' width so it
-     centers instead of hugging the left edge. Below 768px the CSS grid above takes over
-     and this just clears any leftover inline positioning from a wider layout. */
+  /* Shared true-masonry engine: places each child of `container` in whichever column is
+     currently shortest, then sizes the container to exactly the used columns' width so
+     it centers instead of hugging the left edge. Every child must already be able to
+     report its natural height at an arbitrary width without waiting on anything async
+     (e.g. via a CSS aspect-ratio) since this reads getBoundingClientRect() synchronously. */
+  function layoutMasonryGrid(container, { targetColWidth = 280, gap = 24, minCols = 1 } = {}) {
+    const items = Array.from(container.children);
+    if(!items.length) return;
+
+    container.style.width = '';
+    container.style.height = '';
+    const availableWidth = container.clientWidth;
+
+    const numCols = Math.max(minCols, Math.min(items.length, Math.floor((availableWidth + gap) / (targetColWidth + gap))));
+    const colWidth = (availableWidth - (numCols - 1) * gap) / numCols;
+    const colHeights = new Array(numCols).fill(0);
+
+    items.forEach((item) => {
+      let col = 0;
+      for(let c = 1; c < numCols; c++) { if(colHeights[c] < colHeights[col]) col = c; }
+
+      const x = col * (colWidth + gap);
+      const y = colHeights[col];
+      gsap.set(item, { x, y, width: colWidth });
+      item.dataset.baseY = y;
+
+      colHeights[col] = y + item.getBoundingClientRect().height + gap;
+    });
+
+    container.style.width = (numCols * colWidth + (numCols - 1) * gap) + 'px';
+    container.style.height = (Math.max(...colHeights) - gap) + 'px';
+  }
+
+  /* Desktop-only (>=768px) for the home portfolio grid; below that the CSS grid on
+     .masonry takes over and this just clears any leftover inline positioning. */
   function isDesktopMasonry() {
     return window.matchMedia('(min-width:768px)').matches;
   }
@@ -1159,39 +1186,26 @@
       return;
     }
 
-    const GAP = 24;
-    const TARGET_COL_WIDTH = 280;
-
-    container.style.width = '';
-    container.style.height = '';
-    const availableWidth = container.clientWidth;
-
-    const numCols = Math.max(1, Math.min(items.length, Math.floor((availableWidth + GAP) / (TARGET_COL_WIDTH + GAP))));
-    const colWidth = (availableWidth - (numCols - 1) * GAP) / numCols;
-    const colHeights = new Array(numCols).fill(0);
-
-    items.forEach((item) => {
-      let col = 0;
-      for(let c = 1; c < numCols; c++) { if(colHeights[c] < colHeights[col]) col = c; }
-
-      const x = col * (colWidth + GAP);
-      const y = colHeights[col];
-      gsap.set(item, { x, y, width: colWidth });
-      item.dataset.baseY = y;
-
-      colHeights[col] = y + item.getBoundingClientRect().height + GAP;
-    });
-
-    container.style.width = (numCols * colWidth + (numCols - 1) * GAP) + 'px';
-    container.style.height = (Math.max(...colHeights) - GAP) + 'px';
+    layoutMasonryGrid(container, { targetColWidth: 280, gap: 24 });
   }
   layoutMasonry();
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(layoutMasonry);
 
+  /* Shoot-detail gallery: always a true masonry (Pic-Time-style), at every viewport
+     width, since a photo gallery is the primary "browse many images" experience. */
+  function layoutShootGrid() {
+    const container = document.getElementById('shootGrid');
+    if(!container.children.length) return;
+    layoutMasonryGrid(container, { targetColWidth: 260, gap: 20, minCols: 2 });
+  }
+
   let masonryResizeTimeout;
   window.addEventListener('resize', () => {
     clearTimeout(masonryResizeTimeout);
-    masonryResizeTimeout = setTimeout(layoutMasonry, 150);
+    masonryResizeTimeout = setTimeout(() => {
+      layoutMasonry();
+      layoutShootGrid();
+    }, 150);
   });
 
   /* ============ HERO BACKGROUND SLIDESHOW ============ */
@@ -1666,12 +1680,13 @@
     const grid = document.getElementById('shootGrid');
     grid.innerHTML = '';
 
-    const images = s.images || [{ file: s.file, thumb: s.file }];
+    const images = s.images || [{ file: s.file, thumb: s.file, ratio: s.ratio }];
     const fullFiles = images.map((im) => im.file);
 
     images.forEach((im, i) => {
       const filled = document.createElement('div');
       filled.className = 'cell filled';
+      filled.style.aspectRatio = im.ratio;
       filled.innerHTML = `
         <img src="${im.thumb}" alt="${s.name}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async">
         <span class="cell-edge"><span class="bar bar-top"></span><span class="bar bar-left"></span><span class="bar bar-bottom"></span><span class="bar bar-right"></span><span class="glow"></span></span>
@@ -1682,17 +1697,21 @@
       grid.appendChild(filled);
     });
 
-    gsap.from('.cell', { opacity: 0, y: 14, duration: 0.6, stagger: 0.04, ease: 'power3.out' });
+    layoutShootGrid();
+
+    gsap.from('.cell', { opacity: 0, y: '+=14', duration: 0.6, stagger: 0.04, ease: 'power3.out' });
 
     gsap.utils.toArray('.cell.filled').forEach(cell => {
       cell.addEventListener('mouseenter', () => {
         cell.classList.add('is-hover');
-        gsap.to(cell, { duration: 0.45, y: -8, scale: 1.015, ease: 'power3.out' });
+        const baseY = parseFloat(cell.dataset.baseY || '0');
+        gsap.to(cell, { duration: 0.45, y: baseY - 8, scale: 1.015, ease: 'power3.out' });
         gsap.to(cell.querySelector('img'), { duration: 0.8, scale: 1.1, ease: 'power3.out' });
       });
       cell.addEventListener('mouseleave', () => {
         cell.classList.remove('is-hover');
-        gsap.to(cell, { duration: 0.45, y: 0, scale: 1, ease: 'power3.out' });
+        const baseY = parseFloat(cell.dataset.baseY || '0');
+        gsap.to(cell, { duration: 0.45, y: baseY, scale: 1, ease: 'power3.out' });
         gsap.to(cell.querySelector('img'), { duration: 0.8, scale: 1.03, ease: 'power3.out' });
       });
     });
@@ -1956,11 +1975,12 @@
 
     if(shootMatch) {
       const id = shootMatch[1];
-      renderShoot(id);
 
       viewHome.classList.add('hidden');
       viewContact.classList.remove('visible');
       viewShoot.classList.add('visible');
+
+      renderShoot(id);
       gsap.from(viewShoot, { duration: 0.5, opacity: 0, y: 20, ease: 'power3.out' });
 
       window.scrollTo(0,0);
