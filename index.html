@@ -354,12 +354,18 @@
   .section-head p{color:var(--ink-soft);font-size:15.5px;line-height:1.8;font-family:var(--font-body);}
 
   /* ============ MASONRY GRID ============ */
+  /* Mobile: fixed 2-column grid, same pattern as the shoot-detail gallery (landscape
+     shoots span both columns). Desktop (>=768px): rolled back to the dynamic JS masonry
+     below — an uneven, shortest-column-first layout sized to center as a block. */
   .masonry{
     --gallery-gap:16px;
     display:grid;grid-template-columns:repeat(2, 1fr);gap:var(--gallery-gap);
     align-items:start;
   }
   @media (min-width:640px){.masonry{--gallery-gap:24px;}}
+  @media (min-width:768px){
+    .masonry{display:block;position:relative;margin:0 auto;}
+  }
 
   .shot{
     cursor:pointer;background:var(--surface);border:1px solid transparent;
@@ -367,6 +373,9 @@
     transition:border-color .3s ease, box-shadow .5s var(--ease);
   }
   .shot.wide{grid-column:1 / -1;}
+  @media (min-width:768px){
+    .shot{position:absolute;top:0;left:0;}
+  }
   .shot:hover{border-color:var(--accent-pale);}
   .shot.is-hover{box-shadow:0 32px 56px -20px var(--accent-pale), 0 0 0 1px var(--accent-pale);}
   .shot-media{position:relative;overflow:hidden;aspect-ratio:3/4;} /* fallback; overridden per-card by JS based on image orientation */
@@ -1058,7 +1067,7 @@
       onComplete: () => {
         location.hash = '#/shoot/' + id;
         gsap.set(viewHome, { clearProps: 'transform,opacity,transformOrigin' });
-        gsap.set(el, { clearProps: 'transform,opacity' });
+        layoutMasonry();
         document.body.style.overflow = '';
         sweep.remove();
       }
@@ -1127,6 +1136,64 @@
     });
   }
   buildPortfolioGrid();
+
+  /* Desktop-only (>=768px): true masonry that places each card in whichever column is
+     currently shortest, then sizes the grid to exactly the used columns' width so it
+     centers instead of hugging the left edge. Below 768px the CSS grid above takes over
+     and this just clears any leftover inline positioning from a wider layout. */
+  function isDesktopMasonry() {
+    return window.matchMedia('(min-width:768px)').matches;
+  }
+
+  function layoutMasonry() {
+    const container = document.getElementById('masonryGrid');
+    const items = Array.from(container.children);
+    if(!items.length) return;
+
+    if(!isDesktopMasonry()) {
+      container.style.width = '';
+      container.style.height = '';
+      items.forEach((item) => {
+        gsap.set(item, { clearProps: 'transform,width' });
+        delete item.dataset.baseY;
+      });
+      return;
+    }
+
+    const GAP = 24;
+    const TARGET_COL_WIDTH = 280;
+
+    container.style.width = '';
+    container.style.height = '';
+    const availableWidth = container.clientWidth;
+
+    const numCols = Math.max(1, Math.min(items.length, Math.floor((availableWidth + GAP) / (TARGET_COL_WIDTH + GAP))));
+    const colWidth = (availableWidth - (numCols - 1) * GAP) / numCols;
+    const colHeights = new Array(numCols).fill(0);
+
+    items.forEach((item) => {
+      let col = 0;
+      for(let c = 1; c < numCols; c++) { if(colHeights[c] < colHeights[col]) col = c; }
+
+      const x = col * (colWidth + GAP);
+      const y = colHeights[col];
+      gsap.set(item, { x, y, width: colWidth });
+      item.dataset.baseY = y;
+
+      colHeights[col] = y + item.getBoundingClientRect().height + GAP;
+    });
+
+    container.style.width = (numCols * colWidth + (numCols - 1) * GAP) + 'px';
+    container.style.height = (Math.max(...colHeights) - GAP) + 'px';
+  }
+  layoutMasonry();
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(layoutMasonry);
+
+  let masonryResizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(masonryResizeTimeout);
+    masonryResizeTimeout = setTimeout(layoutMasonry, 150);
+  });
 
   /* ============ HERO BACKGROUND SLIDESHOW ============ */
   function buildHeroBg() {
@@ -1493,14 +1560,16 @@
 
       function enter() {
         shot.classList.add('is-hover');
-        gsap.to(shot, { duration: 0.45, y: -10, ease: 'power3.out' });
+        const baseY = parseFloat(shot.dataset.baseY || '0');
+        gsap.to(shot, { duration: 0.45, y: baseY - 10, ease: 'power3.out' });
         gsap.to(img, { duration: 0.8, scale: 1.09, ease: 'power3.out' });
         gsap.to(view, { duration: 0.4, opacity: 1, scale: 1, ease: 'power3.out' });
         media.style.setProperty('--overlay-opacity', '1');
       }
       function leave() {
         shot.classList.remove('is-hover');
-        gsap.to(shot, { duration: 0.45, y: 0, ease: 'power3.out' });
+        const baseY = parseFloat(shot.dataset.baseY || '0');
+        gsap.to(shot, { duration: 0.45, y: baseY, ease: 'power3.out' });
         gsap.to(img, { duration: 0.8, scale: 1, ease: 'power3.out' });
         gsap.to(view, { duration: 0.4, opacity: 0, scale: 0.85, ease: 'power3.out' });
         media.style.setProperty('--overlay-opacity', '0');
