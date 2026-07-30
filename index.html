@@ -363,21 +363,16 @@
   .category-list{display:flex;flex-direction:column;gap:110px;padding:20px 0 40px;}
   .category-row{
     display:grid;grid-template-columns:1.1fr 1fr;gap:60px;align-items:center;
-    cursor:pointer;
   }
   .category-row:nth-child(even){grid-template-columns:1fr 1.1fr;}
   .category-row:nth-child(even) .category-media{order:2;}
   .category-row:nth-child(even) .category-copy{order:1;}
 
-  .category-media{position:relative;overflow:hidden;background:var(--surface);aspect-ratio:4/5;max-height:78vh;}
+  .category-media{position:relative;overflow:hidden;background:var(--surface);aspect-ratio:4/5;max-height:78vh;cursor:pointer;}
   .category-media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 1.2s var(--ease);}
   .category-row.is-hover .category-media img{transform:scale(1.06);}
 
   .category-copy{padding:0 8px;}
-  .category-index{
-    font-family:var(--font-ui);font-size:12px;letter-spacing:.3em;
-    color:var(--accent-deep);display:block;margin-bottom:14px;
-  }
   .category-name{font-size:clamp(32px,4.4vw,52px);line-height:1.02;margin-bottom:18px;}
   .category-desc{color:var(--ink-soft);font-size:15.5px;line-height:1.75;max-width:440px;margin-bottom:26px;}
   .category-cta{
@@ -392,10 +387,10 @@
   /* Corner-glow hover, same pattern as the old portfolio grid / gallery cells */
   .category-media .shot-edge{position:absolute;inset:0;z-index:3;pointer-events:none;}
   .category-media .shot-edge .bar{position:absolute;background:var(--accent);transition:transform .3s var(--ease);}
-  .category-media .shot-edge .bar-top{top:0;left:0;right:0;height:2px;transform-origin:right center;transform:scaleX(0);}
-  .category-media .shot-edge .bar-left{left:0;top:0;bottom:0;width:2px;transform-origin:top center;transform:scaleY(0);}
-  .category-media .shot-edge .bar-bottom{bottom:0;left:0;right:0;height:2px;transform-origin:left center;transform:scaleX(0);}
-  .category-media .shot-edge .bar-right{right:0;top:0;bottom:0;width:2px;transform-origin:bottom center;transform:scaleY(0);}
+  .category-media .shot-edge .bar-top{top:0;left:0;right:0;height:4px;transform-origin:right center;transform:scaleX(0);}
+  .category-media .shot-edge .bar-left{left:0;top:0;bottom:0;width:4px;transform-origin:top center;transform:scaleY(0);}
+  .category-media .shot-edge .bar-bottom{bottom:0;left:0;right:0;height:4px;transform-origin:left center;transform:scaleX(0);}
+  .category-media .shot-edge .bar-right{right:0;top:0;bottom:0;width:4px;transform-origin:bottom center;transform:scaleY(0);}
   .category-row.is-hover .category-media .shot-edge .bar-top{transform:scaleX(1);transition-delay:0s;}
   .category-row.is-hover .category-media .shot-edge .bar-left{transform:scaleY(1);transition-delay:.22s;}
   .category-row.is-hover .category-media .shot-edge .bar-bottom{transform:scaleX(1);transition-delay:.44s;}
@@ -1102,7 +1097,6 @@
           <span class="shot-edge"><span class="bar bar-top"></span><span class="bar bar-left"></span><span class="bar bar-bottom"></span><span class="bar bar-right"></span><span class="glow"></span></span>
         </div>
         <div class="category-copy">
-          <span class="category-index">${String(i+1).padStart(2,'0')} / ${String(categories.length).padStart(2,'0')}</span>
           <h3 class="category-name">${cat.name}</h3>
           <p class="category-desc">${cat.description}</p>
           <span class="category-cta">
@@ -1538,12 +1532,13 @@
     const isTouchDevice = window.matchMedia('(hover: none)').matches;
 
     gsap.utils.toArray('.category-row').forEach((row) => {
+      const media = row.querySelector('.category-media');
       function enter() { row.classList.add('is-hover'); }
       function leave() { row.classList.remove('is-hover'); }
 
       if(isTouchDevice) {
-        // first tap reveals the corner-glow/zoom, second tap on an already-revealed row navigates
-        row.addEventListener('click', (e) => {
+        // first tap reveals the corner-glow/zoom, second tap on an already-revealed image navigates
+        media.addEventListener('click', (e) => {
           if(!row.classList.contains('is-hover')) {
             e.preventDefault();
             gsap.utils.toArray('.category-row.is-hover').forEach(r => { if(r !== row) r.dispatchEvent(new Event('force-leave')); });
@@ -1556,7 +1551,7 @@
       } else {
         row.addEventListener('mouseenter', enter);
         row.addEventListener('mouseleave', leave);
-        row.addEventListener('click', () => navigateToShoot(row, row.dataset.shootId));
+        media.addEventListener('click', () => navigateToShoot(row, row.dataset.shootId));
       }
     });
   }
