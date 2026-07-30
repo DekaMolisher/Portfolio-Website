@@ -368,9 +368,25 @@
   .category-row:nth-child(even) .category-media{order:2;}
   .category-row:nth-child(even) .category-copy{order:1;}
 
-  .category-media{position:relative;overflow:hidden;background:var(--surface);aspect-ratio:4/5;max-height:78vh;cursor:pointer;}
-  .category-media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 1.2s var(--ease);}
-  .category-row.is-hover .category-media img{transform:scale(1.06);}
+  /* Three 3:4 verticals stacked like a fanned set of prints — front photo first in the
+     DOM (highest z-index, no offset), the two behind it stepped down and to the right.
+     The offsets are translate percentages of each photo's own box, so the whole stack
+     scales cleanly with the column width. */
+  .category-media{position:relative;cursor:pointer;aspect-ratio:1/1.06;}
+  .stack-photo{
+    position:absolute;top:0;left:0;width:66%;aspect-ratio:3/4;
+    overflow:hidden;background:var(--surface);
+    box-shadow:0 18px 40px -18px rgba(0,0,0,0.55);
+    transition:transform .7s var(--ease);
+  }
+  .stack-photo img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 1.2s var(--ease);}
+  .stack-photo:nth-child(1){z-index:3;transform:translate(0,0);}
+  .stack-photo:nth-child(2){z-index:2;transform:translate(24%,8%);}
+  .stack-photo:nth-child(3){z-index:1;transform:translate(48%,16%);}
+  /* fan out slightly on hover */
+  .category-row.is-hover .stack-photo:nth-child(2){transform:translate(28%,9.5%);}
+  .category-row.is-hover .stack-photo:nth-child(3){transform:translate(56%,19%);}
+  .category-row.is-hover .stack-photo:nth-child(1) img{transform:scale(1.06);}
 
   .category-copy{padding:0 8px;}
   .category-name{font-size:clamp(32px,4.4vw,52px);line-height:1.02;margin-bottom:18px;}
@@ -411,7 +427,13 @@
     .category-row, .category-row:nth-child(even){grid-template-columns:1fr;gap:26px;}
     .category-row .category-media, .category-row:nth-child(even) .category-media{order:1;}
     .category-row .category-copy, .category-row:nth-child(even) .category-copy{order:2;}
-    .category-media{aspect-ratio:3/4;max-height:60vh;}
+    /* tighter fan on narrow screens so the stack doesn't eat the whole viewport */
+    .category-media{aspect-ratio:1/1.12;}
+    .stack-photo{width:70%;}
+    .stack-photo:nth-child(2){transform:translate(19%,6%);}
+    .stack-photo:nth-child(3){transform:translate(38%,12%);}
+    .category-row.is-hover .stack-photo:nth-child(2){transform:translate(22%,7%);}
+    .category-row.is-hover .stack-photo:nth-child(3){transform:translate(44%,14%);}
   }
 
   .gradient-sweep{
@@ -760,7 +782,7 @@
         <span class="eyebrow">Selected Work</span>
         <h2>The Portfolio</h2>
         <div class="rule"></div>
-        <p>Six kinds of stories. Scroll through, then step into the one that speaks to you.</p>
+        <p>Every kind of story I shoot. Scroll through, then step into the one that speaks to you.</p>
       </div>
       <div class="category-list" id="categoryList"></div>
     </section>
@@ -1006,18 +1028,29 @@
   /* The six home-page categories. Each borrows an existing shoot's photos as a
      placeholder (sourceShootId) until a real batch arrives for that category — at that
      point just give the category its own `images`/`file`/`ratio` here instead. */
+  /* `previews` are the 3 stacked 3:4 thumbnails shown on the home page — front photo
+     first. Swap these (and sourceShootId) per category as each real batch lands. */
   const categories = [
     { id:'fashion',   name:'Fashion / Runways',  tag:'Editorial & Runway',    sourceShootId:'mavee',
+      previews:['mavee-01-thumb.webp','mavee-02-thumb.webp','mavee-03-thumb.webp'],
       description:'Placeholder copy — a short line here will set the mood for editorial and runway work: bold styling, confident movement, images built for print.' },
-    { id:'couples',   name:'Couples / Weddings', tag:'Love & Commitment',    sourceShootId:'mavee',
-      description:'Placeholder copy — a short line here will speak to the quiet, real moments between two people, from engagements to the big day itself.' },
+    { id:'celebrations', name:'Celebrations',    tag:'XV, Weddings & Couples', sourceShootId:'mavee',
+      previews:['mavee-04-thumb.webp','mavee-05-thumb.webp','mavee-09-thumb.webp'],
+      description:'Placeholder copy — a short line here will cover quinceañeras, weddings and couples: the vows, the first dance, and every look shared in between.' },
+    { id:'concert',   name:'Concert',            tag:'Live Music & Stage',    sourceShootId:'mavee',
+      previews:['mavee-10-thumb.webp','mavee-11-thumb.webp','mavee-12-thumb.webp'],
+      description:'Placeholder copy — a short line here will capture the stage: lights, motion, and the roar of a crowd caught mid-song.' },
     { id:'social',    name:'Social Events',      tag:'Gatherings & Moments', sourceShootId:'lucy',
+      previews:['mavee-13-thumb.webp','mavee-14-thumb.webp','mavee-15-thumb.webp'],
       description:'Placeholder copy — a short line here will cover the energy of a room: parties, launches, and nights worth remembering.' },
     { id:'portraits', name:'Creative Portraits', tag:'Personal & Expressive',sourceShootId:'cristina',
+      previews:['cristina.webp','mavee-01-thumb.webp','mavee-02-thumb.webp'],
       description:'Placeholder copy — a short line here will describe portraits built around a single person’s story, mood, and light.' },
     { id:'boudoir',   name:'Boudoir',            tag:'Intimate & Empowering',sourceShootId:'saira',
+      previews:['saira.webp','mavee-03-thumb.webp','mavee-04-thumb.webp'],
       description:'Placeholder copy — a short line here will frame boudoir work as intimate, confident, and entirely on the client’s terms.' },
     { id:'family',    name:'Family',             tag:'Generations & Bonds',  sourceShootId:'thelma',
+      previews:['denisse.webp','lucy.webp','mavee-05-thumb.webp'],
       description:'Placeholder copy — a short line here will center the warmth of family sessions: generations, pets, and everyday bonds.' }
   ];
 
@@ -1089,12 +1122,19 @@
     const list = document.getElementById('categoryList');
     categories.forEach((cat, i) => {
       const source = shoots.find(x => x.id === cat.sourceShootId);
+      const previews = cat.previews && cat.previews.length
+        ? cat.previews
+        : [source ? (source.cardThumb || source.file) : ''];
+      // front photo first: it carries the corner-glow edge and the sweep on navigation
+      const stack = previews.map((src, p) => `
+          <div class="stack-photo${p === 0 ? ' shot-media' : ''}">
+            <img src="${src}" alt="${cat.name}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async">
+            ${p === 0 ? '<span class="shot-edge"><span class="bar bar-top"></span><span class="bar bar-left"></span><span class="bar bar-bottom"></span><span class="bar bar-right"></span><span class="glow"></span></span>' : ''}
+          </div>`).join('');
       const el = document.createElement('div');
       el.className = 'category-row';
       el.innerHTML = `
-        <div class="shot-media category-media">
-          <img src="${source ? (source.cardThumb || source.file) : ''}" alt="${cat.name}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async">
-          <span class="shot-edge"><span class="bar bar-top"></span><span class="bar bar-left"></span><span class="bar bar-bottom"></span><span class="bar bar-right"></span><span class="glow"></span></span>
+        <div class="category-media">${stack}
         </div>
         <div class="category-copy">
           <h3 class="category-name">${cat.name}</h3>
