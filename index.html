@@ -2023,7 +2023,7 @@
 
     viewerState = { zoom: 1, panX: 0, panY: 0, isDragging: false, startX: 0, startY: 0 };
     document.getElementById('zoomLevel').textContent = '100%';
-    navHiddenByTap = false;
+    navHiddenByTap = false;   // only a freshly-opened viewer starts with the arrows shown
     updateZoomToggleIcon();
     updateNavVisibility();
 
@@ -2053,7 +2053,8 @@
         document.getElementById('viewerInfo').textContent = String(viewerIndex+1).padStart(2,'0') + ' / ' + String(viewerImages.length).padStart(2,'0');
         viewerState = { zoom: 1, panX: 0, panY: 0, isDragging: false, startX: 0, startY: 0 };
         document.getElementById('zoomLevel').textContent = '100%';
-        navHiddenByTap = false;
+        // deliberately NOT resetting navHiddenByTap: hiding the arrows is a choice about
+        // the viewer, not about one photo, so it has to survive swiping between photos.
         updateZoomToggleIcon();
         updateNavVisibility();
         gsap.set(img, { x: direction * 70, opacity: 0, scale: 1, filter: 'blur(10px)' });
