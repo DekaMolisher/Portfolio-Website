@@ -2286,6 +2286,39 @@
     touchDragging = false;
   });
 
+  /* Ctrl+wheel (and trackpad pinch, which browsers report as a ctrl-held wheel) zooms the
+     desktop viewer, anchored on the pointer so you zoom into whatever you're looking at
+     rather than the middle of the frame. */
+  document.getElementById('viewer').addEventListener('wheel', (e) => {
+    if(!e.ctrlKey) return;
+    if(!document.getElementById('viewer').classList.contains('open')) return;
+    e.preventDefault();   // also stops the browser zooming the whole page
+
+    // wheel deltas arrive in pixels, lines or pages depending on the device
+    const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1;
+    const prev = viewerState.zoom;
+    const z = Math.min(MAX_ZOOM, Math.max(1, prev * Math.exp(-e.deltaY * unit * 0.0025)));
+    if(z === prev) return;
+
+    if(z <= 1) {
+      viewerState.panX = 0; viewerState.panY = 0;
+    } else {
+      // shift the pan so the image point under the cursor stays under the cursor
+      const rect = viewerImgEl.getBoundingClientRect();
+      const dx = e.clientX - (rect.x + rect.width / 2);
+      const dy = e.clientY - (rect.y + rect.height / 2);
+      const ratio = z / prev;
+      viewerState.panX -= dx * (ratio - 1);
+      viewerState.panY -= dy * (ratio - 1);
+    }
+
+    viewerState.zoom = z;
+    gsap.set(viewerImgEl, { scale: z, x: viewerState.panX, y: viewerState.panY });
+    document.getElementById('zoomLevel').textContent = Math.round(z * 100) + '%';
+    updateZoomToggleIcon();
+    updateNavVisibility();
+  }, { passive: false });
+
   document.addEventListener('keydown', (e) => {
     if(!document.getElementById('viewer').classList.contains('open')) return;
     if(e.key === 'Escape') closeViewer();
