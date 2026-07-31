@@ -2163,12 +2163,30 @@
     viewerImgEl.style.cursor = 'grab';
   });
 
-  /* Touch: swipe left/right to change photos, drag to pan while zoomed, double-tap to zoom */
+  /* Touch: pinch to zoom, swipe left/right to change photos, drag to pan while zoomed,
+     double-tap to zoom, single tap to toggle the arrows */
   let touchStartX = 0, touchStartY = 0, touchDragging = false, touchPanStartX = 0, touchPanStartY = 0;
   let lastTapTime = 0, lastTapX = 0, lastTapY = 0, singleTapTimeout = null;
+  let pinch = null, pinchCooling = false;
   const DOUBLE_TAP_WINDOW = 300;
+  const MAX_ZOOM = 3;
+
+  const touchDist = (a, b) => Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
+  const touchMid  = (a, b) => ({ x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 });
 
   viewerImgEl.addEventListener('touchstart', (e) => {
+    if(e.touches.length === 2) {
+      // Capture the starting spread and midpoint so the pinch scales from wherever the
+      // photo already is, rather than snapping back to 100% first.
+      const [a, b] = [e.touches[0], e.touches[1]];
+      pinch = {
+        dist: touchDist(a, b), mid: touchMid(a, b),
+        zoom: viewerState.zoom, panX: viewerState.panX, panY: viewerState.panY
+      };
+      touchDragging = false;
+      clearTimeout(singleTapTimeout);
+      return;
+    }
     if(e.touches.length !== 1) return;
     const t = e.touches[0];
     touchStartX = t.clientX;
@@ -2179,7 +2197,21 @@
   }, { passive: true });
 
   viewerImgEl.addEventListener('touchmove', (e) => {
-    if(e.touches.length !== 1) return;
+    if(pinch && e.touches.length === 2) {
+      e.preventDefault();
+      const [a, b] = [e.touches[0], e.touches[1]];
+      const z = Math.min(MAX_ZOOM, Math.max(1, pinch.zoom * (touchDist(a, b) / pinch.dist)));
+      const mid = touchMid(a, b);
+      viewerState.zoom = z;
+      // track the fingers' midpoint so the image stays under them while pinching
+      viewerState.panX = z <= 1 ? 0 : pinch.panX + (mid.x - pinch.mid.x);
+      viewerState.panY = z <= 1 ? 0 : pinch.panY + (mid.y - pinch.mid.y);
+      // set directly rather than tweening — a pinch has to track the fingers frame-tight
+      gsap.set(viewerImgEl, { scale: z, x: viewerState.panX, y: viewerState.panY });
+      document.getElementById('zoomLevel').textContent = Math.round(z * 100) + '%';
+      return;
+    }
+    if(pinch || e.touches.length !== 1) return;
     const t = e.touches[0];
     const dx = t.clientX - touchStartX;
     const dy = t.clientY - touchStartY;
@@ -2198,6 +2230,26 @@
   }, { passive: false });
 
   viewerImgEl.addEventListener('touchend', (e) => {
+    // Swallow the whole release of a pinch: the first lift settles it, and pinchCooling
+    // keeps the second lift from being read as a tap (which would toggle the arrows) or
+    // as a swipe (which would change photo).
+    if(pinch || pinchCooling) {
+      if(pinch && e.touches.length < 2) {
+        pinch = null;
+        pinchCooling = true;
+        if(viewerState.zoom <= 1) {
+          viewerState.zoom = 1; viewerState.panX = 0; viewerState.panY = 0;
+          gsap.to(viewerImgEl, { duration: 0.3, scale: 1, x: 0, y: 0, ease: 'power2.out' });
+        }
+        document.getElementById('zoomLevel').textContent = Math.round(viewerState.zoom * 100) + '%';
+        updateZoomToggleIcon();
+        updateNavVisibility();
+        touchDragging = false;
+      }
+      if(e.touches.length === 0) pinchCooling = false;
+      return;
+    }
+
     const t = e.changedTouches[0];
     const dx = t.clientX - touchStartX;
     const dy = t.clientY - touchStartY;
