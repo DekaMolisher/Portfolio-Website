@@ -3,7 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dekagrophy — Portfolio</title>
+<title>Dekagrophy — Photographer, Videographer &amp; Graphic Designer in Tijuana</title>
+<meta name="description" content="Giancarlo (Deka) Rosete — photographer, videographer and graphic designer based in Tijuana. Portraits, weddings, quinceañeras, concerts, events and brand visuals, shot and designed end to end.">
+<meta name="author" content="Giancarlo (Deka) Rosete">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Dekagrophy — Photographer, Videographer &amp; Graphic Designer in Tijuana">
+<meta property="og:description" content="Portraits, weddings, quinceañeras, concerts, events and brand visuals — shot, edited and designed by Giancarlo (Deka) Rosete.">
+<meta property="og:image" content="https://dekamolisher.github.io/Portfolio-Website/mavee-01.webp">
+<meta name="twitter:card" content="summary_large_image">
 <script>
   // Apply saved theme before first paint to avoid a flash of the wrong theme
   (function(){
@@ -77,7 +84,11 @@
   }
 
   *{box-sizing:border-box;margin:0;padding:0;}
-  html{scroll-behavior:smooth;overscroll-behavior-y:none;}
+  /* overflow-x:clip (not hidden) on <html> too: body's hidden alone still left <html>
+     itself scrollable sideways, so the reveal animations that park elements at x:+40
+     before their trigger fires made the page jiggle horizontally on mobile. clip stops
+     that without turning <html> into a scroll container. */
+  html{scroll-behavior:smooth;overscroll-behavior-y:none;overflow-x:clip;}
   body{
     background:var(--bg);
     color:var(--ink);
@@ -273,39 +284,25 @@
   .btn-ghost svg{width:13px;height:13px;stroke:currentColor;}
 
   /* ============ HERO ============ */
+  /* Flat colour rather than a full-bleed photo: the only imagery is the bubble-masked
+     slideshow, which keeps the type crisp and the palette doing the work. The silk
+     canvas sits behind the whole page, so the hero paints its own solid background. */
   .hero{
     min-height:100vh;min-height:100svh;
     max-width:none;width:100%;margin:0;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
-    text-align:center;padding:140px 24px 80px;position:relative;overflow:hidden;
+    text-align:center;padding:120px 24px 80px;position:relative;overflow:hidden;
+    background:var(--bg);
   }
 
-  /* Matches the page background so a hero-bg-img layer that's a beat behind on a resize
-     (e.g. a mobile browser's toolbar retracting mid-scroll) reveals a plain, consistent
-     color underneath instead of the silk canvas's swirl pattern showing through. */
-  .hero-bg{position:absolute;inset:0;z-index:0;overflow:hidden;background:var(--bg);}
-  .hero-bg-img{
-    position:absolute;inset:0;
-    background-size:cover;background-position:center 25%;
-    opacity:0;transform:scale(1.1);
-    will-change:opacity, transform;
-  }
-  .hero-bg-overlay{position:absolute;inset:0;z-index:1;}
-  [data-theme="dark"] .hero-bg-overlay{
-    background:linear-gradient(180deg, rgba(8,7,6,0.62) 0%, rgba(8,7,6,0.42) 38%, rgba(8,7,6,0.85) 100%);
-  }
-  [data-theme="light"] .hero-bg-overlay{
-    background:linear-gradient(180deg, rgba(250,247,241,0.82) 0%, rgba(250,247,241,0.62) 38%, rgba(250,247,241,0.88) 100%);
-  }
+  .hero-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;width:100%;}
 
-  .hero-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;}
-
-  .hero h1{font-size:clamp(52px,11vw,120px);line-height:0.92;}
+  .hero h1{font-size:clamp(46px,11vw,110px);line-height:0.92;}
   .hero-subtitle{
     font-family:var(--font-ui);
-    font-size:clamp(13px,2vw,18px);
+    font-size:clamp(12px,2vw,17px);
     font-weight:600;
-    letter-spacing:.1em;
+    letter-spacing:.14em;
     text-transform:uppercase;
     color:var(--hero-accent);
     margin:10px 0 6px;
@@ -315,14 +312,36 @@
     font-family:var(--font-serif);
     font-style:italic;
     font-weight:500;
-    font-size:clamp(17px,2.1vw,22px);
+    font-size:clamp(16px,2.1vw,21px);
     color:var(--hero-accent-soft);
-    margin:0 0 24px;
+    margin:0;
     line-height:1.2;
   }
-  .hero .rule{width:64px;height:1px;background:var(--accent);margin:0 auto 24px;}
-  .hero p{max-width:480px;color:var(--ink-soft);font-size:16px;line-height:1.75;margin-bottom:38px;}
-  .hero .socials{margin-top:64px;}
+
+  /* The slideshow, clipped to the bumpy bubble */
+  .hero-bubble{
+    position:relative;
+    width:min(78vw, 340px);
+    aspect-ratio:1/1;
+    margin:30px 0 32px;
+    -webkit-clip-path:url(#heroBubbleClip);
+    clip-path:url(#heroBubbleClip);
+    background:var(--surface);
+  }
+  .hero-bg{position:absolute;inset:0;overflow:hidden;background:var(--surface);}
+  .hero-bg-img{
+    position:absolute;inset:0;
+    background-size:cover;background-position:center 25%;
+    opacity:0;transform:scale(1.1);
+    will-change:opacity, transform;
+  }
+
+  .hero p{max-width:430px;color:var(--ink-soft);font-size:15.5px;line-height:1.75;margin-bottom:30px;}
+
+  @media (min-width:900px){
+    .hero-bubble{width:min(42vw, 420px);margin:36px 0 36px;}
+    .hero p{max-width:520px;font-size:16px;}
+  }
 
   .scroll-cue{
     position:absolute;bottom:36px;left:50%;transform:translateX(-50%);z-index:2;
@@ -337,9 +356,6 @@
   }
 
   @media (max-width:640px){
-    .hero .socials{margin-top:36px;}
-    .hero .socials .social-btn{width:36px;height:36px;}
-    .hero .socials .social-btn svg{width:15px;height:15px;}
     .scroll-cue{bottom:22px;}
   }
 
@@ -823,18 +839,29 @@
   </nav>
 
   <!-- HOME VIEW -->
+  <!-- Bubble mask for the hero slideshow: a circle carrying 16 small outward bumps.
+       objectBoundingBox units so it stretches with whatever box it's applied to. -->
+  <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+    <defs>
+      <clipPath id="heroBubbleClip" clipPathUnits="objectBoundingBox">
+        <path d="M0.5000 0.0700 A0.0839 0.0839 0 0 1 0.6646 0.1027 A0.0839 0.0839 0 0 1 0.8041 0.1959 A0.0839 0.0839 0 0 1 0.8973 0.3354 A0.0839 0.0839 0 0 1 0.9300 0.5000 A0.0839 0.0839 0 0 1 0.8973 0.6646 A0.0839 0.0839 0 0 1 0.8041 0.8041 A0.0839 0.0839 0 0 1 0.6646 0.8973 A0.0839 0.0839 0 0 1 0.5000 0.9300 A0.0839 0.0839 0 0 1 0.3354 0.8973 A0.0839 0.0839 0 0 1 0.1959 0.8041 A0.0839 0.0839 0 0 1 0.1027 0.6646 A0.0839 0.0839 0 0 1 0.0700 0.5000 A0.0839 0.0839 0 0 1 0.1027 0.3354 A0.0839 0.0839 0 0 1 0.1959 0.1959 A0.0839 0.0839 0 0 1 0.3354 0.1027 A0.0839 0.0839 0 0 1 0.5000 0.0700 Z"/>
+      </clipPath>
+    </defs>
+  </svg>
+
   <div id="view-home">
     <section class="hero" id="home">
-      <div class="hero-bg" id="heroBg"></div>
-      <div class="hero-bg-overlay"></div>
       <div class="hero-content">
         <h1 id="heroTitle">Dekagrophy</h1>
-        <div class="hero-subtitle" id="heroSubtitle">Professional Image Creator</div>
+        <div class="hero-subtitle" id="heroSubtitle">Photography · Video · Design</div>
         <div class="hero-signature" id="heroSignature">Giancarlo (Deka) Rosete</div>
-        <div class="rule"></div>
-        <p id="heroDesc">Your partner in creating smart, intentional images — the kind of photographs that mean something, and the kind of content that gets results.</p>
-        <button class="btn-accent" id="viewGalleryBtn"><span>View Gallery</span></button>
-        <div class="socials" id="heroSocials"></div>
+
+        <div class="hero-bubble" id="heroBubble">
+          <div class="hero-bg" id="heroBg"></div>
+        </div>
+
+        <p id="heroDesc">Photographer, videographer and graphic designer based in Tijuana. From portraits, weddings and concerts to brand visuals — I shoot it, edit it, and design everything around it.</p>
+        <button class="btn-accent" id="viewGalleryBtn"><span>View Portfolio</span></button>
       </div>
       <div class="scroll-cue" id="scrollCue">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
@@ -1790,11 +1817,10 @@
     tl.from('#heroTitle', { opacity: 0, y: 30, duration: 1 }, 0.1)
       .from('#heroSubtitle', { opacity: 0, y: 16, duration: 0.7 }, 0.4)
       .from('#heroSignature', { opacity: 0, y: 14, duration: 0.7 }, 0.52)
-      .from('.hero .rule', { opacity: 0, scaleX: 0, duration: 0.8 }, 0.62)
-      .from('#heroDesc', { opacity: 0, y: 20, duration: 0.8 }, 0.7)
-      .from('#viewGalleryBtn', { opacity: 0, y: 20, duration: 0.8 }, 0.82)
-      .from('.hero .socials', { opacity: 0, y: 20, duration: 0.8 }, 0.94)
-      .from('#scrollCue', { opacity: 0, duration: 0.6 }, 1.1);
+      .from('#heroBubble', { opacity: 0, scale: 0.82, duration: 1, ease: 'power3.out' }, 0.6)
+      .from('#heroDesc', { opacity: 0, y: 20, duration: 0.8 }, 0.9)
+      .from('#viewGalleryBtn', { opacity: 0, y: 20, duration: 0.8 }, 1.0)
+      .from('#scrollCue', { opacity: 0, duration: 0.6 }, 1.2);
     return tl;
   }
 
