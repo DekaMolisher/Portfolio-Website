@@ -1291,7 +1291,7 @@
      the batch: column heights persist between loads. */
   const endless = {
     grid:null, sentinel:null, spinner:null, observer:null,
-    pool:[], queue:[], cols:0, colW:0, colH:[], gap:20, loading:false, started:false
+    pool:[], queue:[], items:[], cols:0, colW:0, colH:[], gap:10, loading:false, started:false
   };
 
   function buildEndlessPool() {
@@ -1324,7 +1324,7 @@
 
   function endlessMeasure() {
     const isMobile = window.matchMedia('(max-width:640px)').matches;
-    endless.gap = isMobile ? 12 : 20;
+    endless.gap = isMobile ? 6 : 10;
     const avail = endless.grid.clientWidth;
     // mobile is pinned to 2 columns; desktop fits as many ~260px columns as it can
     endless.cols = isMobile ? 2 : Math.max(2, Math.floor((avail + endless.gap) / (260 + endless.gap)));
@@ -1348,11 +1348,18 @@
   }
 
   function makeEndlessCell(item) {
+    // Track load order so the viewer opens on the clicked photo with the whole roll
+    // loaded so far behind it — arrows, keys and swipe then work exactly as in a gallery.
+    const index = endless.items.length;
+    endless.items.push(item);
+
     const cell = document.createElement('div');
     cell.className = 'endless-cell';
     cell.dataset.ratio = item.ratio || '1/1';
     cell.innerHTML = `<div class="endless-inner"><img src="${item.thumb}" alt="${item.name}" loading="lazy" decoding="async"></div>`;
-    cell.addEventListener('click', () => openViewer([item.full], 0, item.name));
+    cell.addEventListener('click', () => {
+      openViewer(endless.items.map(it => it.full), index, item.name);
+    });
     return cell;
   }
 
