@@ -429,13 +429,75 @@
     .category-row, .category-row:nth-child(even){grid-template-columns:1fr;gap:26px;}
     .category-row .category-media, .category-row:nth-child(even) .category-media{order:1;}
     .category-row .category-copy, .category-row:nth-child(even) .category-copy{order:2;}
-    /* tighter fan on narrow screens so the stack doesn't eat the whole viewport */
+    /* tighter fan on narrow screens: rotation swells each photo's bounding box, so the
+       cards have to be smaller here than on desktop to keep the spread on-screen */
     .category-media{aspect-ratio:1/1.12;}
-    .stack-photo{width:70%;}
+    .stack-photo{width:62%;}
     .stack-photo:nth-child(2){transform:translate(19%,6%);}
     .stack-photo:nth-child(3){transform:translate(38%,12%);}
-    .category-row.is-hover .stack-photo:nth-child(2){transform:translate(24%,4%) rotate(3deg);}
-    .category-row.is-hover .stack-photo:nth-child(3){transform:translate(48%,8%) rotate(6deg);}
+    .category-row.is-hover .stack-photo:nth-child(2){transform:translate(22%,4%) rotate(2deg);}
+    .category-row.is-hover .stack-photo:nth-child(3){transform:translate(44%,8%) rotate(4deg);}
+  }
+
+  /* ============ ENDLESS ROLL ============ */
+  /* Same JS masonry engine as the shoot galleries, but fed in batches by an
+     IntersectionObserver so it keeps growing as you scroll. Each cell is positioned by
+     the masonry (x/y/width) while a nested .endless-inner carries the entrance animation,
+     so the two never fight over the same transform. */
+  .endless-grid{position:relative;margin:0 auto;}
+  .endless-cell{position:absolute;top:0;left:0;overflow:hidden;background:var(--surface);cursor:pointer;}
+  .endless-inner{width:100%;height:100%;}
+  .endless-cell img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 1.1s var(--ease);}
+  .endless-cell:hover img{transform:scale(1.05);}
+  .endless-cell::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    box-shadow:inset 0 0 0 0 transparent;
+    opacity:0;transition:opacity .4s ease;
+  }
+  .endless-cell:hover::after{
+    opacity:1;
+    box-shadow:inset 0 0 0 2px var(--accent-pale), inset 0 0 26px 2px var(--accent-wash);
+  }
+  .endless-sentinel{height:1px;width:100%;}
+  .endless-spinner{
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    padding:38px 0 10px;
+    font-family:var(--font-ui);font-size:11px;letter-spacing:.24em;text-transform:uppercase;
+    color:var(--ink-soft);opacity:.7;
+  }
+  .endless-spinner .dot{
+    width:5px;height:5px;background:var(--accent);border-radius:50%;
+    animation:endlessPulse 1.1s var(--ease) infinite;
+  }
+  .endless-spinner .dot:nth-child(2){animation-delay:.16s;}
+  .endless-spinner .dot:nth-child(3){animation-delay:.32s;}
+  @keyframes endlessPulse{0%,100%{opacity:.25;transform:scale(.8);}50%{opacity:1;transform:scale(1);}}
+
+  /* Floating bottom tab — hidden while scrolling, slides up when you come to a rest */
+  .floating-tab{
+    position:fixed;left:50%;bottom:22px;z-index:60;
+    display:flex;align-items:center;gap:22px;
+    padding:12px 26px;
+    background:var(--glass);backdrop-filter:blur(14px);
+    border:1px solid var(--line);
+    box-shadow:var(--elev-shadow);
+    transform:translate(-50%, 160%);
+    opacity:0;pointer-events:none;
+    transition:transform .55s var(--ease), opacity .4s ease;
+  }
+  .floating-tab.is-visible{transform:translate(-50%, 0);opacity:1;pointer-events:auto;}
+  .floating-tab-mark{font-size:23px;color:var(--accent);line-height:1;}
+  .floating-tab-nav{display:flex;gap:18px;}
+  .floating-tab-nav a{
+    font-family:var(--font-ui);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--ink-soft);text-decoration:none;transition:color .25s ease;
+  }
+  .floating-tab-nav a:hover{color:var(--accent);}
+  @media (max-width:640px){
+    .floating-tab{gap:12px;padding:10px 16px;bottom:14px;width:calc(100% - 28px);justify-content:center;}
+    .floating-tab-mark{display:none;}
+    .floating-tab-nav{gap:14px;}
+    .floating-tab-nav a{font-size:10px;letter-spacing:.1em;}
   }
 
   .gradient-sweep{
@@ -849,6 +911,31 @@
       <div class="socials" id="footerSocials"></div>
       <p class="fine">&copy; 2026 Dekagrophy. All rights reserved.</p>
     </footer>
+
+    <!-- ENDLESS ROLL: every frame from every gallery, loaded as you keep scrolling -->
+    <section id="endless">
+      <div class="section-head" id="endlessHead">
+        <span class="eyebrow">Keep Looking</span>
+        <h2>The Endless Roll</h2>
+        <div class="rule"></div>
+        <p>Every frame from every set, with no particular order to it. Keep scrolling for as long as you like.</p>
+      </div>
+      <div class="endless-grid" id="endlessGrid"></div>
+      <div class="endless-sentinel" id="endlessSentinel" aria-hidden="true"></div>
+    </section>
+  </div>
+
+  <!-- Floating nav that surfaces once you're deep in the endless roll and pause scrolling,
+       since the real footer sits above it and can't be scrolled back to from there. -->
+  <div class="floating-tab" id="floatingTab">
+    <span class="floating-tab-mark script">Dekagrophy</span>
+    <nav class="floating-tab-nav">
+      <a href="#/">Home</a>
+      <a href="#portfolio">Portfolio</a>
+      <a href="#about">About</a>
+      <a href="#social">Social</a>
+      <a href="#/contact">Contact</a>
+    </nav>
   </div>
 
   <!-- SHOOT VIEW -->
@@ -1021,9 +1108,9 @@
       { file:'mavee-15.webp', thumb:'mavee-15-thumb.webp', ratio:'1013/1800' },
       { file:'mavee-16.webp', thumb:'mavee-16-thumb.webp', ratio:'1800/1013' }
     ] },
-    { id:'saira',    file:'saira.webp',    name:'Saira',    tag:'Studio Boudoir',       ratio:'3/4'  },
+    { id:'saira',    file:'saira.webp',    name:'Saira',    tag:'Studio Boudoir',       ratio:'900/1600'  },
     { id:'lucy',     file:'lucy.webp',     name:'Lucy',     tag:'Urban Noir',           ratio:'16/9' },
-    { id:'thelma',   file:'denisse.webp',  name:'Thelma',   tag:'Studio Boudoir',       ratio:'3/4'  },
+    { id:'thelma',   file:'denisse.webp',  name:'Thelma',   tag:'Studio Boudoir',       ratio:'1012/1800' },
     { id:'cristina', file:'cristina.webp', name:'Cristina', tag:'Golden Hour Portrait', ratio:'16/9' }
   ];
 
@@ -1198,10 +1285,188 @@
     layoutMasonryGrid(container, { targetColWidth: 260, gap: 20, minCols: 2, maxColWidth: 480 });
   }
 
+  /* ============ ENDLESS ROLL ============ */
+  /* Pool = every photo from every gallery. The grid is its own incremental masonry (rather
+     than layoutMasonryGrid, which re-lays out everything) so appending a batch only costs
+     the batch: column heights persist between loads. */
+  const endless = {
+    grid:null, sentinel:null, spinner:null, observer:null,
+    pool:[], queue:[], cols:0, colW:0, colH:[], gap:20, loading:false, started:false
+  };
+
+  function buildEndlessPool() {
+    const pool = [];
+    shoots.forEach((s) => {
+      if(s.images && s.images.length) {
+        s.images.forEach((im) => pool.push({ full:im.file, thumb:im.thumb || im.file, ratio:im.ratio, name:s.name }));
+      } else {
+        pool.push({ full:s.file, thumb:s.cardThumb || s.file, ratio:s.ratio, name:s.name });
+      }
+    });
+    return pool;
+  }
+
+  function shuffled(arr) {
+    const a = arr.slice();
+    for(let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  /* The roll is endless by recycling the pool — reshuffled each pass so the repeat isn't
+     an obvious loop. Swap this for a real paginated feed once there are enough photos. */
+  function nextEndlessItem() {
+    if(!endless.queue.length) endless.queue = shuffled(endless.pool);
+    return endless.queue.pop();
+  }
+
+  function endlessMeasure() {
+    const isMobile = window.matchMedia('(max-width:640px)').matches;
+    endless.gap = isMobile ? 12 : 20;
+    const avail = endless.grid.clientWidth;
+    // mobile is pinned to 2 columns; desktop fits as many ~260px columns as it can
+    endless.cols = isMobile ? 2 : Math.max(2, Math.floor((avail + endless.gap) / (260 + endless.gap)));
+    endless.colW = (avail - (endless.cols - 1) * endless.gap) / endless.cols;
+  }
+
+  function endlessPlace(cell) {
+    let c = 0;
+    for(let i = 1; i < endless.colH.length; i++) { if(endless.colH[i] < endless.colH[c]) c = i; }
+    const [rw, rh] = (cell.dataset.ratio || '1/1').split('/').map(Number);
+    const h = endless.colW * (rh / rw);
+    const x = c * (endless.colW + endless.gap);
+    const y = endless.colH[c];
+    gsap.set(cell, { x, y, width: endless.colW });
+    cell.style.height = h + 'px';
+    endless.colH[c] = y + h + endless.gap;
+  }
+
+  function endlessSyncHeight() {
+    endless.grid.style.height = (Math.max(...endless.colH) - endless.gap) + 'px';
+  }
+
+  function makeEndlessCell(item) {
+    const cell = document.createElement('div');
+    cell.className = 'endless-cell';
+    cell.dataset.ratio = item.ratio || '1/1';
+    cell.innerHTML = `<div class="endless-inner"><img src="${item.thumb}" alt="${item.name}" loading="lazy" decoding="async"></div>`;
+    cell.addEventListener('click', () => openViewer([item.full], 0, item.name));
+    return cell;
+  }
+
+  function loadEndlessBatch(count = 12) {
+    if(endless.loading) return;
+    endless.loading = true;
+
+    for(let i = 0; i < count; i++) {
+      const cell = makeEndlessCell(nextEndlessItem());
+      endless.grid.appendChild(cell);
+      endlessPlace(cell);
+
+      // Positioning lives on the cell, the entrance lives on .endless-inner, so the
+      // masonry transform and the animation never overwrite each other.
+      gsap.fromTo(cell.querySelector('.endless-inner'),
+        { opacity:0, y:46, filter:'blur(14px)' },
+        { opacity:1, y:0, filter:'blur(0px)', duration:1.05, ease:'power3.out',
+          delay:(i % endless.cols) * 0.07,
+          scrollTrigger:{ trigger:cell, start:'top 94%', once:true },
+          onComplete:function(){ gsap.set(this.targets(), { clearProps:'filter' }); } }
+      );
+    }
+
+    endlessSyncHeight();
+    endless.loading = false;
+  }
+
+  function relayoutEndless() {
+    if(!endless.grid || !endless.grid.children.length) return;
+    endlessMeasure();
+    endless.colH = new Array(endless.cols).fill(0);
+    Array.from(endless.grid.children).forEach(endlessPlace);
+    endlessSyncHeight();
+    ScrollTrigger.refresh();
+  }
+
+  function setupEndless() {
+    endless.grid = document.getElementById('endlessGrid');
+    endless.sentinel = document.getElementById('endlessSentinel');
+    if(!endless.grid || !endless.sentinel) return;
+
+    endless.pool = buildEndlessPool();
+    if(!endless.pool.length) return;
+
+    endless.spinner = document.createElement('div');
+    endless.spinner.className = 'endless-spinner';
+    endless.spinner.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span><span>Loading more</span>';
+    endless.sentinel.parentNode.insertBefore(endless.spinner, endless.sentinel);
+
+    endlessMeasure();
+    endless.colH = new Array(endless.cols).fill(0);
+    loadEndlessBatch(12);
+
+    // An IntersectionObserver alone stalls here: once a batch lands the sentinel can end
+    // up permanently inside the trigger margin (the document simply has no more room to
+    // scroll), and with no enter/leave transition the callback never fires again. So the
+    // observer just kicks off a top-up loop that keeps filling until the sentinel is
+    // genuinely pushed out of range, capped per tick so it can't run away.
+    endless.observer = new IntersectionObserver((entries) => {
+      if(entries.some(e => e.isIntersecting)) topUpEndless();
+    }, { rootMargin: '700px 0px' });
+    endless.observer.observe(endless.sentinel);
+
+    window.addEventListener('scroll', () => {
+      if(endless.pending) return;
+      endless.pending = true;
+      requestAnimationFrame(() => { endless.pending = false; topUpEndless(1); });
+    }, { passive:true });
+  }
+
+  function topUpEndless(maxBatches = 3) {
+    if(!endless.grid) return;
+    let loaded = 0;
+    const fill = () => {
+      const r = endless.sentinel.getBoundingClientRect();
+      if(r.top > window.innerHeight + 700 || loaded >= maxBatches) return;
+      loadEndlessBatch(12);
+      loaded++;
+      requestAnimationFrame(fill);
+    };
+    fill();
+  }
+
+  /* Floating tab: hidden while the page is moving, slides up on a scroll pause — and only
+     once you're actually into the endless roll, since above it the real footer applies. */
+  function setupFloatingTab() {
+    const tab = document.getElementById('floatingTab');
+    const zone = document.getElementById('endless');
+    if(!tab || !zone) return;
+
+    let idleTimer;
+    const inZone = () => {
+      if(location.hash && location.hash !== '#/' && !location.hash.startsWith('#portfolio')
+         && !location.hash.startsWith('#about') && !location.hash.startsWith('#social')) return false;
+      const r = zone.getBoundingClientRect();
+      return r.top < window.innerHeight * 0.6 && r.bottom > 0;
+    };
+
+    window.addEventListener('scroll', () => {
+      tab.classList.remove('is-visible');
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => { if(inZone()) tab.classList.add('is-visible'); }, 420);
+    }, { passive:true });
+
+    window.addEventListener('hashchange', () => tab.classList.remove('is-visible'));
+  }
+
   let masonryResizeTimeout;
   window.addEventListener('resize', () => {
     clearTimeout(masonryResizeTimeout);
-    masonryResizeTimeout = setTimeout(layoutShootGrid, 150);
+    masonryResizeTimeout = setTimeout(() => {
+      layoutShootGrid();
+      relayoutEndless();
+    }, 150);
   });
 
   /* ============ HERO BACKGROUND SLIDESHOW ============ */
@@ -2110,6 +2375,8 @@
     setupBurgerMenu();
     setupThemeToggle();
     setupContactForm();
+    setupEndless();
+    setupFloatingTab();
 
     // The page's CSS scroll-behavior:smooth fights with GSAP's own scrollTo tween (the
     // browser tries to smooth-animate every intermediate frame GSAP sets), which makes the
