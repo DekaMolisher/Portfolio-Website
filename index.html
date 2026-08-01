@@ -84,11 +84,11 @@
   }
 
   *{box-sizing:border-box;margin:0;padding:0;}
-  /* overflow-x:clip (not hidden) on <html> too: body's hidden alone still left <html>
-     itself scrollable sideways, so the reveal animations that park elements at x:+40
-     before their trigger fires made the page jiggle horizontally on mobile. clip stops
-     that without turning <html> into a scroll container. */
-  html{scroll-behavior:smooth;overscroll-behavior-y:none;overflow-x:clip;}
+  /* Do NOT put overflow-x (clip or hidden) on <html>: the root element's overflow
+     propagates to the viewport and can stop it being a scroll container at all, which
+     kills vertical scrolling on some mobile browsers. The sideways overflow from the
+     reveal animations is contained on the offending sections instead. */
+  html{scroll-behavior:smooth;overscroll-behavior-y:none;}
   body{
     background:var(--bg);
     color:var(--ink);
@@ -375,7 +375,9 @@
   }
 
   /* ============ SECTION ============ */
-  section{position:relative;padding:130px 40px;max-width:1280px;margin:0 auto;}
+  /* clip contains the reveal animations' x:+40 parking offset without making the section
+     a scroll container — safe here because it's a plain section, unlike on <html> */
+  section{position:relative;padding:130px 40px;max-width:1280px;margin:0 auto;overflow-x:clip;}
   @media (max-width:640px){
     section{padding:80px 22px;}
   }
