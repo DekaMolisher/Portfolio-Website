@@ -39,6 +39,9 @@
     --on-accent:#171310;
     --hero-accent:#DFC9FA;
     --hero-accent-soft:rgba(223,201,250,0.82);
+    --hero-scrim:rgba(8,7,6,0.58);
+    --paper-grain:0.10;
+    --paper-blend:overlay;
     --line:rgba(243,234,217,0.14);
     --glass:rgba(11,10,8,0.82);
     --elev-shadow:0 26px 46px -22px rgba(243,234,217,0.16);
@@ -67,6 +70,9 @@
     --on-accent:#FFFFFF;
     --hero-accent:#5C3D1E;
     --hero-accent-soft:rgba(92,61,30,0.85);
+    --hero-scrim:rgba(250,247,241,0.62);
+    --paper-grain:0.055;
+    --paper-blend:multiply;
     --line:rgba(43,36,32,0.14);
     --glass:rgba(250,247,241,0.86);
     --elev-shadow:0 26px 42px -22px rgba(43,36,32,0.3);
@@ -284,75 +290,87 @@
   .btn-ghost svg{width:13px;height:13px;stroke:currentColor;}
 
   /* ============ HERO ============ */
-  /* Flat colour rather than a full-bleed photo: the only imagery is the masked
-     slideshow, which keeps the type crisp and the palette doing the work. The silk
-     canvas sits behind the whole page, so the hero paints its own solid background. */
+  /* Full-bleed slideshow with a paper-textured solid veil over it: opaque along the
+     bottom, fading out toward the top so the photo reads cleanly up there. Content sits
+     in three rows — type top-right, CTA dead centre, description bottom-right. */
   .hero{
     min-height:100vh;min-height:100svh;
     max-width:none;width:100%;margin:0;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-    text-align:center;padding:100px 24px 56px;position:relative;overflow:hidden;
+    display:grid;grid-template-rows:auto 1fr auto;
+    padding:100px 24px 64px;position:relative;overflow:hidden;
     background:var(--bg);
   }
 
-  .hero-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;width:100%;}
+  .hero-photo{position:absolute;inset:0;z-index:0;overflow:hidden;background:var(--bg);}
+  .hero-bg-img{
+    position:absolute;inset:0;
+    background-size:cover;background-position:center 22%;
+    opacity:0;transform:scale(1.1);
+    will-change:opacity, transform;
+  }
+  /* Keeps the top-right type legible over whatever frame the slideshow is on */
+  .hero-photo::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(to bottom, var(--hero-scrim) 0%, transparent 46%);
+  }
 
-  .hero h1{font-size:clamp(46px,11vw,110px);line-height:0.92;}
+  /* The veil: solid page colour + paper grain, masked so it's fully there at the bottom
+     and gone by roughly three-quarters up. */
+  .hero-veil{
+    position:absolute;inset:0;z-index:1;
+    background:var(--bg);
+    -webkit-mask-image:linear-gradient(to top, #000 0%, #000 24%, rgba(0,0,0,0.72) 46%, transparent 82%);
+    mask-image:linear-gradient(to top, #000 0%, #000 24%, rgba(0,0,0,0.72) 46%, transparent 82%);
+  }
+  .hero-veil::after{
+    content:"";position:absolute;inset:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23p)'/%3E%3C/svg%3E");
+    background-repeat:repeat;
+    opacity:var(--paper-grain);
+    mix-blend-mode:var(--paper-blend);
+    pointer-events:none;
+  }
+
+  .hero-top,.hero-mid,.hero-bottom{position:relative;z-index:2;}
+  /* "Dekagrophy" is a single unbreakable word, so this cap has to clear the rendered
+     wordmark at the largest font size or the tail just runs off the edge */
+  .hero-top{justify-self:end;text-align:right;max-width:min(94%,900px);}
+  .hero-mid{align-self:center;justify-self:center;}
+  .hero-bottom{justify-self:end;text-align:right;max-width:min(92%,440px);}
+
+  /* 10.5vw keeps "Dekagrophy" inside the padding at 360-400px wide; larger and the
+     wordmark runs off the right edge, which right-alignment makes very obvious */
+  .hero h1{font-size:clamp(34px,10.5vw,104px);line-height:0.9;}
   .hero-subtitle{
     font-family:var(--font-ui);
-    font-size:clamp(12px,2vw,17px);
+    font-size:clamp(11.5px,2.6vw,17px);
     font-weight:600;
-    letter-spacing:.14em;
+    letter-spacing:.16em;
     text-transform:uppercase;
     color:var(--hero-accent);
-    margin:10px 0 6px;
+    margin:8px 0 4px;
     line-height:1.4;
   }
   .hero-signature{
     font-family:var(--font-serif);
     font-style:italic;
     font-weight:500;
-    font-size:clamp(16px,2.1vw,21px);
+    font-size:clamp(15px,3.4vw,21px);
     color:var(--hero-accent-soft);
     margin:0;
     line-height:1.2;
   }
-
-  /* The slideshow in a softly-rounded frame. The vh term in the width matters: without
-     it the square frame grew with viewport *width* only, and on a phone showing browser
-     chrome it pushed the description and CTA below the fold. */
-  .hero-bubble{
-    position:relative;
-    width:min(58vw, 250px, 25vh);
-    aspect-ratio:1/1;
-    margin:20px 0 22px;
-    border-radius:20px;
-    overflow:hidden;
-    background:var(--surface);
-  }
-  .hero-bg{position:absolute;inset:0;overflow:hidden;background:var(--surface);}
-  .hero-bg-img{
-    position:absolute;inset:0;
-    background-size:cover;background-position:center 25%;
-    opacity:0;transform:scale(1.1);
-    will-change:opacity, transform;
-  }
-
-  .hero p{max-width:430px;color:var(--ink-soft);font-size:15.5px;line-height:1.75;margin-bottom:30px;}
+  .hero p{color:var(--ink-soft);font-size:15px;line-height:1.7;margin:0;}
 
   @media (min-width:900px){
-    .hero-bubble{width:min(30vw, 320px, 26vh);margin:28px 0 30px;border-radius:24px;}
-    .hero p{max-width:520px;font-size:16px;}
+    .hero{padding:120px 56px 76px;}
+    .hero-bottom{max-width:520px;}
+    .hero p{font-size:16px;line-height:1.75;}
   }
-  /* Very short viewports (older small phones): tighten everything so the CTA still
-     lands above the fold rather than forcing a scroll to find it. */
   @media (max-height:620px){
     .hero{padding:84px 20px 44px;}
-    .hero h1{font-size:clamp(38px,10vw,60px);}
-    .hero-subtitle{font-size:11.5px;margin:8px 0 4px;}
-    .hero-signature{font-size:15px;}
-    .hero-bubble{margin:14px 0 16px;}
-    .hero p{font-size:14.5px;line-height:1.6;margin-bottom:20px;}
+    .hero h1{font-size:clamp(36px,11vw,60px);}
+    .hero p{font-size:14px;line-height:1.6;}
   }
 
   .scroll-cue{
@@ -858,17 +876,21 @@
   <!-- HOME VIEW -->
   <div id="view-home">
     <section class="hero" id="home">
-      <div class="hero-content">
+      <div class="hero-photo" id="heroBg"></div>
+      <div class="hero-veil"></div>
+
+      <div class="hero-top">
         <h1 id="heroTitle">Dekagrophy</h1>
         <div class="hero-subtitle" id="heroSubtitle">Professional Image Creator</div>
         <div class="hero-signature" id="heroSignature">Giancarlo (Deka) Rosete</div>
+      </div>
 
-        <div class="hero-bubble" id="heroBubble">
-          <div class="hero-bg" id="heroBg"></div>
-        </div>
-
-        <p id="heroDesc">Photography, videography and graphic design, all from one person who actually enjoys the puzzle. Tell me what you're picturing — I'll help you shape it, shoot it, and hand back something you're proud to share.</p>
+      <div class="hero-mid">
         <button class="btn-accent" id="viewGalleryBtn"><span>View Portfolio</span></button>
+      </div>
+
+      <div class="hero-bottom">
+        <p id="heroDesc">Photography, videography and graphic design, all from one person who actually enjoys the puzzle. Tell me what you're picturing — I'll help you shape it, shoot it, and hand back something you're proud to share.</p>
       </div>
       <div class="scroll-cue" id="scrollCue">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
@@ -1821,13 +1843,12 @@
 
   function heroAnimation() {
     const tl = gsap.timeline();
-    tl.from('#heroTitle', { opacity: 0, y: 30, duration: 1 }, 0.1)
-      .from('#heroSubtitle', { opacity: 0, y: 16, duration: 0.7 }, 0.4)
-      .from('#heroSignature', { opacity: 0, y: 14, duration: 0.7 }, 0.52)
-      .from('#heroBubble', { opacity: 0, scale: 0.82, duration: 1, ease: 'power3.out' }, 0.6)
+    tl.from('#heroTitle', { opacity: 0, x: 30, duration: 1 }, 0.1)
+      .from('#heroSubtitle', { opacity: 0, x: 20, duration: 0.7 }, 0.4)
+      .from('#heroSignature', { opacity: 0, x: 16, duration: 0.7 }, 0.52)
+      .from('#viewGalleryBtn', { opacity: 0, scale: 0.9, duration: 0.8, ease: 'power3.out' }, 0.7)
       .from('#heroDesc', { opacity: 0, y: 20, duration: 0.8 }, 0.9)
-      .from('#viewGalleryBtn', { opacity: 0, y: 20, duration: 0.8 }, 1.0)
-      .from('#scrollCue', { opacity: 0, duration: 0.6 }, 1.2);
+      .from('#scrollCue', { opacity: 0, duration: 0.6 }, 1.1);
     return tl;
   }
 
