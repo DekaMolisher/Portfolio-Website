@@ -319,8 +319,8 @@
   .hero-veil{
     position:absolute;inset:0;z-index:1;
     background:var(--bg);
-    -webkit-mask-image:linear-gradient(to top, #000 0%, #000 24%, rgba(0,0,0,0.72) 46%, transparent 82%);
-    mask-image:linear-gradient(to top, #000 0%, #000 24%, rgba(0,0,0,0.72) 46%, transparent 82%);
+    -webkit-mask-image:linear-gradient(to top, #000 0%, #000 17%, rgba(0,0,0,0.62) 38%, transparent 72%);
+    mask-image:linear-gradient(to top, #000 0%, #000 17%, rgba(0,0,0,0.62) 38%, transparent 72%);
   }
   .hero-veil::after{
     content:"";position:absolute;inset:0;
@@ -331,12 +331,17 @@
     pointer-events:none;
   }
 
-  .hero-top,.hero-mid,.hero-bottom{position:relative;z-index:2;}
+  .hero-top,.hero-bottom{position:relative;z-index:2;}
   /* "Dekagrophy" is a single unbreakable word, so this cap has to clear the rendered
      wordmark at the largest font size or the tail just runs off the edge */
   .hero-top{justify-self:end;text-align:right;max-width:min(94%,900px);}
-  .hero-mid{align-self:center;justify-self:center;}
-  .hero-bottom{justify-self:end;text-align:right;max-width:min(92%,440px);}
+  /* Description stays right-aligned; the CTA centres across the full width beneath it */
+  .hero-bottom{
+    justify-self:stretch;align-self:end;
+    display:flex;flex-direction:column;align-items:flex-end;gap:20px;
+  }
+  .hero-bottom p{max-width:min(88%,360px);text-align:right;}
+  .hero-bottom .btn-accent{align-self:center;}
 
   /* 10.5vw keeps "Dekagrophy" inside the padding at 360-400px wide; larger and the
      wordmark runs off the right edge, which right-alignment makes very obvious */
@@ -360,12 +365,14 @@
     margin:0;
     line-height:1.2;
   }
-  .hero p{color:var(--ink-soft);font-size:15px;line-height:1.7;margin:0;}
+  /* Deliberately quiet: the wordmark and the photo carry this section, so the blurb
+     reads as a caption rather than competing for attention. */
+  .hero p{color:var(--ink-soft);font-size:12.5px;line-height:1.65;margin:0;opacity:.82;}
 
   @media (min-width:900px){
     .hero{padding:120px 56px 76px;}
-    .hero-bottom{max-width:520px;}
-    .hero p{font-size:16px;line-height:1.75;}
+    .hero-bottom p{max-width:440px;}
+    .hero p{font-size:14px;line-height:1.7;}
   }
   @media (max-height:620px){
     .hero{padding:84px 20px 44px;}
@@ -885,12 +892,9 @@
         <div class="hero-signature" id="heroSignature">Giancarlo (Deka) Rosete</div>
       </div>
 
-      <div class="hero-mid">
-        <button class="btn-accent" id="viewGalleryBtn"><span>View Portfolio</span></button>
-      </div>
-
       <div class="hero-bottom">
         <p id="heroDesc">Photography, videography and graphic design, all from one person who actually enjoys the puzzle. Tell me what you're picturing — I'll help you shape it, shoot it, and hand back something you're proud to share.</p>
+        <button class="btn-accent" id="viewGalleryBtn"><span>View Portfolio</span></button>
       </div>
       <div class="scroll-cue" id="scrollCue">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
