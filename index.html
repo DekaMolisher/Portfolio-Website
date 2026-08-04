@@ -42,6 +42,9 @@
     --hero-scrim:rgba(8,7,6,0.58);
     --paper-grain:0.10;
     --paper-blend:overlay;
+    --pf-bg:#282019;
+    --pf-ink:#F3EAD9;
+    --pf-ink-soft:rgba(243,234,217,0.66);
     --line:rgba(243,234,217,0.14);
     --glass:rgba(11,10,8,0.82);
     --elev-shadow:0 26px 46px -22px rgba(243,234,217,0.16);
@@ -73,6 +76,9 @@
     --hero-scrim:rgba(250,247,241,0.62);
     --paper-grain:0.055;
     --paper-blend:multiply;
+    --pf-bg:#FFFDF7;
+    --pf-ink:#2B2420;
+    --pf-ink-soft:#6d6153;
     --line:rgba(43,36,32,0.14);
     --glass:rgba(250,247,241,0.86);
     --elev-shadow:0 26px 42px -22px rgba(43,36,32,0.3);
@@ -411,26 +417,66 @@
   .section-head .rule{width:56px;height:1px;background:var(--accent);margin:22px auto;}
   .section-head p{color:var(--ink-soft);font-size:15.5px;line-height:1.8;font-family:var(--font-body);}
 
-  /* ============ CATEGORY SECTIONS (magazine style) ============ */
-  /* Six alternating image/copy spreads stacked in normal scroll flow, one per category —
-     a big element, not a full-viewport hero. Each image starts slightly smaller and
-     grows into its resting size as it scrolls into view (see setupPortfolioReveal), and
-     carries the same corner-glow hover treatment the old portfolio grid used. Clicking
-     anywhere on a row reuses navigateToShoot's sweep+zoom transition into that
-     category's gallery page. */
-  .category-list{display:flex;flex-direction:column;gap:110px;padding:20px 0 40px;}
-  .category-row{
-    display:grid;grid-template-columns:1.1fr 1fr;gap:60px;align-items:center;
+  /* ============ PORTFOLIO SLIDER ============ */
+  /* One category at a time, centred, with arrows either side. Scrolling the pinned
+     section drives the slide index, so vertical scroll reads as sideways movement.
+     The section paints its own brighter, paper-textured panel. */
+  #portfolio{
+    max-width:none;width:100%;margin:0;padding:0;
+    background:var(--pf-bg);color:var(--pf-ink);
+    position:relative;overflow:hidden;
   }
-  .category-row:nth-child(even){grid-template-columns:1fr 1.1fr;}
-  .category-row:nth-child(even) .category-media{order:2;}
-  .category-row:nth-child(even) .category-copy{order:1;}
+  #portfolio::before{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23p)'/%3E%3C/svg%3E");
+    opacity:var(--paper-grain);mix-blend-mode:var(--paper-blend);
+  }
+  .pf-inner{
+    position:relative;z-index:1;
+    min-height:100vh;min-height:100svh;
+    max-width:1280px;margin:0 auto;padding:96px 24px 56px;
+    display:flex;flex-direction:column;
+  }
+  #portfolio .section-head{margin-bottom:20px;}
+  #portfolio .section-head h2,#portfolio .section-head .eyebrow{color:inherit;}
+  #portfolio .section-head h2{color:var(--pf-ink);}
 
-  /* Three 3:4 verticals stacked like a fanned set of prints — front photo first in the
-     DOM (highest z-index, no offset), the two behind it stepped down and to the right.
-     The offsets are translate percentages of each photo's own box, so the whole stack
-     scales cleanly with the column width. */
-  .category-media{position:relative;cursor:pointer;aspect-ratio:1/1.06;}
+  .pf-stage{
+    flex:1;min-height:0;
+    display:flex;align-items:center;justify-content:center;gap:12px;
+  }
+  /* align-self:stretch + inset rather than height:100%: a percentage height against a
+     flex-sized parent resolved to zero here, collapsing the whole slide chain. */
+  .pf-viewport{position:relative;flex:1;min-width:0;align-self:stretch;overflow:hidden;}
+  .pf-track{position:absolute;inset:0;}
+
+  /* Slides stack in the same spot; only the active one is visible. Sliding is a
+     transform on each slide rather than a long filmstrip, so an arbitrary number of
+     categories costs the same. */
+  .pf-slide{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+    opacity:0;pointer-events:none;
+    transition:opacity .45s var(--ease), transform .55s var(--ease);
+  }
+  .pf-slide.is-active{opacity:1;pointer-events:auto;}
+
+  .pf-media{position:relative;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .pf-copy{text-align:center;max-width:520px;}
+  .pf-name{font-size:clamp(24px,3.4vw,38px);line-height:1.05;margin-bottom:10px;color:var(--pf-ink);}
+  .pf-desc{color:var(--pf-ink-soft);font-size:13.5px;line-height:1.7;}
+  .pf-cta{
+    display:inline-flex;align-items:center;gap:9px;margin-top:14px;
+    font-family:var(--font-ui);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--accent-deep);transition:gap .3s ease;
+  }
+  .pf-slide.is-hover .pf-cta{gap:15px;}
+  .pf-cta svg{width:13px;height:13px;stroke:currentColor;}
+
+  /* Fanned stack of three, same treatment as before */
+  /* Definite height, width derived from it. Sizing the stack off its parent while the
+     parent sized itself off the stack collapsed both to zero. */
+  .pf-stack{position:relative;height:min(50vh,470px);aspect-ratio:1/1.06;}
   .stack-photo{
     position:absolute;top:0;left:0;width:63%;aspect-ratio:3/4;
     overflow:hidden;background:var(--surface);
@@ -442,60 +488,71 @@
   .stack-photo:nth-child(1){z-index:3;transform:translate(0,0);}
   .stack-photo:nth-child(2){z-index:2;transform:translate(24%,8%);}
   .stack-photo:nth-child(3){z-index:1;transform:translate(48%,16%);}
-  /* On hover the two behind fan out and rotate away like a hand of cards being spread,
-     fading back so the front photo reads as the focus. */
-  .category-row.is-hover .stack-photo:nth-child(2){transform:translate(30%,5%) rotate(2deg);opacity:.7;}
-  .category-row.is-hover .stack-photo:nth-child(3){transform:translate(58%,10%) rotate(4deg);opacity:.45;}
-  .category-row.is-hover .stack-photo:nth-child(1) img{transform:scale(1.06);}
+  .pf-slide.is-hover .stack-photo:nth-child(2){transform:translate(30%,5%) rotate(2deg);opacity:.7;}
+  .pf-slide.is-hover .stack-photo:nth-child(3){transform:translate(58%,10%) rotate(4deg);opacity:.45;}
+  .pf-slide.is-hover .stack-photo:nth-child(1) img{transform:scale(1.06);}
 
-  .category-copy{padding:0 8px;}
-  .category-name{font-size:clamp(32px,4.4vw,52px);line-height:1.02;margin-bottom:18px;}
-  .category-desc{color:var(--ink-soft);font-size:15.5px;line-height:1.75;max-width:440px;margin-bottom:26px;}
-  .category-cta{
-    display:inline-flex;align-items:center;gap:10px;
-    font-family:var(--font-ui);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
-    color:var(--accent-deep);
-    transition:gap .3s ease;
-  }
-  .category-row.is-hover .category-cta{gap:16px;}
-  .category-cta svg{width:14px;height:14px;stroke:currentColor;}
-
-  /* Corner-glow hover, same pattern as the old portfolio grid / gallery cells */
-  .category-media .shot-edge{position:absolute;inset:0;z-index:3;pointer-events:none;}
-  .category-media .shot-edge .bar{position:absolute;background:var(--accent);transition:transform .3s var(--ease);}
-  .category-media .shot-edge .bar-top{top:0;left:0;right:0;height:4px;transform-origin:right center;transform:scaleX(0);}
-  .category-media .shot-edge .bar-left{left:0;top:0;bottom:0;width:4px;transform-origin:top center;transform:scaleY(0);}
-  .category-media .shot-edge .bar-bottom{bottom:0;left:0;right:0;height:4px;transform-origin:left center;transform:scaleX(0);}
-  .category-media .shot-edge .bar-right{right:0;top:0;bottom:0;width:4px;transform-origin:bottom center;transform:scaleY(0);}
-  .category-row.is-hover .category-media .shot-edge .bar-top{transform:scaleX(1);transition-delay:0s;}
-  .category-row.is-hover .category-media .shot-edge .bar-left{transform:scaleY(1);transition-delay:.22s;}
-  .category-row.is-hover .category-media .shot-edge .bar-bottom{transform:scaleX(1);transition-delay:.44s;}
-  .category-row.is-hover .category-media .shot-edge .bar-right{transform:scaleY(1);transition-delay:.66s;}
-  .category-media .shot-edge .glow{
+  /* Corner-glow selection, unchanged in spirit */
+  .stack-photo .shot-edge{position:absolute;inset:0;z-index:3;pointer-events:none;}
+  .stack-photo .shot-edge .bar{position:absolute;background:var(--accent);transition:transform .3s var(--ease);}
+  .stack-photo .shot-edge .bar-top{top:0;left:0;right:0;height:4px;transform-origin:right center;transform:scaleX(0);}
+  .stack-photo .shot-edge .bar-left{left:0;top:0;bottom:0;width:4px;transform-origin:top center;transform:scaleY(0);}
+  .stack-photo .shot-edge .bar-bottom{bottom:0;left:0;right:0;height:4px;transform-origin:left center;transform:scaleX(0);}
+  .stack-photo .shot-edge .bar-right{right:0;top:0;bottom:0;width:4px;transform-origin:bottom center;transform:scaleY(0);}
+  .pf-slide.is-hover .shot-edge .bar-top{transform:scaleX(1);transition-delay:0s;}
+  .pf-slide.is-hover .shot-edge .bar-left{transform:scaleY(1);transition-delay:.22s;}
+  .pf-slide.is-hover .shot-edge .bar-bottom{transform:scaleX(1);transition-delay:.44s;}
+  .pf-slide.is-hover .shot-edge .bar-right{transform:scaleY(1);transition-delay:.66s;}
+  .stack-photo .shot-edge .glow{
     position:absolute;inset:0;opacity:0;
     box-shadow:inset 0 0 0 0 transparent;
     transition:opacity .4s ease, box-shadow .4s ease;
   }
-  .category-row.is-hover .category-media .shot-edge .glow{
+  .pf-slide.is-hover .shot-edge .glow{
     opacity:1;
     box-shadow:inset 0 0 22px 2px var(--accent-pale), 0 0 26px 4px var(--accent-pale);
     transition-delay:.8s;
   }
 
-  @media (max-width:860px){
-    .category-list{gap:70px;}
-    .category-row, .category-row:nth-child(even){grid-template-columns:1fr;gap:26px;}
-    .category-row .category-media, .category-row:nth-child(even) .category-media{order:1;}
-    .category-row .category-copy, .category-row:nth-child(even) .category-copy{order:2;}
-    /* tighter fan on narrow screens: rotation swells each photo's bounding box, so the
-       cards have to be smaller here than on desktop to keep the spread on-screen */
-    .category-media{aspect-ratio:1/1.12;}
-    .stack-photo{width:62%;}
-    .stack-photo:nth-child(2){transform:translate(19%,6%);}
-    .stack-photo:nth-child(3){transform:translate(38%,12%);}
-    .category-row.is-hover .stack-photo:nth-child(2){transform:translate(22%,4%) rotate(2deg);}
-    .category-row.is-hover .stack-photo:nth-child(3){transform:translate(44%,8%) rotate(4deg);}
+  .pf-arrow{
+    flex:0 0 auto;width:46px;height:46px;border-radius:50%;
+    border:1px solid var(--line);background:transparent;color:var(--pf-ink);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    transition:background .25s ease, border-color .25s ease, opacity .25s ease;
   }
+  .pf-arrow:hover{background:var(--accent-wash);border-color:var(--accent-pale);}
+  .pf-arrow svg{width:19px;height:19px;stroke:currentColor;}
+  .pf-arrow[disabled]{opacity:.28;cursor:default;}
+  .pf-arrow[disabled]:hover{background:transparent;border-color:var(--line);}
+
+  .pf-dots{display:flex;justify-content:center;gap:9px;padding-top:22px;}
+  .pf-dot{
+    width:7px;height:7px;border-radius:50%;padding:0;border:0;cursor:pointer;
+    background:var(--pf-ink);opacity:.26;
+    transition:opacity .3s ease, transform .3s ease;
+  }
+  .pf-dot.is-active{opacity:1;transform:scale(1.5);background:var(--accent);}
+
+  /* Mobile: single photo, copy above it, arrows tucked beside the dots */
+  @media (max-width:820px){
+    .pf-inner{padding:88px 20px 44px;}
+    .pf-stage{gap:0;}
+    .pf-slide{flex-direction:column;gap:14px;}
+    .pf-copy{order:1;max-width:100%;}
+    .pf-media{order:2;}
+    .pf-name{font-size:clamp(22px,6.4vw,30px);}
+    .pf-desc{font-size:12.5px;}
+    /* one photo only — the fan is a desktop flourish */
+    .pf-stack{height:min(46vh,400px);aspect-ratio:3/4;}
+    .pf-stack .stack-photo{position:relative;width:100%;height:100%;aspect-ratio:auto;transform:none !important;box-shadow:0 14px 30px -16px rgba(0,0,0,0.5);}
+    .pf-stack .stack-photo:nth-child(n+2){display:none;}
+    .pf-arrow{position:absolute;bottom:0;z-index:3;width:40px;height:40px;}
+    .pf-prev{left:0;}
+    .pf-next{right:0;}
+    .pf-stage{position:relative;padding-bottom:0;}
+    .pf-dots{padding-top:18px;}
+  }
+
 
   /* ============ ENDLESS ROLL ============ */
   /* Same JS masonry engine as the shoot galleries, but fed in batches by an
@@ -902,13 +959,27 @@
     </section>
 
     <section id="portfolio">
-      <div class="section-head" id="portfolioHead">
-        <span class="eyebrow">Selected Work</span>
-        <h2>The Portfolio</h2>
-        <div class="rule"></div>
-        <p>Every kind of story I shoot. Scroll through, then step into the one that speaks to you.</p>
+      <div class="pf-inner">
+        <div class="section-head" id="portfolioHead">
+          <span class="eyebrow">Selected Work</span>
+          <h2>The Portfolio</h2>
+          <div class="rule"></div>
+        </div>
+
+        <div class="pf-stage">
+          <button class="pf-arrow pf-prev" id="pfPrev" aria-label="Previous category">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+          </button>
+          <div class="pf-viewport">
+            <div class="pf-track" id="categoryList"></div>
+          </div>
+          <button class="pf-arrow pf-next" id="pfNext" aria-label="Next category">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+
+        <div class="pf-dots" id="pfDots"></div>
       </div>
-      <div class="category-list" id="categoryList"></div>
     </section>
 
     <section id="about">
@@ -1267,8 +1338,23 @@
 
   /* Build the six category hero sections. Each uses its sourceShootId's photo as a
      placeholder background until it gets a real batch of its own. */
+  // The page's CSS scroll-behavior:smooth fights with GSAP's own scrollTo tween (the
+  // browser tries to smooth-animate every intermediate frame GSAP sets), which makes the
+  // scroll noticeably slower/janky than the tween's own duration. Switching to 'auto' for
+  // the duration of a GSAP-driven scroll avoids the double animation. Module scope so the
+  // portfolio slider's arrows/dots can drive scroll too.
+  function gsapScrollTo(target) {
+    document.documentElement.style.scrollBehavior = 'auto';
+    gsap.to(window, {
+      duration: 0.6, scrollTo: target, ease: 'power2.out',
+      onComplete: () => { document.documentElement.style.scrollBehavior = ''; }
+    });
+  }
+
+  /* Build the portfolio slider: one slide per category, plus a dot per slide. */
   function buildCategoryList() {
-    const list = document.getElementById('categoryList');
+    const track = document.getElementById('categoryList');
+    const dots  = document.getElementById('pfDots');
     categories.forEach((cat, i) => {
       const source = shoots.find(x => x.id === cat.sourceShootId);
       const previews = cat.previews && cat.previews.length
@@ -1276,29 +1362,120 @@
         : [source ? (source.cardThumb || source.file) : ''];
       // front photo first: it carries the corner-glow edge and the sweep on navigation
       const stack = previews.map((src, p) => `
-          <div class="stack-photo${p === 0 ? ' shot-media' : ''}">
-            <img src="${src}" alt="${cat.name}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async">
-            ${p === 0 ? '<span class="shot-edge"><span class="bar bar-top"></span><span class="bar bar-left"></span><span class="bar bar-bottom"></span><span class="bar bar-right"></span><span class="glow"></span></span>' : ''}
-          </div>`).join('');
+            <div class="stack-photo${p === 0 ? ' shot-media' : ''}">
+              <img src="${src}" alt="${cat.name}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async">
+              ${p === 0 ? '<span class="shot-edge"><span class="bar bar-top"></span><span class="bar bar-left"></span><span class="bar bar-bottom"></span><span class="bar bar-right"></span><span class="glow"></span></span>' : ''}
+            </div>`).join('');
+
       const el = document.createElement('div');
-      el.className = 'category-row';
+      el.className = 'pf-slide' + (i === 0 ? ' is-active' : '');
+      el.dataset.shootId = cat.id;
+      el.dataset.index = i;
       el.innerHTML = `
-        <div class="category-media">${stack}
-        </div>
-        <div class="category-copy">
-          <h3 class="category-name">${cat.name}</h3>
-          <p class="category-desc">${cat.description}</p>
-          <span class="category-cta">
-            View Gallery
+        <div class="pf-media"><div class="pf-stack">${stack}
+          </div></div>
+        <div class="pf-copy">
+          <h3 class="pf-name">${cat.name}</h3>
+          <p class="pf-desc">${cat.description}</p>
+          <span class="pf-cta">View Gallery
             <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           </span>
         </div>
       `;
-      el.dataset.shootId = cat.id;
-      list.appendChild(el);
+      track.appendChild(el);
+
+      const dot = document.createElement('button');
+      dot.className = 'pf-dot' + (i === 0 ? ' is-active' : '');
+      dot.type = 'button';
+      dot.setAttribute('aria-label', cat.name);
+      dot.addEventListener('click', () => goToSlide(i, true));
+      dots.appendChild(dot);
     });
   }
   buildCategoryList();
+
+  /* ---- slider state ---- */
+  const pf = { index: 0, slides: [], dots: [], trigger: null };
+
+  function setSlide(i) {
+    if(i === pf.index || i < 0 || i >= pf.slides.length) return;
+    const dir = i > pf.index ? 1 : -1;
+    const prev = pf.slides[pf.index];
+    const next = pf.slides[i];
+
+    prev.classList.remove('is-active', 'is-hover');
+    gsap.to(prev, { duration: 0.4, xPercent: -14 * dir, ease: 'power2.in' });
+
+    next.classList.add('is-active');
+    gsap.fromTo(next, { xPercent: 14 * dir }, { duration: 0.55, xPercent: 0, ease: 'power3.out' });
+
+    pf.dots.forEach((d, n) => d.classList.toggle('is-active', n === i));
+    pf.index = i;
+    updateArrows();
+  }
+
+  function updateArrows() {
+    const prevBtn = document.getElementById('pfPrev');
+    const nextBtn = document.getElementById('pfNext');
+    if(prevBtn) prevBtn.disabled = pf.index === 0;
+    if(nextBtn) nextBtn.disabled = pf.index === pf.slides.length - 1;
+  }
+
+  /* Arrows and dots move the *page*, not the slide directly: the pinned ScrollTrigger
+     owns the index, so driving scroll keeps the two from ever disagreeing. */
+  function goToSlide(i, viaScroll) {
+    i = Math.max(0, Math.min(pf.slides.length - 1, i));
+    if(viaScroll && pf.trigger) {
+      const st = pf.trigger;
+      const span = st.end - st.start;
+      const target = st.start + (span * i) / Math.max(1, pf.slides.length - 1);
+      gsapScrollTo({ y: target });
+    } else {
+      setSlide(i);
+    }
+  }
+
+  function setupPortfolioSlider() {
+    pf.slides = gsap.utils.toArray('.pf-slide');
+    pf.dots = gsap.utils.toArray('.pf-dot');
+    if(!pf.slides.length) return;
+    updateArrows();
+
+    document.getElementById('pfPrev').addEventListener('click', () => goToSlide(pf.index - 1, true));
+    document.getElementById('pfNext').addEventListener('click', () => goToSlide(pf.index + 1, true));
+
+    const last = pf.slides.length - 1;
+    if(last > 0) {
+      pf.trigger = ScrollTrigger.create({
+        trigger: '#portfolio',
+        start: 'top top',
+        end: () => '+=' + (window.innerHeight * last * 0.85),
+        pin: true,
+        pinSpacing: true,
+        snap: { snapTo: 1 / last, duration: 0.35, ease: 'power2.inOut' },
+        invalidateOnRefresh: true,
+        onUpdate: (self) => setSlide(Math.round(self.progress * last))
+      });
+    }
+
+    // Horizontal swipe on the slides themselves, for phones
+    let sx = 0, sy = 0, swiping = false;
+    const track = document.getElementById('categoryList');
+    track.addEventListener('touchstart', (e) => {
+      if(e.touches.length !== 1) return;
+      sx = e.touches[0].clientX; sy = e.touches[0].clientY; swiping = true;
+    }, { passive: true });
+    track.addEventListener('touchend', (e) => {
+      if(!swiping) return;
+      swiping = false;
+      const dx = e.changedTouches[0].clientX - sx;
+      const dy = e.changedTouches[0].clientY - sy;
+      // only treat it as a swipe if it's clearly horizontal, so vertical scroll still works
+      if(Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        goToSlide(pf.index + (dx < 0 ? 1 : -1), true);
+      }
+    });
+  }
 
   /* Shared true-masonry engine: places each child of `container` in whichever column is
      currently shortest, then sizes the container to exactly the used columns' width so
@@ -1861,22 +2038,8 @@
       scrollTrigger: { trigger: '#portfolio', start: 'top 70%', once: true },
       opacity: 0, y: 30, duration: 0.9
     });
-
-    // Each row's image starts slightly smaller and grows into its resting size, while
-    // its copy fades/slides in, as that row scrolls into view.
-    gsap.utils.toArray('.category-row').forEach((row) => {
-      const media = row.querySelector('.category-media');
-      const copy = row.querySelector('.category-copy');
-      gsap.from(media, {
-        scrollTrigger: { trigger: row, start: 'top 85%', once: true },
-        scale: 0.88, opacity: 0, duration: 1.1, ease: 'power3.out'
-      });
-      gsap.from(copy, {
-        scrollTrigger: { trigger: row, start: 'top 80%', once: true },
-        opacity: 0, y: 30, duration: 0.9, ease: 'power3.out'
-      });
-    });
   }
+
 
   function setupAboutReveal() {
     gsap.from('#aboutFrame', {
@@ -1903,30 +2066,30 @@
   function setupCategoryHovers() {
     const isTouchDevice = window.matchMedia('(hover: none)').matches;
 
-    gsap.utils.toArray('.category-row').forEach((row) => {
-      const media = row.querySelector('.category-media');
-      function enter() { row.classList.add('is-hover'); }
-      function leave() { row.classList.remove('is-hover'); }
+    gsap.utils.toArray('.pf-slide').forEach((slide) => {
+      const media = slide.querySelector('.pf-media');
+      function enter() { slide.classList.add('is-hover'); }
+      function leave() { slide.classList.remove('is-hover'); }
 
       if(isTouchDevice) {
-        // first tap reveals the corner-glow/zoom, second tap on an already-revealed image navigates
+        // first tap reveals the corner-glow, second tap on a revealed slide opens it
         media.addEventListener('click', (e) => {
-          if(!row.classList.contains('is-hover')) {
+          if(!slide.classList.contains('is-hover')) {
             e.preventDefault();
-            gsap.utils.toArray('.category-row.is-hover').forEach(r => { if(r !== row) r.dispatchEvent(new Event('force-leave')); });
+            gsap.utils.toArray('.pf-slide.is-hover').forEach(r => { if(r !== slide) r.classList.remove('is-hover'); });
             enter();
             return;
           }
-          navigateToShoot(row, row.dataset.shootId);
+          navigateToShoot(slide, slide.dataset.shootId);
         });
-        row.addEventListener('force-leave', leave);
       } else {
-        row.addEventListener('mouseenter', enter);
-        row.addEventListener('mouseleave', leave);
-        media.addEventListener('click', () => navigateToShoot(row, row.dataset.shootId));
+        slide.addEventListener('mouseenter', enter);
+        slide.addEventListener('mouseleave', leave);
+        media.addEventListener('click', () => navigateToShoot(slide, slide.dataset.shootId));
       }
     });
   }
+
 
   function setupFrameCornerHover(frameId) {
     const frame = document.getElementById(frameId);
@@ -2519,6 +2682,7 @@
     setupPortfolioReveal();
     setupAboutReveal();
     setupSocialReveal();
+    setupPortfolioSlider();
     setupCategoryHovers();
     setupFrameCornerHover('aboutFrame');
     setupFrameCornerHover('socialFrame');
@@ -2528,18 +2692,6 @@
     setupContactForm();
     setupEndless();
     setupFloatingTab();
-
-    // The page's CSS scroll-behavior:smooth fights with GSAP's own scrollTo tween (the
-    // browser tries to smooth-animate every intermediate frame GSAP sets), which makes the
-    // scroll noticeably slower/janky than the tween's own duration. Switching to 'auto' for
-    // the duration of a GSAP-driven scroll avoids the double animation.
-    function gsapScrollTo(target) {
-      document.documentElement.style.scrollBehavior = 'auto';
-      gsap.to(window, {
-        duration: 0.6, scrollTo: target, ease: 'power2.out',
-        onComplete: () => { document.documentElement.style.scrollBehavior = ''; }
-      });
-    }
 
     document.getElementById('viewGalleryBtn').addEventListener('click', () => {
       gsapScrollTo({ y: '#portfolio', offsetY: 0 });
