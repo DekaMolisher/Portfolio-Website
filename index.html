@@ -365,15 +365,17 @@
     opacity:0;transform:scale(1.1);
     will-change:opacity, transform;
   }
-  /* Gradient sheen that sweeps across on hover/tap, under the drawn edges */
-  .hero-sheen{
-    position:absolute;inset:9px;z-index:2;pointer-events:none;
+  /* Sheen lives inside .hero-photo so its overflow:hidden clips the sweep. It cannot
+     live on .hero-print — that box deliberately does not clip, because the hairline
+     frame sits outside it at inset:-11px. */
+  .hero-photo::after{
+    content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
     background:linear-gradient(115deg, transparent 30%, var(--accent-wash) 47%, var(--accent-pale) 52%, var(--accent-wash) 57%, transparent 74%);
-    opacity:0;transform:translateX(-40%);
+    opacity:0;transform:translateX(-45%);
     transition:opacity .5s ease, transform 1.1s var(--ease);
     mix-blend-mode:screen;
   }
-  .hero-print.is-hover .hero-sheen{opacity:.85;transform:translateX(40%);}
+  .hero-print.is-hover .hero-photo::after{opacity:.85;transform:translateX(45%);}
   /* Golden edges draw in around the print, same motif as the portfolio stack */
   .hero-print .shot-edge{position:absolute;inset:9px;z-index:3;pointer-events:none;}
   .hero-print .shot-edge .bar{position:absolute;background:var(--accent);transition:transform .3s var(--ease);}
@@ -514,7 +516,7 @@
   .pf-slide.is-active{opacity:1;pointer-events:auto;}
 
   .pf-media{position:relative;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-  .pf-copy{text-align:center;max-width:520px;}
+  .pf-copy{text-align:center;max-width:520px;flex:0 0 auto;}
   .pf-name{font-size:clamp(24px,3.4vw,38px);line-height:1.05;margin-bottom:10px;color:var(--pf-ink);}
   .pf-desc{color:var(--pf-ink-soft);font-size:13.5px;line-height:1.7;}
   /* Fanned stack of three, same treatment as before */
@@ -587,7 +589,9 @@
     .pf-name{font-size:clamp(22px,6.4vw,30px);}
     .pf-desc{font-size:12.5px;}
     /* one photo only — the fan is a desktop flourish */
-    .pf-stack{height:min(46vh,400px);aspect-ratio:3/4;}
+    /* 40vh, not 46vh: at 640-664px tall the taller stack pushed the copy past the
+       viewport's overflow:hidden and clipped the description. */
+    .pf-stack{height:min(40vh,360px);aspect-ratio:3/4;}
     .pf-stack .stack-photo{position:relative;width:100%;height:100%;aspect-ratio:auto;transform:none !important;box-shadow:0 14px 30px -16px rgba(0,0,0,0.5);}
     .pf-stack .stack-photo:nth-child(n+2){display:none;}
     /* arrows are desktop-only; on a phone the swipe carries it */
@@ -1027,7 +1031,6 @@
           <div class="hero-print" id="heroPrint">
             <div class="hero-photo" id="heroBg"></div>
             <span class="shot-edge"><span class="bar bar-top"></span><span class="bar bar-left"></span><span class="bar bar-bottom"></span><span class="bar bar-right"></span><span class="glow"></span></span>
-            <span class="hero-sheen"></span>
           </div>
         </div>
 
