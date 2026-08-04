@@ -45,6 +45,7 @@
     --pf-bg:#282019;
     --pf-ink:#F3EAD9;
     --pf-ink-soft:rgba(243,234,217,0.66);
+    --print-mat:#221b16;
     --line:rgba(243,234,217,0.14);
     --glass:rgba(11,10,8,0.82);
     --elev-shadow:0 26px 46px -22px rgba(243,234,217,0.16);
@@ -79,6 +80,7 @@
     --pf-bg:#FFFDF7;
     --pf-ink:#2B2420;
     --pf-ink-soft:#6d6153;
+    --print-mat:#FFFFFF;
     --line:rgba(43,36,32,0.14);
     --glass:rgba(250,247,241,0.86);
     --elev-shadow:0 26px 42px -22px rgba(43,36,32,0.3);
@@ -296,95 +298,107 @@
   .btn-ghost svg{width:13px;height:13px;stroke:currentColor;}
 
   /* ============ HERO ============ */
-  /* Full-bleed slideshow with a paper-textured solid veil over it: opaque along the
-     bottom, fading out toward the top so the photo reads cleanly up there. Content sits
-     in three rows — type top-right, CTA dead centre, description bottom-right. */
+  /* A photograph mounted on paper: textured ground, generous margins, hairline rules and
+     a script signature. Restrained on purpose — the print carries the section, the type
+     just introduces it. */
   .hero{
     min-height:100vh;min-height:100svh;
     max-width:none;width:100%;margin:0;
-    display:grid;grid-template-rows:auto 1fr auto;
-    padding:100px 24px 64px;position:relative;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+    text-align:center;padding:96px 24px 60px;position:relative;overflow:hidden;
     background:var(--bg);
   }
+  .hero::before{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23p)'/%3E%3C/svg%3E");
+    opacity:var(--paper-grain);mix-blend-mode:var(--paper-blend);
+  }
+  .hero-inner{
+    position:relative;z-index:1;
+    display:flex;flex-direction:column;align-items:center;
+    width:100%;max-width:640px;
+  }
 
-  .hero-photo{position:absolute;inset:0;z-index:0;overflow:hidden;background:var(--bg);}
+  .hero-eyebrow{
+    font-family:var(--font-ui);
+    font-size:clamp(9px,2.2vw,10.5px);
+    font-weight:500;letter-spacing:.42em;text-transform:uppercase;
+    color:var(--accent-deep);
+    padding-left:.42em;   /* tracking adds a trailing gap; nudge back to optical centre */
+  }
+  .hero h1{
+    font-size:clamp(38px,9.4vw,86px);
+    line-height:1;letter-spacing:.03em;
+    margin-top:14px;
+  }
+  .hero-script{
+    font-family:var(--font-script);
+    font-size:clamp(22px,6vw,34px);
+    line-height:1.1;
+    color:var(--accent);
+    margin-top:6px;
+  }
+
+  /* The print: photo inside a paper mat, with a hairline frame offset just outside it */
+  .hero-print{
+    position:relative;
+    width:min(72vw,300px,34vh);
+    aspect-ratio:4/5;
+    margin:34px 0 32px;
+    padding:9px;
+    background:var(--print-mat);
+    box-shadow:0 22px 48px -26px rgba(0,0,0,0.6);
+  }
+  .hero-print::after{
+    content:"";position:absolute;inset:-11px;
+    border:1px solid var(--accent-pale);
+    pointer-events:none;
+  }
+  .hero-photo{position:relative;width:100%;height:100%;overflow:hidden;background:var(--surface);}
   .hero-bg-img{
     position:absolute;inset:0;
     background-size:cover;background-position:center 22%;
     opacity:0;transform:scale(1.1);
     will-change:opacity, transform;
   }
-  /* Keeps the top-right type legible over whatever frame the slideshow is on */
-  .hero-photo::after{
-    content:"";position:absolute;inset:0;
-    background:linear-gradient(to bottom, var(--hero-scrim) 0%, transparent 46%);
+
+  .hero p{
+    color:var(--ink-soft);font-size:13.5px;line-height:1.85;
+    max-width:430px;margin:0;
   }
 
-  /* The veil: solid page colour + paper grain, masked so it's fully there at the bottom
-     and gone by roughly three-quarters up. */
-  .hero-veil{
-    position:absolute;inset:0;z-index:1;
-    background:var(--bg);
-    -webkit-mask-image:linear-gradient(to top, #000 0%, #000 17%, rgba(0,0,0,0.62) 38%, transparent 72%);
-    mask-image:linear-gradient(to top, #000 0%, #000 17%, rgba(0,0,0,0.62) 38%, transparent 72%);
+  /* Understated link rather than a filled block — quieter suits the rest of the section */
+  .hero-link{
+    display:inline-flex;align-items:center;gap:10px;
+    margin-top:26px;padding:0 0 6px;
+    background:none;border:0;cursor:pointer;
+    font-family:var(--font-ui);font-size:11px;font-weight:500;
+    letter-spacing:.26em;text-transform:uppercase;
+    color:var(--ink);
+    border-bottom:1px solid var(--accent-pale);
+    transition:color .3s ease, border-color .3s ease, gap .3s ease;
   }
-  .hero-veil::after{
-    content:"";position:absolute;inset:0;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23p)'/%3E%3C/svg%3E");
-    background-repeat:repeat;
-    opacity:var(--paper-grain);
-    mix-blend-mode:var(--paper-blend);
-    pointer-events:none;
-  }
-
-  .hero-top,.hero-bottom{position:relative;z-index:2;}
-  /* "Dekagrophy" is a single unbreakable word, so this cap has to clear the rendered
-     wordmark at the largest font size or the tail just runs off the edge */
-  .hero-top{justify-self:end;text-align:right;max-width:min(94%,900px);}
-  /* Description stays right-aligned; the CTA centres across the full width beneath it */
-  .hero-bottom{
-    justify-self:stretch;align-self:end;
-    display:flex;flex-direction:column;align-items:flex-end;gap:20px;
-  }
-  .hero-bottom p{max-width:min(88%,360px);text-align:right;}
-  .hero-bottom .btn-accent{align-self:center;}
-
-  /* 10.5vw keeps "Dekagrophy" inside the padding at 360-400px wide; larger and the
-     wordmark runs off the right edge, which right-alignment makes very obvious */
-  .hero h1{font-size:clamp(34px,10.5vw,104px);line-height:0.9;}
-  .hero-subtitle{
-    font-family:var(--font-ui);
-    font-size:clamp(11.5px,2.6vw,17px);
-    font-weight:600;
-    letter-spacing:.16em;
-    text-transform:uppercase;
-    color:var(--hero-accent);
-    margin:8px 0 4px;
-    line-height:1.4;
-  }
-  .hero-signature{
-    font-family:var(--font-serif);
-    font-style:italic;
-    font-weight:500;
-    font-size:clamp(15px,3.4vw,21px);
-    color:var(--hero-accent-soft);
-    margin:0;
-    line-height:1.2;
-  }
-  /* Deliberately quiet: the wordmark and the photo carry this section, so the blurb
-     reads as a caption rather than competing for attention. */
-  .hero p{color:var(--ink-soft);font-size:12.5px;line-height:1.65;margin:0;opacity:.82;}
+  .hero-link:hover{color:var(--accent-deep);border-color:var(--accent);gap:16px;}
+  .hero-link svg{width:14px;height:14px;stroke:currentColor;}
 
   @media (min-width:900px){
-    .hero{padding:120px 56px 76px;}
-    .hero-bottom p{max-width:440px;}
-    .hero p{font-size:14px;line-height:1.7;}
+    .hero{padding:120px 40px 72px;}
+    .hero-inner{max-width:680px;}
+    .hero-print{width:min(34vw,330px,40vh);margin:40px 0 36px;}
+    .hero p{font-size:14.5px;}
   }
-  @media (max-height:620px){
-    .hero{padding:84px 20px 44px;}
-    .hero h1{font-size:clamp(36px,11vw,60px);}
-    .hero p{font-size:14px;line-height:1.6;}
+  /* Short viewports (landscape laptops, older phones, and anything with browser chrome
+     eating the height): tighten so the CTA still clears the fold. Must sit after the
+     min-width block to win against the desktop padding at equal specificity. */
+  @media (max-height:700px){
+    .hero{padding:82px 20px 40px;}
+    .hero h1{font-size:clamp(32px,8vw,54px);margin-top:10px;}
+    .hero-script{font-size:20px;}
+    .hero-print{width:min(72vw,300px,30vh);margin:20px 0 20px;}
+    .hero p{font-size:12.5px;line-height:1.7;}
+    .hero-link{margin-top:18px;}
   }
+
 
   .scroll-cue{
     position:absolute;bottom:36px;left:50%;transform:translateX(-50%);z-index:2;
@@ -940,18 +954,20 @@
   <!-- HOME VIEW -->
   <div id="view-home">
     <section class="hero" id="home">
-      <div class="hero-photo" id="heroBg"></div>
-      <div class="hero-veil"></div>
-
-      <div class="hero-top">
+      <div class="hero-inner">
+        <span class="hero-eyebrow" id="heroSubtitle">Professional Image Creator</span>
         <h1 id="heroTitle">Dekagrophy</h1>
-        <div class="hero-subtitle" id="heroSubtitle">Professional Image Creator</div>
-        <div class="hero-signature" id="heroSignature">Giancarlo (Deka) Rosete</div>
-      </div>
+        <div class="hero-script" id="heroSignature">Giancarlo (Deka) Rosete</div>
 
-      <div class="hero-bottom">
-        <p id="heroDesc">Photography, videography and graphic design, all from one person who actually enjoys the puzzle. Tell me what you're picturing — I'll help you shape it, shoot it, and hand back something you're proud to share.</p>
-        <button class="btn-accent" id="viewGalleryBtn"><span>View Portfolio</span></button>
+        <div class="hero-print" id="heroPrint">
+          <div class="hero-photo" id="heroBg"></div>
+        </div>
+
+        <p id="heroDesc">Photography, videography and graphic design, from someone who treats every shoot like the one you'll still be showing people years from now.</p>
+        <button class="hero-link" id="viewGalleryBtn">
+          <span>View Portfolio</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
       </div>
       <div class="scroll-cue" id="scrollCue">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
@@ -2024,12 +2040,13 @@
 
   function heroAnimation() {
     const tl = gsap.timeline();
-    tl.from('#heroTitle', { opacity: 0, x: 30, duration: 1 }, 0.1)
-      .from('#heroSubtitle', { opacity: 0, x: 20, duration: 0.7 }, 0.4)
-      .from('#heroSignature', { opacity: 0, x: 16, duration: 0.7 }, 0.52)
-      .from('#viewGalleryBtn', { opacity: 0, scale: 0.9, duration: 0.8, ease: 'power3.out' }, 0.7)
-      .from('#heroDesc', { opacity: 0, y: 20, duration: 0.8 }, 0.9)
-      .from('#scrollCue', { opacity: 0, duration: 0.6 }, 1.1);
+    tl.from('#heroSubtitle', { opacity: 0, y: 12, duration: 0.8 }, 0.1)
+      .from('#heroTitle', { opacity: 0, y: 20, duration: 1 }, 0.24)
+      .from('#heroScript, #heroSignature', { opacity: 0, y: 12, duration: 0.9 }, 0.44)
+      .from('#heroPrint', { opacity: 0, y: 26, scale: 0.96, duration: 1.1, ease: 'power3.out' }, 0.58)
+      .from('#heroDesc', { opacity: 0, y: 16, duration: 0.9 }, 0.86)
+      .from('#viewGalleryBtn', { opacity: 0, y: 14, duration: 0.8 }, 1.0)
+      .from('#scrollCue', { opacity: 0, duration: 0.6 }, 1.2);
     return tl;
   }
 
