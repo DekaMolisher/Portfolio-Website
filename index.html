@@ -48,7 +48,6 @@
     --glow-mid:rgba(201,169,238,0.11);
     --pf-ink:#F3EAD9;
     --pf-ink-soft:rgba(243,234,217,0.66);
-    --print-mat:#221b16;
     --line:rgba(243,234,217,0.14);
     --glass:rgba(11,10,8,0.82);
     --elev-shadow:0 26px 46px -22px rgba(243,234,217,0.16);
@@ -86,7 +85,6 @@
     --glow-mid:rgba(184,137,74,0.09);
     --pf-ink:#2B2420;
     --pf-ink-soft:#6d6153;
-    --print-mat:#FFFFFF;
     --line:rgba(43,36,32,0.14);
     --glass:rgba(250,247,241,0.86);
     --elev-shadow:0 26px 42px -22px rgba(43,36,32,0.3);
@@ -311,7 +309,10 @@
     min-height:100vh;min-height:100svh;
     max-width:none;width:100%;margin:0;
     display:flex;align-items:center;justify-content:center;
-    text-align:center;padding:96px 24px calc(60px + env(safe-area-inset-bottom, 0px));position:relative;overflow:hidden;
+    /* Bottom padding deliberately exceeds the top: the stack is centred in the padding
+       box, so the surplus lifts the CTA off the gesture bar instead of leaving it
+       hugging the fold. */
+    text-align:center;padding:76px 24px calc(100px + env(safe-area-inset-bottom, 0px));position:relative;overflow:hidden;
     background:var(--bg);
   }
   /* Light blooming out from behind the print rather than a flat textured field */
@@ -330,32 +331,36 @@
 
   /* Inverted pyramid: each line smaller than the one above it */
   .hero h1{font-size:clamp(38px,9.4vw,80px);line-height:1;letter-spacing:.03em;}
+  /* The three clamps step down in every term — min, vw slope and max — so the pyramid
+     holds at every width rather than only at the ends. The old subtitle/name pair shared
+     a 2.7vw slope, which put the name (11px floor) *above* the subtitle (10px floor) on
+     narrow phones. */
   .hero-subtitle{
     font-family:var(--font-ui);
     /* .3em tracking on 26 characters made this wider than "Dekagrophy" itself; the
        wordmark has to stay the widest element in the stack. */
-    font-size:clamp(10px,2.7vw,14px);
+    font-size:clamp(9.5px,2.4vw,13px);
     font-weight:500;letter-spacing:.2em;text-transform:uppercase;
     color:var(--accent-deep);
-    margin-top:12px;padding-left:.3em;
+    margin-top:11px;padding-left:.3em;
   }
   .hero-name{
     font-family:var(--font-serif);font-style:italic;
-    font-size:clamp(11px,2.7vw,13.5px);
+    font-size:clamp(8.5px,2.05vw,11.5px);
     letter-spacing:.02em;
     color:var(--ink-soft);
-    margin-top:9px;
+    margin-top:8px;
   }
 
-  /* The print: photo in a paper mat with a hairline frame offset just outside it */
+  /* The print: photo with a hairline frame offset just outside it. No paper mat — the
+     mat's padding + fill read as a grey box sitting behind the photo, which is not what
+     the section is going for now that the background is a bloom. */
   .hero-figure{display:flex;align-items:center;justify-content:center;}
   .hero-print{
     position:relative;cursor:pointer;
     width:min(72vw,290px,29vh);
     aspect-ratio:3/4;
     margin:26px 0 24px;
-    padding:9px;
-    background:var(--print-mat);
     box-shadow:0 22px 48px -26px rgba(0,0,0,0.6);
   }
   .hero-print::after{
@@ -383,7 +388,7 @@
   }
   .hero-print.is-hover .hero-photo::after{opacity:.85;transform:translateX(45%);}
   /* Golden edges draw in around the print, same motif as the portfolio stack */
-  .hero-print .shot-edge{position:absolute;inset:9px;z-index:3;pointer-events:none;}
+  .hero-print .shot-edge{position:absolute;inset:0;z-index:3;pointer-events:none;}
   .hero-print .shot-edge .bar{position:absolute;background:var(--accent);transition:transform .3s var(--ease);}
   .hero-print .shot-edge .bar-top{top:0;left:0;right:0;height:3px;transform-origin:right center;transform:scaleX(0);}
   .hero-print .shot-edge .bar-left{left:0;top:0;bottom:0;width:3px;transform-origin:top center;transform:scaleY(0);}
@@ -426,17 +431,21 @@
     .hero p{font-size:14.5px;max-width:440px;}
   }
   /* Short viewports: tighten so the CTA still clears the fold. Must follow the
-     min-width block to win against desktop padding at equal specificity. */
-  @media (max-height:700px){
-    .hero{padding:82px 20px calc(40px + env(safe-area-inset-bottom, 0px));}
+     min-width block to win against desktop padding at equal specificity.
+     760px, not 700px: the base stack plus its padding measures ~735px, so anything
+     shorter than that grew the hero past 100svh and pushed the CTA below the fold. */
+  @media (max-height:760px){
+    .hero{padding:62px 20px calc(86px + env(safe-area-inset-bottom, 0px));}
     .hero h1{font-size:clamp(32px,8vw,54px);}
-    .hero-subtitle{font-size:10px;margin-top:9px;}
-    .hero-name{font-size:10.5px;margin-top:6px;}
+    .hero-subtitle{font-size:9.5px;margin-top:8px;}
+    .hero-name{font-size:8.5px;margin-top:6px;}
     .hero-print{width:min(72vw,260px,29vh);margin:14px 0 14px;}
     .hero p{font-size:12.5px;line-height:1.7;}
     .hero .btn-accent{margin-top:16px;}
   }
-  @media (min-width:900px) and (max-height:700px){
+  @media (min-width:900px) and (max-height:760px){
+    /* restore the desktop gutters the short-viewport rule above just narrowed */
+    .hero{padding:56px 48px calc(64px + env(safe-area-inset-bottom, 0px));}
     .hero-print{width:min(30vw,260px,46vh);margin:0;}
   }
 
