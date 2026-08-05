@@ -44,7 +44,8 @@
     --paper-blend:overlay;
     --pf-bg:#201a15;
     --pf-grain:0.17;
-    --pf-vignette:rgba(6,5,4,0.72);
+    --glow-core:rgba(201,169,238,0.30);
+    --glow-mid:rgba(201,169,238,0.11);
     --pf-ink:#F3EAD9;
     --pf-ink-soft:rgba(243,234,217,0.66);
     --print-mat:#221b16;
@@ -81,7 +82,8 @@
     --paper-blend:multiply;
     --pf-bg:#FFFDF7;
     --pf-grain:0.06;
-    --pf-vignette:rgba(180,160,130,0.16);
+    --glow-core:rgba(184,137,74,0.26);
+    --glow-mid:rgba(184,137,74,0.09);
     --pf-ink:#2B2420;
     --pf-ink-soft:#6d6153;
     --print-mat:#FFFFFF;
@@ -309,13 +311,15 @@
     min-height:100vh;min-height:100svh;
     max-width:none;width:100%;margin:0;
     display:flex;align-items:center;justify-content:center;
-    text-align:center;padding:96px 24px 60px;position:relative;overflow:hidden;
+    text-align:center;padding:96px 24px calc(60px + env(safe-area-inset-bottom, 0px));position:relative;overflow:hidden;
     background:var(--bg);
   }
+  /* Light blooming out from behind the print rather than a flat textured field */
   .hero::before{
     content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23p)'/%3E%3C/svg%3E");
-    opacity:var(--paper-grain);mix-blend-mode:var(--paper-blend);
+    /* Radius has to reach well past the print — anything tighter puts the whole bright
+       part of the bloom behind the photo, where none of it is visible. */
+    background:radial-gradient(122% 64% at 50% 46%, var(--glow-core) 0%, var(--glow-mid) 52%, transparent 100%);
   }
   .hero-inner{
     position:relative;z-index:1;
@@ -328,8 +332,10 @@
   .hero h1{font-size:clamp(38px,9.4vw,80px);line-height:1;letter-spacing:.03em;}
   .hero-subtitle{
     font-family:var(--font-ui);
-    font-size:clamp(12.5px,3.2vw,16px);
-    font-weight:500;letter-spacing:.3em;text-transform:uppercase;
+    /* .3em tracking on 26 characters made this wider than "Dekagrophy" itself; the
+       wordmark has to stay the widest element in the stack. */
+    font-size:clamp(10px,2.7vw,14px);
+    font-weight:500;letter-spacing:.2em;text-transform:uppercase;
     color:var(--accent-deep);
     margin-top:12px;padding-left:.3em;
   }
@@ -345,9 +351,9 @@
   .hero-figure{display:flex;align-items:center;justify-content:center;}
   .hero-print{
     position:relative;cursor:pointer;
-    width:min(72vw,290px,32vh);
+    width:min(72vw,290px,29vh);
     aspect-ratio:3/4;
-    margin:32px 0 28px;
+    margin:26px 0 24px;
     padding:9px;
     background:var(--print-mat);
     box-shadow:0 22px 48px -26px rgba(0,0,0,0.6);
@@ -404,7 +410,8 @@
 
   /* Desktop: print on the left, copy stacked beside it on the right */
   @media (min-width:900px){
-    .hero{padding:120px 48px 72px;text-align:left;}
+    .hero{padding:120px 48px calc(72px + env(safe-area-inset-bottom, 0px));text-align:left;}
+    .hero::before{background:radial-gradient(96% 108% at 32% 50%, var(--glow-core) 0%, var(--glow-mid) 46%, transparent 100%);}
     .hero-inner{
       max-width:1060px;
       grid-template-columns:auto minmax(320px,1fr);
@@ -421,9 +428,9 @@
   /* Short viewports: tighten so the CTA still clears the fold. Must follow the
      min-width block to win against desktop padding at equal specificity. */
   @media (max-height:700px){
-    .hero{padding:82px 20px 40px;}
+    .hero{padding:82px 20px calc(40px + env(safe-area-inset-bottom, 0px));}
     .hero h1{font-size:clamp(32px,8vw,54px);}
-    .hero-subtitle{font-size:12px;margin-top:9px;}
+    .hero-subtitle{font-size:10px;margin-top:9px;}
     .hero-name{font-size:10.5px;margin-top:6px;}
     .hero-print{width:min(72vw,260px,29vh);margin:14px 0 14px;}
     .hero p{font-size:12.5px;line-height:1.7;}
@@ -474,16 +481,10 @@
     background:var(--pf-bg);color:var(--pf-ink);
     position:relative;overflow:hidden;
   }
+  /* Same treatment as the hero: a glow centred on the slide's photo */
   #portfolio::before{
     content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23p)'/%3E%3C/svg%3E");
-    opacity:var(--pf-grain);mix-blend-mode:var(--paper-blend);
-  }
-  /* A soft vignette on top of the flat colour: pure #20-ish flat against the near-black
-     page read as a hard mismatched slab, this eases the join. */
-  #portfolio::after{
-    content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
-    background:radial-gradient(120% 78% at 50% 42%, transparent 38%, var(--pf-vignette) 100%);
+    background:radial-gradient(66% 48% at 50% 52%, var(--glow-core) 0%, var(--glow-mid) 44%, transparent 78%);
   }
   .pf-inner{
     position:relative;z-index:1;
@@ -1516,6 +1517,45 @@
     } else {
       setSlide(i);
     }
+  }
+
+  /* Each category cycles through every thumbnail in its own gallery. Only the visible
+     slide advances — swapping src on hidden slides would burn decodes for nothing — and
+     the stack's three photos run one step apart so they never show the same frame. */
+  function setupCategorySlideshows() {
+    const HOLD = 3200;
+    const perCat = categories.map((cat) => {
+      const src = shoots.find(x => x.id === cat.sourceShootId);
+      // Full gallery when the source shoot has one; otherwise the category's own three
+      // previews, so a category still cycles before its real batch has landed.
+      const thumbs = (src && src.images && src.images.length)
+        ? src.images.map(im => im.thumb || im.file)
+        : (cat.previews && cat.previews.length ? cat.previews.slice()
+           : [src ? (src.cardThumb || src.file) : '']);
+      const slide = document.querySelector('.pf-slide[data-shoot-id="' + cat.id + '"]');
+      return { thumbs, imgs: slide ? Array.from(slide.querySelectorAll('.stack-photo img')) : [], step: 0 };
+    });
+    if(!perCat.some(c => c.thumbs.length > 1)) return;
+
+    let timer = null;
+    function advance() {
+      const c = perCat[pf.index];
+      if(!c || c.thumbs.length < 2) return;
+      c.step++;
+      c.imgs.forEach((img, i) => {
+        const next = c.thumbs[(c.step + i) % c.thumbs.length];
+        if(img.getAttribute('src') === next) return;
+        gsap.to(img, { opacity: 0, duration: 0.35, ease: 'power2.in', onComplete: () => {
+          img.src = next;
+          gsap.to(img, { opacity: 1, duration: 0.45, ease: 'power2.out' });
+        }});
+      });
+    }
+    function start() { if(!timer) timer = setInterval(advance, HOLD); }
+    function stop() { clearInterval(timer); timer = null; }
+    // a backgrounded tab throttles the interval and then fires a burst on return
+    document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
+    start();
   }
 
   function setupPortfolioSlider() {
@@ -2796,6 +2836,7 @@
     setupAboutReveal();
     setupSocialReveal();
     setupPortfolioSlider();
+    setupCategorySlideshows();
     setupCategoryHovers();
     setupHeroPrintHover();
     setupSocialLinkTaps();
