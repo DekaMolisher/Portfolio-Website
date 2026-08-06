@@ -543,13 +543,18 @@
   /* margin:0 auto, never margin:auto — an auto margin on the cross axis (vertical here)
      suppresses align-items:stretch, and with only absolutely-positioned children the
      stack then measures 0 and the aspect ratio hands back a 0-wide box. */
+  /* The margins are headroom for the pop ring, which expands past the photo's edge into
+     a .pf-viewport that clips. Non-auto margins on the cross axis are fine — only auto
+     ones suppress align-items:stretch. */
   .pf-stack{
     position:relative;height:auto;width:auto;
-    aspect-ratio:1/1.06;max-width:100%;margin:0 auto;
+    aspect-ratio:1/1.06;max-width:calc(100% - 28px);margin:14px auto;
   }
+  /* Deliberately not overflow:hidden — the ring has to be able to leave this box. The
+     clipping the photo still needs (for the hover zoom) moved down to .photo-pop. */
   .stack-photo{
     position:absolute;top:0;left:0;width:63%;aspect-ratio:3/4;
-    overflow:hidden;background:var(--surface);
+    background:var(--surface);
     box-shadow:0 18px 40px -18px rgba(0,0,0,0.55);
     transform-origin:20% 100%;
     transition:transform .7s var(--ease), opacity .55s ease;
@@ -557,15 +562,16 @@
   /* The pop wrapper exists so GSAP has a transform of its own to animate. Writing an
      inline transform onto the img instead would permanently outrank the CSS hover-zoom
      rule below, and would be fought frame-by-frame by that rule's own transition. */
-  .stack-photo .photo-pop{display:block;width:100%;height:100%;will-change:transform;}
+  .stack-photo .photo-pop{display:block;width:100%;height:100%;overflow:hidden;will-change:transform;}
   .stack-photo img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 1.2s var(--ease);}
-  /* Ring that snaps outward to the photo's edge each time the image behind it changes.
-     It grows *into* the edge rather than past it: .stack-photo clips (it has to, for the
-     hover zoom), so anything scaled above 1 here is simply cut off and never seen. */
+  /* Ring that expands out past the photo's edge each time the image behind it changes.
+     The negative inset matters: starting flush and scaling up would put the ring on the
+     photo's own edge for the brightest part of the tween, and only carry it clear once
+     it had almost faded. This way it reads as an outside frame from the first frame. */
   .stack-photo .pop-frame{
-    position:absolute;inset:0;z-index:2;pointer-events:none;
+    position:absolute;inset:-7px;z-index:4;pointer-events:none;
     border:2px solid var(--accent);opacity:0;
-    box-shadow:inset 0 0 20px 2px var(--accent-pale);
+    box-shadow:0 0 12px 1px var(--accent-pale);
   }
   .stack-photo:nth-child(1){z-index:3;transform:translate(0,0);}
   .stack-photo:nth-child(2){z-index:2;transform:translate(24%,8%);}
@@ -574,8 +580,9 @@
   .pf-slide.is-hover .stack-photo:nth-child(3){transform:translate(58%,10%) rotate(4deg);opacity:.45;}
   .pf-slide.is-hover .stack-photo:nth-child(1) img{transform:scale(1.06);}
 
-  /* Corner-glow selection, unchanged in spirit */
-  .stack-photo .shot-edge{position:absolute;inset:0;z-index:3;pointer-events:none;}
+  /* Corner-glow selection, unchanged in spirit. It clips itself now that .stack-photo
+     doesn't, so the hover glow's outer spread stays inside the photo as before. */
+  .stack-photo .shot-edge{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;}
   .stack-photo .shot-edge .bar{position:absolute;background:var(--accent);transition:transform .3s var(--ease);}
   .stack-photo .shot-edge .bar-top{top:0;left:0;right:0;height:4px;transform-origin:right center;transform:scaleX(0);}
   .stack-photo .shot-edge .bar-left{left:0;top:0;bottom:0;width:4px;transform-origin:top center;transform:scaleY(0);}
@@ -1594,8 +1601,8 @@
         .add(() => { img.src = nextSrc; })
         .to(img,  { opacity: 1, duration: 0.4, ease: 'power2.out' })
         .to(wrap, { scale: 1, duration: 0.62, ease: 'back.out(2.4)' }, '<')
-        .fromTo(frame, { opacity: 0.95, scale: 0.88 },
-                       { opacity: 0, scale: 1, duration: 0.62, ease: 'power2.out' }, '<');
+        .fromTo(frame, { opacity: 0.95, scale: 1 },
+                       { opacity: 0, scale: 1.025, duration: 0.62, ease: 'power2.out' }, '<');
     }
 
     let timer = null;
