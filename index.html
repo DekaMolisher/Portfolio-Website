@@ -498,10 +498,10 @@
   .pf-inner{
     position:relative;z-index:1;
     min-height:100vh;min-height:100svh;
-    max-width:1280px;margin:0 auto;padding:96px 24px 56px;
+    max-width:1280px;margin:0 auto;padding:80px 24px 48px;
     display:flex;flex-direction:column;
   }
-  #portfolio .section-head{margin-bottom:20px;}
+  #portfolio .section-head{margin-bottom:12px;}
   #portfolio .section-head h2,#portfolio .section-head .eyebrow{color:inherit;}
   #portfolio .section-head h2{color:var(--pf-ink);}
 
@@ -525,14 +525,28 @@
   }
   .pf-slide.is-active{opacity:1;pointer-events:auto;}
 
-  .pf-media{position:relative;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  /* The media box takes whatever the copy and dots leave, and the stack stretches into
+     it. Sizing the stack off a vh figure instead meant a height that filled a 900px
+     screen overflowed the .pf-viewport clip on a 768px one and sliced the description —
+     it was doing that before the photos were enlarged, too. */
+  .pf-media{
+    position:relative;cursor:pointer;display:flex;
+    align-items:stretch;justify-content:center;
+    flex:1 1 auto;min-height:0;max-height:480px;
+  }
   .pf-copy{text-align:center;max-width:520px;flex:0 0 auto;}
   .pf-name{font-size:clamp(24px,3.4vw,38px);line-height:1.05;margin-bottom:10px;color:var(--pf-ink);}
   .pf-desc{color:var(--pf-ink-soft);font-size:13.5px;line-height:1.7;}
   /* Fanned stack of three, same treatment as before */
   /* Definite height, width derived from it. Sizing the stack off its parent while the
      parent sized itself off the stack collapsed both to zero. */
-  .pf-stack{position:relative;height:min(50vh,470px);aspect-ratio:1/1.06;}
+  /* margin:0 auto, never margin:auto — an auto margin on the cross axis (vertical here)
+     suppresses align-items:stretch, and with only absolutely-positioned children the
+     stack then measures 0 and the aspect ratio hands back a 0-wide box. */
+  .pf-stack{
+    position:relative;height:auto;width:auto;
+    aspect-ratio:1/1.06;max-width:100%;margin:0 auto;
+  }
   .stack-photo{
     position:absolute;top:0;left:0;width:63%;aspect-ratio:3/4;
     overflow:hidden;background:var(--surface);
@@ -540,7 +554,19 @@
     transform-origin:20% 100%;
     transition:transform .7s var(--ease), opacity .55s ease;
   }
+  /* The pop wrapper exists so GSAP has a transform of its own to animate. Writing an
+     inline transform onto the img instead would permanently outrank the CSS hover-zoom
+     rule below, and would be fought frame-by-frame by that rule's own transition. */
+  .stack-photo .photo-pop{display:block;width:100%;height:100%;will-change:transform;}
   .stack-photo img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 1.2s var(--ease);}
+  /* Ring that snaps outward to the photo's edge each time the image behind it changes.
+     It grows *into* the edge rather than past it: .stack-photo clips (it has to, for the
+     hover zoom), so anything scaled above 1 here is simply cut off and never seen. */
+  .stack-photo .pop-frame{
+    position:absolute;inset:0;z-index:2;pointer-events:none;
+    border:2px solid var(--accent);opacity:0;
+    box-shadow:inset 0 0 20px 2px var(--accent-pale);
+  }
   .stack-photo:nth-child(1){z-index:3;transform:translate(0,0);}
   .stack-photo:nth-child(2){z-index:2;transform:translate(24%,8%);}
   .stack-photo:nth-child(3){z-index:1;transform:translate(48%,16%);}
@@ -591,17 +617,22 @@
 
   /* Mobile: single photo, copy above it, arrows tucked beside the dots */
   @media (max-width:820px){
-    .pf-inner{padding:88px 20px 44px;}
+    .pf-inner{padding:74px 20px 40px;}
+    #portfolio .section-head{margin-bottom:6px;}
     .pf-stage{gap:0;}
-    .pf-slide{flex-direction:column;gap:14px;}
+    /* flex-start, not centre: centring the copy+photo group as a block left a dead band
+       under the divider and squeezed the photo. Pinning the copy up top hands all the
+       slack to the picture. */
+    .pf-slide{flex-direction:column;align-items:center;justify-content:flex-start;gap:12px;}
     .pf-copy{order:1;max-width:100%;}
-    .pf-media{order:2;}
     .pf-name{font-size:clamp(22px,6.4vw,30px);}
     .pf-desc{font-size:12.5px;}
     /* one photo only — the fan is a desktop flourish */
-    /* 40vh, not 46vh: at 640-664px tall the taller stack pushed the copy past the
-       viewport's overflow:hidden and clipped the description. */
-    .pf-stack{height:min(40vh,360px);aspect-ratio:3/4;}
+    /* The photo takes whatever height is left rather than a fixed vh. A vh figure big
+       enough for a 844px phone clipped the copy on a 640px one, and one that cleared
+       640px wasted ~100px on the tall phones. */
+    .pf-media{order:2;width:100%;max-height:none;}
+    .pf-stack{aspect-ratio:3/4;}
     .pf-stack .stack-photo{position:relative;width:100%;height:100%;aspect-ratio:auto;transform:none !important;box-shadow:0 14px 30px -16px rgba(0,0,0,0.5);}
     .pf-stack .stack-photo:nth-child(n+2){display:none;}
     /* arrows are desktop-only; on a phone the swipe carries it */
@@ -1020,7 +1051,7 @@
 
   <nav class="nav-overlay" id="navOverlay">
     <a href="#/">Home</a>
-    <a href="#portfolio">Portfolio</a>
+    <a href="#portfolio">Gallery</a>
     <a href="#about">About</a>
     <a href="#social">Social</a>
     <a href="#/contact">Contact</a>
@@ -1046,7 +1077,7 @@
 
         <div class="hero-copy">
           <p id="heroDesc">Photography, videography and graphic design, from someone who treats every shoot like the one you'll still be showing people years from now.</p>
-          <button class="btn-accent" id="viewGalleryBtn"><span>View Portfolio</span></button>
+          <button class="btn-accent" id="viewGalleryBtn"><span>View Gallery</span></button>
         </div>
       </div>
       <div class="scroll-cue" id="scrollCue">
@@ -1058,7 +1089,7 @@
       <div class="pf-inner">
         <div class="section-head" id="portfolioHead">
           <span class="eyebrow">Selected Work</span>
-          <h2>The Portfolio</h2>
+          <h2>The Gallery</h2>
           <div class="rule"></div>
         </div>
 
@@ -1130,7 +1161,7 @@
       <div class="footer-logo"><span>DK</span></div>
       <div class="footer-nav">
         <a href="#/">Home</a>
-        <a href="#portfolio">Portfolio</a>
+        <a href="#portfolio">Gallery</a>
         <a href="#about">About</a>
         <a href="#social">Social</a>
         <a href="#/contact">Contact</a>
@@ -1158,7 +1189,7 @@
     <span class="floating-tab-mark script">Dekagrophy</span>
     <nav class="floating-tab-nav">
       <a href="#/">Home</a>
-      <a href="#portfolio">Portfolio</a>
+      <a href="#portfolio">Gallery</a>
       <a href="#about">About</a>
       <a href="#social">Social</a>
       <a href="#/contact">Contact</a>
@@ -1170,7 +1201,7 @@
     <div class="shoot-page">
       <button class="btn-ghost shoot-back" id="shootBack">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-        Back to Portfolio
+        Back to Gallery
       </button>
 
       <div class="shoot-header">
@@ -1459,7 +1490,8 @@
       // front photo first: it carries the corner-glow edge and the sweep on navigation
       const stack = previews.map((src, p) => `
             <div class="stack-photo${p === 0 ? ' shot-media' : ''}">
-              <img src="${src}" alt="${cat.name}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async">
+              <span class="photo-pop"><img src="${src}" alt="${cat.name}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async"></span>
+              <span class="pop-frame"></span>
               ${p === 0 ? '<span class="shot-edge"><span class="bar bar-top"></span><span class="bar bar-left"></span><span class="bar bar-bottom"></span><span class="bar bar-right"></span><span class="glow"></span></span>' : ''}
             </div>`).join('');
 
@@ -1542,22 +1574,40 @@
         : (cat.previews && cat.previews.length ? cat.previews.slice()
            : [src ? (src.cardThumb || src.file) : '']);
       const slide = document.querySelector('.pf-slide[data-shoot-id="' + cat.id + '"]');
-      return { thumbs, imgs: slide ? Array.from(slide.querySelectorAll('.stack-photo img')) : [], step: 0 };
+      const photos = slide ? Array.from(slide.querySelectorAll('.stack-photo')).map(ph => ({
+        img:   ph.querySelector('img'),
+        pop:   ph.querySelector('.photo-pop'),
+        frame: ph.querySelector('.pop-frame')
+      })) : [];
+      return { thumbs, photos, step: 0 };
     });
     if(!perCat.some(c => c.thumbs.length > 1)) return;
+
+    /* The swap itself: dip and shrink a touch, change the source, then spring back a
+       hair past full size while a ring pushes out of the frame. back.out gives the
+       overshoot without a second tween. */
+    function pop(photo, nextSrc, delay) {
+      const { img, pop: wrap, frame } = photo;
+      gsap.timeline({ delay })
+        .to(wrap, { scale: 0.94, duration: 0.26, ease: 'power2.in' })
+        .to(img,  { opacity: 0, duration: 0.26, ease: 'power2.in' }, 0)
+        .add(() => { img.src = nextSrc; })
+        .to(img,  { opacity: 1, duration: 0.4, ease: 'power2.out' })
+        .to(wrap, { scale: 1, duration: 0.62, ease: 'back.out(2.4)' }, '<')
+        .fromTo(frame, { opacity: 0.95, scale: 0.88 },
+                       { opacity: 0, scale: 1, duration: 0.62, ease: 'power2.out' }, '<');
+    }
 
     let timer = null;
     function advance() {
       const c = perCat[pf.index];
       if(!c || c.thumbs.length < 2) return;
       c.step++;
-      c.imgs.forEach((img, i) => {
+      c.photos.forEach((photo, i) => {
         const next = c.thumbs[(c.step + i) % c.thumbs.length];
-        if(img.getAttribute('src') === next) return;
-        gsap.to(img, { opacity: 0, duration: 0.35, ease: 'power2.in', onComplete: () => {
-          img.src = next;
-          gsap.to(img, { opacity: 1, duration: 0.45, ease: 'power2.out' });
-        }});
+        if(!photo.img || photo.img.getAttribute('src') === next) return;
+        // stagger the stack so the three cards pop in sequence, not as one block
+        pop(photo, next, i * 0.09);
       });
     }
     function start() { if(!timer) timer = setInterval(advance, HOLD); }
@@ -2755,7 +2805,7 @@
       viewHome.classList.remove('hidden');
       gsap.from(viewHome, { duration: 0.4, opacity: 0, ease: 'power2.out' });
 
-      document.title = 'Dekagrophy — Portfolio';
+      document.title = 'Dekagrophy — Gallery';
     }
   }
 
