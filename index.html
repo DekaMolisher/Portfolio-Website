@@ -45,8 +45,6 @@
     --grain-opacity:0.08;
     --grain-blend:overlay;
     --pf-bg:#201a15;
-    --glow-core:rgba(201,169,238,0.30);
-    --glow-mid:rgba(201,169,238,0.11);
     --pf-ink:#F3EAD9;
     --pf-ink-soft:rgba(243,234,217,0.66);
     --line:rgba(243,234,217,0.14);
@@ -85,8 +83,6 @@
     --grain-opacity:0.05;
     --grain-blend:multiply;
     --pf-bg:#FFFDF7;
-    --glow-core:rgba(184,137,74,0.26);
-    --glow-mid:rgba(184,137,74,0.09);
     --pf-ink:#2B2420;
     --pf-ink-soft:#6d6153;
     --line:rgba(43,36,32,0.14);
@@ -381,13 +377,6 @@
     text-align:center;padding:76px 24px calc(100px + env(safe-area-inset-bottom, 0px));position:relative;overflow:hidden;
     background:var(--bg);
   }
-  /* Light blooming out from behind the print rather than a flat textured field */
-  .hero::before{
-    content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
-    /* Radius has to reach well past the print — anything tighter puts the whole bright
-       part of the bloom behind the photo, where none of it is visible. */
-    background:radial-gradient(122% 64% at 50% 46%, var(--glow-core) 0%, var(--glow-mid) 52%, transparent 100%);
-  }
   .hero-inner{
     position:relative;z-index:1;
     display:grid;grid-template-columns:1fr;justify-items:center;
@@ -482,7 +471,6 @@
   /* Desktop: print on the left, copy stacked beside it on the right */
   @media (min-width:900px){
     .hero{padding:120px 48px calc(72px + env(safe-area-inset-bottom, 0px));text-align:left;}
-    .hero::before{background:radial-gradient(96% 108% at 32% 50%, var(--glow-core) 0%, var(--glow-mid) 46%, transparent 100%);}
     .hero-inner{
       max-width:1060px;
       grid-template-columns:auto minmax(320px,1fr);
@@ -555,11 +543,6 @@
     max-width:none;width:100%;margin:0;padding:0;
     background:var(--pf-bg);color:var(--pf-ink);
     position:relative;overflow:hidden;
-  }
-  /* Same treatment as the hero: a glow centred on the slide's photo */
-  #portfolio::before{
-    content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
-    background:radial-gradient(66% 48% at 50% 52%, var(--glow-core) 0%, var(--glow-mid) 44%, transparent 78%);
   }
   .pf-inner{
     position:relative;z-index:1;
