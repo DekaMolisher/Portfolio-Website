@@ -40,10 +40,12 @@
     --hero-accent:#DFC9FA;
     --hero-accent-soft:rgba(223,201,250,0.82);
     --hero-scrim:rgba(8,7,6,0.58);
-    /* paper grain — see .grain-overlay. overlay pushes the noise both ways around 50%
-       grey, which is what gives a dark field its tooth without lifting the blacks. */
-    --grain-opacity:0.08;
-    --grain-blend:overlay;
+    /* paper grain — see .grain-overlay. screen, not overlay: overlay's dark half is
+       result = 2*base*blend, so against #0B0A08 (base 0.043) the whole range collapses
+       to about 1.7/255 and the texture is invisible — which is exactly what it was
+       doing. screen lightens only, the way grain scatters light on a dark frame. */
+    --grain-opacity:0.055;
+    --grain-blend:screen;
     --pf-bg:#201a15;
     --pf-ink:#F3EAD9;
     --pf-ink-soft:rgba(243,234,217,0.66);
@@ -80,7 +82,7 @@
        effect by how far the base is from the extremes, so against a near-white paper
        (#FAF7F1, L~248) they resolve to almost nothing — measured at 0.07/255. multiply
        darkens only, which is also the physically right model for fibre on paper. */
-    --grain-opacity:0.05;
+    --grain-opacity:0.085;
     --grain-blend:multiply;
     --pf-bg:#FFFDF7;
     --pf-ink:#2B2420;
@@ -142,7 +144,7 @@
      generated per-tile in its own coordinate space and every repeat seam shows.
 
      Per-instance overrides — set on the element, not here:
-       --grain-opacity  strength (theme tokens set 0.05 light / 0.08 dark)
+       --grain-opacity  strength (theme tokens set 0.085 light / 0.055 dark)
        --grain-blend    overlay | soft-light
        --grain-size     tile size; larger = coarser, more like paper stock
        --grain-z        stacking position within the host section
@@ -1508,9 +1510,12 @@
     const tl = gsap.timeline({
       onComplete: () => {
         location.hash = '#/shoot/' + id;
-        gsap.set(viewHome, { clearProps: 'transform,opacity,transformOrigin' });
         document.body.style.overflow = '';
         sweep.remove();
+        // Deliberately NOT clearing viewHome's transform/opacity here. hashchange fires
+        // on a later task, so resetting it now snapped the home page back to full
+        // opacity and scale for a frame or two before the router hid it — a hard flash
+        // of the page you just left. The router clears it on the way back instead.
       }
     });
     tl.set(sweep, { scaleY: 0, opacity: 0.95 })
@@ -1620,7 +1625,7 @@
      slide advances — swapping src on hidden slides would burn decodes for nothing — and
      the stack's three photos run one step apart so they never show the same frame. */
   function setupCategorySlideshows() {
-    const HOLD = 3200;
+    const HOLD = 6500;
     const perCat = categories.map((cat) => {
       const src = shoots.find(x => x.id === cat.sourceShootId);
       // Full gallery when the source shoot has one; otherwise the category's own three
@@ -2823,6 +2828,17 @@
 
   /* ============ PAGE ROUTING ============ */
 
+  /* html has scroll-behavior:smooth, which turns a plain scrollTo(0,0) on a view change
+     into a visible several-hundred-millisecond flight through the whole page — the page
+     appeared to convulse on the way into a gallery. Force an instant jump. */
+  function jumpToTop() {
+    const root = document.documentElement;
+    const prev = root.style.scrollBehavior;
+    root.style.scrollBehavior = 'auto';
+    window.scrollTo(0, 0);
+    root.style.scrollBehavior = prev;
+  }
+
   function router() {
     const hash = location.hash || '#/';
     const shootMatch = hash.match(/^#\/shoot\/([a-z0-9-]+)/i);
@@ -2839,12 +2855,18 @@
 
       viewHome.classList.add('hidden');
       viewContact.classList.remove('visible');
+
+      /* Order matters here. The view has to be laid out before renderShoot measures it —
+         rendering into a display:none box gave the masonry a 0-width container — but it
+         must not be *seen* until the grid is placed and the scroll is back at the top.
+         Doing it the other way round showed the shoot page at the home page's scroll
+         offset, then the masonry snapping into position, then a jump to the top. */
+      gsap.set(viewShoot, { opacity: 0 });
       viewShoot.classList.add('visible');
-
+      jumpToTop();
       renderShoot(id);
-      gsap.from(viewShoot, { duration: 0.5, opacity: 0, y: 20, ease: 'power3.out' });
-
-      window.scrollTo(0,0);
+      gsap.fromTo(viewShoot, { opacity: 0, y: 20 },
+                             { duration: 0.5, opacity: 1, y: 0, ease: 'power3.out', clearProps: 'opacity,transform' });
       const titleName = categories.find(c => c.id === id)?.name || shoots.find(s => s.id === id)?.name;
       document.title = titleName + ' — Dekagrophy';
     } else if(isContact) {
@@ -2853,12 +2875,16 @@
       viewContact.classList.add('visible');
       gsap.from(viewContact, { duration: 0.5, opacity: 0, y: 20, ease: 'power3.out' });
 
-      window.scrollTo(0,0);
+      jumpToTop();
       document.title = 'Contact — Dekagrophy';
     } else {
       viewShoot.classList.remove('visible');
       viewContact.classList.remove('visible');
       viewHome.classList.remove('hidden');
+      // clear what navigateToShoot's zoom-out left behind first: without this the tween
+      // below would animate from opacity 0 to the inline opacity 0 still sitting on the
+      // element, and the home page would never come back.
+      gsap.set(viewHome, { clearProps: 'transform,opacity,transformOrigin' });
       gsap.from(viewHome, { duration: 0.4, opacity: 0, ease: 'power2.out' });
 
       document.title = 'Dekagrophy — Gallery';
