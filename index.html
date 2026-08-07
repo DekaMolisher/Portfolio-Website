@@ -212,11 +212,17 @@
     text-transform:uppercase;letter-spacing:.02em;
   }
 
+  /* 40px box, 44px target. The guideline wants 44x44 minimum; growing the bordered
+     square to match would be visible in the header, so the extra 2px a side is an
+     invisible pseudo-element instead — it still forwards taps to the button. */
   .icon-btn{
+    position:relative;
     width:40px;height:40px;border:1px solid var(--accent);
     display:flex;align-items:center;justify-content:center;gap:5px;
     cursor:pointer;background:none;transition:background .3s ease;
+    touch-action:manipulation;
   }
+  .icon-btn::after{content:"";position:absolute;inset:-2px;}
   .icon-btn:hover{background:var(--accent-wash);}
   .icon-btn svg{width:16px;height:16px;stroke:var(--accent-deep);}
 
@@ -225,10 +231,13 @@
   [data-theme="light"] .theme-toggle .icon-moon{display:block;}
 
   .burger{
+    position:relative;
     width:40px;height:40px;border:1px solid var(--accent);
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
     cursor:pointer;background:none;
+    touch-action:manipulation;
   }
+  .burger::after{content:"";position:absolute;inset:-2px;}
   .burger span{width:16px;height:1px;background:var(--accent-deep);transition:transform .3s ease, opacity .3s ease;}
   .burger.open span:nth-child(1){transform:translateY(6px) rotate(45deg);}
   .burger.open span:nth-child(2){opacity:0;}
@@ -589,12 +598,28 @@
   .pf-arrow[disabled]:hover{background:transparent;border-color:var(--line);}
 
   .pf-dots{display:flex;justify-content:center;gap:9px;padding-top:22px;}
+  /* 7px dot, 16x44px tap target. The dot itself stays this size — the hit area is an
+     overlaid pseudo-element that spans the full 44px height (nothing competes above or
+     below) and the 16px pitch to the next dot, so neighbours never overlap. That is a
+     14x bigger target than the 7x7 it was, though still under the guideline's 44px
+     width: seven 44px-wide targets need 308px of the 350px available, which would
+     spread the row across the screen instead of the tight cluster it is now. */
   .pf-dot{
-    width:7px;height:7px;border-radius:50%;padding:0;border:0;cursor:pointer;
+    position:relative;
+    width:7px;height:7px;padding:0;border:0;background:none;cursor:pointer;
+    touch-action:manipulation;
+  }
+  /* The visible dot is ::before, not the button itself, specifically so the active
+     state's scale(1.5) cannot grow the hit area with it — when the scale was on the
+     button, the active dot's target swelled to 20x48 and overlapped its neighbours
+     by 1.8px, so a tap near the edge could select the wrong category. */
+  .pf-dot::before{
+    content:"";position:absolute;inset:0;border-radius:50%;
     background:var(--pf-ink);opacity:.26;
     transition:opacity .3s ease, transform .3s ease;
   }
-  .pf-dot.is-active{opacity:1;transform:scale(1.5);background:var(--accent);}
+  .pf-dot::after{content:"";position:absolute;left:-4.5px;right:-4.5px;top:-18.5px;bottom:-18.5px;}
+  .pf-dot.is-active::before{opacity:1;transform:scale(1.5);background:var(--accent);}
 
   /* Mobile: single photo, copy above it, arrows tucked beside the dots */
   @media (max-width:820px){
