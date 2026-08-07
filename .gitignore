@@ -1,1 +1,5 @@
-.claude/
+# Local Claude Code state stays out of the repo, but committed skills do not —
+# .claude/skills/ is tracked so every session (including from mobile, where there
+# is no terminal to install anything) loads them automatically.
+.claude/*
+!.claude/skills/
