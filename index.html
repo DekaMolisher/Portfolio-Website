@@ -1086,6 +1086,19 @@
   }
   .viewer-stage{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:100px 60px 120px;}
   .viewer-canvas{position:relative;display:flex;align-items:center;justify-content:center;}
+
+  /* Tap-to-focus: everything but the photograph fades out. Opacity rather than display
+     so it animates, and pointer-events:none so a hidden close button cannot be hit by
+     accident. The photo itself keeps its pointer events — tapping it is what brings the
+     controls back. */
+  .viewer-info, .viewer-close, .viewer-controls{
+    transition:opacity .3s var(--ease), visibility .3s var(--ease);
+  }
+  .viewer.hud-hidden .viewer-info,
+  .viewer.hud-hidden .viewer-close,
+  .viewer.hud-hidden .viewer-controls{
+    opacity:0;visibility:hidden;pointer-events:none;
+  }
   .viewer-img{max-width:64vw;max-height:60vh;width:auto;height:auto;display:block;cursor:grab;touch-action:none;}
   .viewer-img:active{cursor:grabbing;}
   .viewer-controls{
@@ -2675,9 +2688,9 @@
 
     viewerState = { zoom: 1, panX: 0, panY: 0, isDragging: false, startX: 0, startY: 0 };
     document.getElementById('zoomLevel').textContent = '100%';
-    navHiddenByTap = false;   // only a freshly-opened viewer starts with the arrows shown
+    hudHiddenByTap = false;   // only a freshly-opened viewer starts with the arrows shown
     updateZoomToggleIcon();
-    updateNavVisibility();
+    updateViewerChrome();
 
     gsap.set(img, { opacity: 0, scale: 0.92, x: 0, y: 0, filter: 'blur(0px)' });
 
@@ -2705,10 +2718,10 @@
         document.getElementById('viewerInfo').textContent = String(viewerIndex+1).padStart(2,'0') + ' / ' + String(viewerImages.length).padStart(2,'0');
         viewerState = { zoom: 1, panX: 0, panY: 0, isDragging: false, startX: 0, startY: 0 };
         document.getElementById('zoomLevel').textContent = '100%';
-        // deliberately NOT resetting navHiddenByTap: hiding the arrows is a choice about
+        // deliberately NOT resetting hudHiddenByTap: hiding the arrows is a choice about
         // the viewer, not about one photo, so it has to survive swiping between photos.
         updateZoomToggleIcon();
-        updateNavVisibility();
+        updateViewerChrome();
         gsap.set(img, { x: direction * 70, opacity: 0, scale: 1, filter: 'blur(10px)' });
 
         const reveal = () => {
@@ -2738,12 +2751,17 @@
   const LENS_ICON_IN = '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.35-4.35"/><path d="M7.5 10.5h6M10.5 7.5v6"/></svg>';
   const LENS_ICON_OUT = '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.35-4.35"/><path d="M7.5 10.5h6"/></svg>';
 
-  let navHiddenByTap = false;
+  let hudHiddenByTap = false;
 
-  function updateNavVisibility() {
-    const show = viewerImages.length > 1 && viewerState.zoom <= 1 && !navHiddenByTap;
+  /* A tap on the photo clears every control out of the way, not just the arrows: the
+     counter, the close button and the zoom bar go with them, so nothing but the
+     photograph is left. Tapping again brings it all back, and Escape, the backdrop and
+     swiping still work while it is hidden, so the viewer is never a trap. */
+  function updateViewerChrome() {
+    const show = viewerImages.length > 1 && viewerState.zoom <= 1 && !hudHiddenByTap;
     document.getElementById('viewerPrevBtn').style.display = show ? 'flex' : 'none';
     document.getElementById('viewerNextBtn').style.display = show ? 'flex' : 'none';
+    document.getElementById('viewer').classList.toggle('hud-hidden', hudHiddenByTap);
   }
 
   function updateZoomToggleIcon() {
@@ -2765,7 +2783,7 @@
     });
     document.getElementById('zoomLevel').textContent = Math.round(viewerState.zoom * 100) + '%';
     updateZoomToggleIcon();
-    updateNavVisibility();
+    updateViewerChrome();
   }
 
   function resetZoom() {
@@ -2818,6 +2836,7 @@
   /* Touch: pinch to zoom, swipe left/right to change photos, drag to pan while zoomed,
      double-tap to zoom, single tap to toggle the arrows */
   let touchStartX = 0, touchStartY = 0, touchDragging = false, touchPanStartX = 0, touchPanStartY = 0;
+  let lastTouchEndTime = 0;
   let lastTapTime = 0, lastTapX = 0, lastTapY = 0, singleTapTimeout = null;
   let pinch = null, pinchCooling = false;
   const DOUBLE_TAP_WINDOW = 300;
@@ -2882,6 +2901,7 @@
   }, { passive: false });
 
   viewerImgEl.addEventListener('touchend', (e) => {
+    lastTouchEndTime = Date.now();   // read by the click handler to ignore synthetic clicks
     // Swallow the whole release of a pinch: the first lift settles it, and pinchCooling
     // keeps the second lift from being read as a tap (which would toggle the arrows) or
     // as a swipe (which would change photo).
@@ -2895,7 +2915,7 @@
         }
         document.getElementById('zoomLevel').textContent = Math.round(viewerState.zoom * 100) + '%';
         updateZoomToggleIcon();
-        updateNavVisibility();
+        updateViewerChrome();
         touchDragging = false;
       }
       if(e.touches.length === 0) pinchCooling = false;
@@ -2928,8 +2948,8 @@
         clearTimeout(singleTapTimeout);
         singleTapTimeout = setTimeout(() => {
           if(viewerState.zoom <= 1) {
-            navHiddenByTap = !navHiddenByTap;
-            updateNavVisibility();
+            hudHiddenByTap = !hudHiddenByTap;
+            updateViewerChrome();
           }
         }, DOUBLE_TAP_WINDOW);
       }
@@ -2968,7 +2988,7 @@
     gsap.set(viewerImgEl, { scale: z, x: viewerState.panX, y: viewerState.panY });
     document.getElementById('zoomLevel').textContent = Math.round(z * 100) + '%';
     updateZoomToggleIcon();
-    updateNavVisibility();
+    updateViewerChrome();
   }, { passive: false });
 
   document.addEventListener('keydown', (e) => {
@@ -2982,6 +3002,17 @@
 
   document.getElementById('viewer').addEventListener('click', (e) => {
     if(e.target.id === 'viewer') closeViewer();
+  });
+
+  /* Mouse equivalent of the tap toggle. Touch already handles this in touchend, and a tap
+     also emits a synthetic click, so recent touches are ignored to avoid toggling twice
+     and landing back where we started. Above 1x the mouse is panning, so it is left alone. */
+  viewerImgEl.addEventListener('click', (e) => {
+    if(Date.now() - lastTouchEndTime < 600) return;
+    if(viewerState.zoom > 1) return;
+    e.stopPropagation();
+    hudHiddenByTap = !hudHiddenByTap;
+    updateViewerChrome();
   });
 
   /* ============ PAGE ROUTING ============ */
