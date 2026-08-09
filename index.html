@@ -1414,6 +1414,28 @@
       { file:'mavee-15.webp', thumb:'mavee-15-thumb.webp', ratio:'1013/1800' },
       { file:'mavee-16.webp', thumb:'mavee-16-thumb.webp', ratio:'1800/1013' }
     ] },
+    { id:'jamjazz', file:'jamjazz-01.webp', cardThumb:'jamjazz-01-thumb.webp', name:'Jam Jazz Session', tag:'Live Jazz Session', ratio:'1281/1920', images:[
+      { file:'jamjazz-01.webp', thumb:'jamjazz-01-thumb.webp', ratio:'1281/1920' },
+      { file:'jamjazz-02.webp', thumb:'jamjazz-02-thumb.webp', ratio:'1080/1920' },
+      { file:'jamjazz-03.webp', thumb:'jamjazz-03-thumb.webp', ratio:'1474/1920' },
+      { file:'jamjazz-04.webp', thumb:'jamjazz-04-thumb.webp', ratio:'1920/862' },
+      { file:'jamjazz-05.webp', thumb:'jamjazz-05-thumb.webp', ratio:'1165/1920' },
+      { file:'jamjazz-06.webp', thumb:'jamjazz-06-thumb.webp', ratio:'1920/914' },
+      { file:'jamjazz-07.webp', thumb:'jamjazz-07-thumb.webp', ratio:'1080/1920' },
+      { file:'jamjazz-08.webp', thumb:'jamjazz-08-thumb.webp', ratio:'1080/1920' },
+      { file:'jamjazz-09.webp', thumb:'jamjazz-09-thumb.webp', ratio:'1920/973' },
+      { file:'jamjazz-10.webp', thumb:'jamjazz-10-thumb.webp', ratio:'1920/924' },
+      { file:'jamjazz-11.webp', thumb:'jamjazz-11-thumb.webp', ratio:'1005/1920' },
+      { file:'jamjazz-12.webp', thumb:'jamjazz-12-thumb.webp', ratio:'1920/899' },
+      { file:'jamjazz-13.webp', thumb:'jamjazz-13-thumb.webp', ratio:'1920/1080' }
+    ] },
+    { id:'julieta', file:'julieta-01.webp', cardThumb:'julieta-01-thumb.webp', name:'Julieta Venegas', tag:'Live Concert, Nov 2024', ratio:'1920/1080', images:[
+      { file:'julieta-01.webp', thumb:'julieta-01-thumb.webp', ratio:'1920/1080' },
+      { file:'julieta-02.webp', thumb:'julieta-02-thumb.webp', ratio:'1920/1080' },
+      { file:'julieta-03.webp', thumb:'julieta-03-thumb.webp', ratio:'1920/1080' },
+      { file:'julieta-04.webp', thumb:'julieta-04-thumb.webp', ratio:'1920/1080' },
+      { file:'julieta-05.webp', thumb:'julieta-05-thumb.webp', ratio:'1920/1080' }
+    ] },
     { id:'saira',    file:'saira.webp',    name:'Saira',    tag:'Studio Boudoir',       ratio:'900/1600'  },
     { id:'lucy',     file:'lucy.webp',     name:'Lucy',     tag:'Urban Noir',           ratio:'16/9' },
     { id:'thelma',   file:'denisse.webp',  name:'Thelma',   tag:'Studio Boudoir',       ratio:'1012/1800' },
@@ -1426,8 +1448,10 @@
   /* `previews` are the 3 stacked 3:4 thumbnails shown on the home page — front photo
      first. Swap these (and sourceShootId) per category as each real batch lands. */
   const categories = [
-    { id:'fashion',   name:'Fashion / Runways',  tag:'Editorial & Runway',    sourceShootId:'mavee',
-      previews:['mavee-01-thumb.webp','mavee-02-thumb.webp','mavee-03-thumb.webp'],
+    /* Mavee moved to Creative Portraits, so Fashion borrows Cristina in the meantime —
+       a guess on my part, and a one-line change once a real editorial batch lands. */
+    { id:'fashion',   name:'Fashion / Runways',  tag:'Editorial & Runway',    sourceShootId:'cristina',
+      previews:['cristina.webp','denisse.webp','lucy.webp'],
       description:'Placeholder copy — a short line here will set the mood for editorial and runway work: bold styling, confident movement, images built for print.' },
     { id:'celebrations', name:'Celebrations',    tag:'XV, Weddings & Couples', sourceShootId:'mavee',
       previews:['mavee-04-thumb.webp','mavee-05-thumb.webp','mavee-09-thumb.webp'],
@@ -1435,14 +1459,15 @@
     { id:'social',    name:'Social Events',      tag:'Gatherings & Moments', sourceShootId:'lucy',
       previews:['mavee-13-thumb.webp','mavee-14-thumb.webp','mavee-15-thumb.webp'],
       description:'Placeholder copy — a short line here will cover the energy of a room: parties, launches, and nights worth remembering.' },
-    { id:'portraits', name:'Creative Portraits', tag:'Personal & Expressive',sourceShootId:'cristina',
-      previews:['cristina.webp','mavee-01-thumb.webp','mavee-02-thumb.webp'],
+    { id:'portraits', name:'Creative Portraits', tag:'Personal & Expressive',sourceShootId:'mavee',
+      previews:['mavee-01-thumb.webp','mavee-02-thumb.webp','mavee-03-thumb.webp'],
       description:'Placeholder copy — a short line here will describe portraits built around a single person’s story, mood, and light.' },
     { id:'boudoir',   name:'Boudoir',            tag:'Intimate & Empowering',sourceShootId:'saira',
       previews:['saira.webp','mavee-03-thumb.webp','mavee-04-thumb.webp'],
       description:'Placeholder copy — a short line here will frame boudoir work as intimate, confident, and entirely on the client’s terms.' },
-    { id:'concert',   name:'Concert',            tag:'Live Music & Stage',    sourceShootId:'mavee',
-      previews:['mavee-10-thumb.webp','mavee-11-thumb.webp','mavee-12-thumb.webp'],
+    /* First category with real work of its own: two concert albums, no borrowing. */
+    { id:'concert',   name:'Concert',            tag:'Live Music & Stage',    sourceShootId:'jamjazz',
+      previews:['jamjazz-01-thumb.webp','jamjazz-02-thumb.webp','jamjazz-05-thumb.webp'],
       description:'Placeholder copy — a short line here will capture the stage: lights, motion, and the roar of a crowd caught mid-song.' },
     { id:'family',    name:'Family',             tag:'Generations & Bonds',  sourceShootId:'thelma',
       previews:['denisse.webp','lucy.webp','mavee-05-thumb.webp'],
