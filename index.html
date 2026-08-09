@@ -258,10 +258,18 @@
   }
   .nav-overlay.open{opacity:1;visibility:visible;pointer-events:auto;}
   .nav-overlay a{
+    position:relative;
     font-family:var(--font-display);font-size:clamp(26px,4.6vw,42px);
     font-weight:var(--heading-weight);font-style:var(--heading-style);
     text-transform:var(--heading-transform);letter-spacing:var(--heading-tracking);
     color:var(--ink);
+    touch-action:manipulation;
+  }
+  /* The glyphs measure 31px tall; the links sit on a 65px pitch, so a 44px target
+     still leaves 21px between neighbours — well clear of the 8px spacing minimum. */
+  .nav-overlay a::after{
+    content:"";position:absolute;left:0;right:0;top:50%;
+    height:44px;transform:translateY(-50%);
   }
   .nav-overlay .nav-socials{display:flex;gap:16px;margin-top:10px;}
 
@@ -298,6 +306,13 @@
     letter-spacing:.18em;text-transform:uppercase;color:var(--ink-soft);
     cursor:pointer;background:none;border:none;position:relative;
     transition:color .3s ease, gap .4s var(--ease);
+    touch-action:manipulation;
+  }
+  /* Back buttons render ~13px tall from 11.5px uppercase type. Height only — they
+     already clear 44px wide, and vertical space around them is free. */
+  .btn-ghost::after{
+    content:"";position:absolute;left:0;right:0;top:50%;
+    height:44px;transform:translateY(-50%);
   }
   .btn-ghost:hover{color:var(--accent-deep);gap:12px;}
   .btn-ghost svg{width:13px;height:13px;stroke:currentColor;}
@@ -702,12 +717,27 @@
   .floating-tab-mark{font-size:23px;color:var(--accent);line-height:1;}
   .floating-tab-nav{display:flex;gap:18px;}
   .floating-tab-nav a{
+    position:relative;
     font-family:var(--font-ui);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
     color:var(--ink-soft);text-decoration:none;transition:color .25s ease;
+    touch-action:manipulation;
+  }
+  /* 11px type, 44x44 tap target. The overlay is the link's own width or 44px,
+     whichever is larger — "Home" only renders 33px wide. The widest any target grows
+     is 5.5px a side, which leaves 8.5px between neighbours: still clear of the 8px
+     touch-spacing minimum, so no two links can be confused for one another. */
+  .floating-tab-nav a::after{
+    content:"";position:absolute;top:50%;left:50%;
+    width:100%;min-width:44px;height:44px;
+    transform:translate(-50%,-50%);
   }
   .floating-tab-nav a:hover{color:var(--accent);}
   @media (max-width:640px){
-    .floating-tab{gap:12px;padding:10px 16px;bottom:14px;width:calc(100% - 28px);justify-content:center;}
+    /* 16px block padding, not 10px: the links' 44px hit area is centred on an 11px
+       glyph sitting 14px off the bottom of the screen, so with the old padding ~11px
+       of that target fell below the viewport and no finger could reach it. The taller
+       bar keeps the whole 44px on-screen. */
+    .floating-tab{gap:12px;padding:16px;bottom:14px;width:calc(100% - 28px);justify-content:center;}
     .floating-tab-mark{display:none;}
     .floating-tab-nav{gap:14px;}
     .floating-tab-nav a{font-size:10px;letter-spacing:.1em;}
