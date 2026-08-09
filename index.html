@@ -1364,9 +1364,13 @@
     </div>
   </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js"></script>
+<!-- GSAP is served from this repo rather than a CDN. Every gallery image is injected
+     by script that needs it, so a blocked or slow cdnjs meant no photographs at all —
+     an ad blocker or a corporate proxy was enough to empty the whole portfolio. Same
+     3.12.2 build, now on the same origin as the page. -->
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/ScrollTrigger.min.js"></script>
+<script src="vendor/ScrollToPlugin.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <script>
