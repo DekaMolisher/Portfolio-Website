@@ -1868,7 +1868,11 @@
   function layoutShootGrid() {
     const container = document.getElementById('shootGrid');
     if(!container.children.length) return;
-    layoutMasonryGrid(container, { targetColWidth: 260, gap: 20, minCols: 2, maxColWidth: 480 });
+    // Same gutters as the endless roll (endlessMeasure), which was a flat 20 here against
+    // its 6/10 — wide enough that the gallery read as separated tiles rather than one
+    // mosaic. Column width and the 480 cap stay put; only the spacing tightens.
+    const isMobile = window.matchMedia('(max-width:640px)').matches;
+    layoutMasonryGrid(container, { targetColWidth: 260, gap: isMobile ? 6 : 10, minCols: 2, maxColWidth: 480 });
   }
 
   /* ============ ENDLESS ROLL ============ */
