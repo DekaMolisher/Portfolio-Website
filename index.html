@@ -886,8 +886,63 @@
   #view-shoot{display:none;opacity:0;pointer-events:none;}
   #view-shoot.visible{display:block;opacity:1;pointer-events:auto;}
 
+  #view-category{display:none;opacity:0;pointer-events:none;}
+  #view-category.visible{display:block;opacity:1;pointer-events:auto;}
+
   #view-contact{display:none;opacity:0;pointer-events:none;}
   #view-contact.visible{display:block;opacity:1;pointer-events:auto;}
+
+  /* ============ CATEGORY VIEW (galleries within one category) ============ */
+  /* A plain responsive grid rather than the masonry used for photographs: these are
+     uniform cards, and a ragged bottom edge would read as an accident here. */
+  .cat-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(288px,1fr));
+    gap:26px;margin:0 auto;
+  }
+  .cat-card{
+    position:relative;display:block;text-align:left;width:100%;
+    background:var(--surface);border:1px solid var(--line);padding:0;
+    cursor:pointer;overflow:hidden;
+    transition:border-color .4s var(--ease), box-shadow .5s var(--ease), transform .5s var(--ease);
+    touch-action:manipulation;
+  }
+  .cat-card:hover,.cat-card:focus-visible{
+    border-color:var(--accent-pale);transform:translateY(-4px);
+    box-shadow:0 32px 56px -22px var(--accent-pale);
+  }
+  .cat-card-media{display:block;position:relative;aspect-ratio:4/5;overflow:hidden;background:var(--bg);}
+  .cat-card-media img{
+    width:100%;height:100%;object-fit:cover;display:block;
+    transition:transform .7s var(--ease);
+  }
+  .cat-card:hover .cat-card-media img{transform:scale(1.04);}
+  .cat-card-body{display:block;padding:18px 20px 22px;}
+  .cat-card-name{
+    display:block;font-family:var(--font-display);font-size:clamp(19px,2vw,23px);
+    text-transform:var(--heading-transform);letter-spacing:var(--heading-tracking);
+    color:var(--pf-ink);line-height:1.1;
+  }
+  .cat-card-tag{
+    display:block;margin-top:7px;font-family:var(--font-ui);font-size:11px;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--accent-deep);
+  }
+  .cat-card-count{
+    position:absolute;top:12px;right:12px;z-index:2;
+    font-family:var(--font-ui);font-size:10.5px;font-weight:600;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--pf-ink);
+    background:var(--glass);backdrop-filter:blur(6px);
+    border:1px solid var(--line);padding:5px 9px;
+  }
+  /* Categories with no galleries of their own yet. */
+  .cat-empty{
+    grid-column:1/-1;border:1px dashed var(--line);padding:44px 28px;text-align:center;
+    color:var(--pf-ink-soft);font-family:var(--font-body);font-size:14.5px;line-height:1.7;
+  }
+  .cat-empty strong{display:block;font-family:var(--font-display);font-size:21px;
+    text-transform:var(--heading-transform);color:var(--pf-ink);margin-bottom:10px;font-weight:var(--heading-weight);}
+  @media (max-width:640px){
+    .cat-grid{grid-template-columns:1fr;gap:20px;}
+  }
 
   .shoot-page{padding:150px 40px 110px;max-width:1280px;margin:0 auto;}
   .shoot-back{margin-bottom:64px;}
@@ -1245,7 +1300,7 @@
     <div class="shoot-page">
       <button class="btn-ghost shoot-back" id="shootBack">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-        Back to Gallery
+        <span id="shootBackLabel">Back to Gallery</span>
       </button>
 
       <div class="shoot-header">
@@ -1258,6 +1313,27 @@
       </div>
 
       <div class="shoot-grid" id="shootGrid"></div>
+    </div>
+  </div>
+
+  <!-- CATEGORY VIEW — the galleries inside one category -->
+  <div id="view-category">
+    <div class="shoot-page">
+      <button class="btn-ghost shoot-back" id="categoryBack">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        Back to Gallery
+      </button>
+
+      <div class="shoot-header">
+        <span class="eyebrow" id="categoryTag">—</span>
+        <h1 id="categoryName">—</h1>
+        <div class="shoot-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5M12 16h.01"/><circle cx="12" cy="12" r="9"/></svg>
+          <p id="categoryNote">—</p>
+        </div>
+      </div>
+
+      <div class="cat-grid" id="categoryGrid"></div>
     </div>
   </div>
 
@@ -1396,7 +1472,7 @@
 
   /* ============ DATA ============ */
   const shoots = [
-    { id:'mavee',    file:'mavee-01.webp', cardThumb:'mavee-01-thumb.webp', name:'Mavee', tag:'Urban-Neon Tijuana', ratio:'9/16', images:[
+    { id:'mavee',    file:'mavee-01.webp', cardThumb:'mavee-01-thumb.webp', name:'Mavee', tag:'Urban-Neon Tijuana', ratio:'9/16', categoryId:'portraits', images:[
       { file:'mavee-01.webp', thumb:'mavee-01-thumb.webp', ratio:'1013/1800' },
       { file:'mavee-02.webp', thumb:'mavee-02-thumb.webp', ratio:'1013/1800' },
       { file:'mavee-03.webp', thumb:'mavee-03-thumb.webp', ratio:'1013/1800' },
@@ -1414,7 +1490,7 @@
       { file:'mavee-15.webp', thumb:'mavee-15-thumb.webp', ratio:'1013/1800' },
       { file:'mavee-16.webp', thumb:'mavee-16-thumb.webp', ratio:'1800/1013' }
     ] },
-    { id:'jamjazz', file:'jamjazz-01.webp', cardThumb:'jamjazz-01-thumb.webp', name:'Jam Jazz Session', tag:'Live Jazz Session', ratio:'1281/1920', images:[
+    { id:'jamjazz', file:'jamjazz-01.webp', cardThumb:'jamjazz-01-thumb.webp', name:'Jam Jazz Session', tag:'Live Jazz Session', ratio:'1281/1920', categoryId:'concert', images:[
       { file:'jamjazz-01.webp', thumb:'jamjazz-01-thumb.webp', ratio:'1281/1920' },
       { file:'jamjazz-02.webp', thumb:'jamjazz-02-thumb.webp', ratio:'1080/1920' },
       { file:'jamjazz-03.webp', thumb:'jamjazz-03-thumb.webp', ratio:'1474/1920' },
@@ -1429,17 +1505,17 @@
       { file:'jamjazz-12.webp', thumb:'jamjazz-12-thumb.webp', ratio:'1920/899' },
       { file:'jamjazz-13.webp', thumb:'jamjazz-13-thumb.webp', ratio:'1920/1080' }
     ] },
-    { id:'julieta', file:'julieta-01.webp', cardThumb:'julieta-01-thumb.webp', name:'Julieta Venegas', tag:'Live Concert, Nov 2024', ratio:'1920/1080', images:[
+    { id:'julieta', file:'julieta-01.webp', cardThumb:'julieta-01-thumb.webp', name:'Julieta Venegas', tag:'Live Concert, Nov 2024', ratio:'1920/1080', categoryId:'concert', images:[
       { file:'julieta-01.webp', thumb:'julieta-01-thumb.webp', ratio:'1920/1080' },
       { file:'julieta-02.webp', thumb:'julieta-02-thumb.webp', ratio:'1920/1080' },
       { file:'julieta-03.webp', thumb:'julieta-03-thumb.webp', ratio:'1920/1080' },
       { file:'julieta-04.webp', thumb:'julieta-04-thumb.webp', ratio:'1920/1080' },
       { file:'julieta-05.webp', thumb:'julieta-05-thumb.webp', ratio:'1920/1080' }
     ] },
-    { id:'saira',    file:'saira.webp',    name:'Saira',    tag:'Studio Boudoir',       ratio:'900/1600'  },
-    { id:'lucy',     file:'lucy.webp',     name:'Lucy',     tag:'Urban Noir',           ratio:'16/9' },
-    { id:'thelma',   file:'denisse.webp',  name:'Thelma',   tag:'Studio Boudoir',       ratio:'1012/1800' },
-    { id:'cristina', file:'cristina.webp', name:'Cristina', tag:'Golden Hour Portrait', ratio:'16/9' }
+    { id:'saira',    file:'saira.webp',    name:'Saira',    tag:'Studio Boudoir',       ratio:'900/1600',  categoryId:'boudoir' },
+    { id:'lucy',     file:'lucy.webp',     name:'Lucy',     tag:'Urban Noir',           ratio:'16/9', categoryId:'social' },
+    { id:'thelma',   file:'denisse.webp',  name:'Thelma',   tag:'Studio Boudoir',       ratio:'1012/1800', categoryId:'family' },
+    { id:'cristina', file:'cristina.webp', name:'Cristina', tag:'Golden Hour Portrait', ratio:'16/9', categoryId:'fashion' }
   ];
 
   /* The six home-page categories. Each borrows an existing shoot's photos as a
@@ -1473,6 +1549,17 @@
       previews:['denisse.webp','lucy.webp','mavee-05-thumb.webp'],
       description:'Placeholder copy — a short line here will center the warmth of family sessions: generations, pets, and everyday bonds.' }
   ];
+
+  /* A category owns its galleries through each shoot's categoryId, so adding a gallery
+     is one line in `shoots` and nothing else. `sourceShootId` still exists, but only to
+     pick the photo a category shows on the home page — it no longer decides what opens
+     when you click through. Categories with nothing of their own yet return [] and get
+     an empty state rather than another category's photographs under the wrong heading. */
+  const galleriesFor = (catId) => shoots.filter(s => s.categoryId === catId);
+  const categoryOf   = (shootId) => {
+    const s = shoots.find(x => x.id === shootId);
+    return s && s.categoryId ? categories.find(c => c.id === s.categoryId) : null;
+  };
 
   const INSTAGRAM_URL = 'https://www.instagram.com/dekagrophy/';
   const FACEBOOK_URL  = 'https://www.facebook.com/Dekagrophy';
@@ -1524,7 +1611,7 @@
 
     const tl = gsap.timeline({
       onComplete: () => {
-        location.hash = '#/shoot/' + id;
+        location.hash = '#/category/' + id;
         document.body.style.overflow = '';
         sweep.remove();
         // Deliberately NOT clearing viewHome's transform/opacity here. hashchange fires
@@ -2439,6 +2526,53 @@
     });
   }
 
+  /* ============ CATEGORY PAGE ============ */
+
+  function renderCategory(id) {
+    const cat = categories.find(c => c.id === id);
+    if(!cat) return;
+
+    document.getElementById('categoryTag').textContent = cat.tag;
+    document.getElementById('categoryName').textContent = cat.name;
+    document.getElementById('categoryNote').textContent = cat.description || '';
+
+    const grid = document.getElementById('categoryGrid');
+    grid.innerHTML = '';
+
+    const galleries = galleriesFor(id);
+    if(!galleries.length) {
+      const empty = document.createElement('div');
+      empty.className = 'cat-empty';
+      empty.innerHTML = '<strong>Nothing here yet</strong>' +
+        'This category is still being put together. New work will appear here as soon as it is edited.';
+      grid.appendChild(empty);
+      return;
+    }
+
+    galleries.forEach((s) => {
+      const count = (s.images && s.images.length) || 1;
+      const cover = s.cardThumb
+        || (s.images && s.images[0] && (s.images[0].thumb || s.images[0].file))
+        || s.file;
+
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'cat-card';
+      // The visible name is a heading, not a label a screen reader can act on, so the
+      // button says what it is and how much is behind it.
+      card.setAttribute('aria-label', s.name + ' — ' + count + (count === 1 ? ' photograph' : ' photographs'));
+      card.innerHTML =
+        '<span class="cat-card-count">' + count + (count === 1 ? ' photo' : ' photos') + '</span>' +
+        '<span class="cat-card-media"><img src="' + cover + '" alt="" loading="lazy" decoding="async"></span>' +
+        '<span class="cat-card-body">' +
+          '<span class="cat-card-name">' + s.name + '</span>' +
+          '<span class="cat-card-tag">' + s.tag + '</span>' +
+        '</span>';
+      card.addEventListener('click', () => { location.hash = '#/shoot/' + s.id; });
+      grid.appendChild(card);
+    });
+  }
+
   /* ============ SHOOT PAGE ============ */
 
   function renderShoot(id) {
@@ -2452,6 +2586,11 @@
 
     document.getElementById('shootTag').textContent = displayTag;
     document.getElementById('shootName').textContent = displayName;
+
+    // Name the destination: "Back to Concert" beats a generic "Back to Gallery".
+    const parent = categoryOf(s.id);
+    document.getElementById('shootBackLabel').textContent =
+      parent ? 'Back to ' + parent.name : 'Back to Gallery';
 
     const grid = document.getElementById('shootGrid');
     grid.innerHTML = '';
@@ -2857,18 +2996,33 @@
   function router() {
     const hash = location.hash || '#/';
     const shootMatch = hash.match(/^#\/shoot\/([a-z0-9-]+)/i);
+    const categoryMatch = hash.match(/^#\/category\/([a-z0-9-]+)/i);
     const isContact = hash === '#/contact';
 
     closeViewer();
 
     const viewHome = document.getElementById('view-home');
     const viewShoot = document.getElementById('view-shoot');
+    const viewCategory = document.getElementById('view-category');
     const viewContact = document.getElementById('view-contact');
 
-    if(shootMatch) {
+    if(categoryMatch) {
+      const id = categoryMatch[1];
+      viewHome.classList.add('hidden');
+      viewShoot.classList.remove('visible');
+      viewContact.classList.remove('visible');
+
+      viewCategory.classList.add('visible');
+      jumpToTop();
+      renderCategory(id);
+      gsap.fromTo(viewCategory, { opacity: 0, y: 20 },
+                                { duration: 0.5, opacity: 1, y: 0, ease: 'power3.out', clearProps: 'opacity,transform' });
+      document.title = (categories.find(c => c.id === id)?.name || 'Gallery') + ' — Dekagrophy';
+    } else if(shootMatch) {
       const id = shootMatch[1];
 
       viewHome.classList.add('hidden');
+      viewCategory.classList.remove('visible');
       viewContact.classList.remove('visible');
 
       /* Order matters here. The view has to be laid out before renderShoot measures it —
@@ -2887,6 +3041,7 @@
     } else if(isContact) {
       viewHome.classList.add('hidden');
       viewShoot.classList.remove('visible');
+      viewCategory.classList.remove('visible');
       viewContact.classList.add('visible');
       gsap.from(viewContact, { duration: 0.5, opacity: 0, y: 20, ease: 'power3.out' });
 
@@ -2894,6 +3049,7 @@
       document.title = 'Contact — Dekagrophy';
     } else {
       viewShoot.classList.remove('visible');
+      viewCategory.classList.remove('visible');
       viewContact.classList.remove('visible');
       viewHome.classList.remove('hidden');
       // clear what navigateToShoot's zoom-out left behind first: without this the tween
@@ -3016,7 +3172,15 @@
     document.getElementById('collaborateBtn').addEventListener('click', () => {
       location.hash = '#/contact';
     });
+    /* Back retraces the way in rather than always jumping home: a gallery returns to the
+       category that listed it, and the category returns to the home slider. A gallery
+       with no category still falls back to home. */
     document.getElementById('shootBack').addEventListener('click', () => {
+      const id = (location.hash.match(/^#\/shoot\/([a-z0-9-]+)/i) || [])[1];
+      const cat = id ? categoryOf(id) : null;
+      location.hash = cat ? '#/category/' + cat.id : '#/';
+    });
+    document.getElementById('categoryBack').addEventListener('click', () => {
       location.hash = '#/';
     });
     document.getElementById('contactBack').addEventListener('click', () => {
