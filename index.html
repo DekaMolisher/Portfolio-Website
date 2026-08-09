@@ -63,7 +63,11 @@
     --surface:#FFFFFF;
     --ink:#2B2420;
     --ink-soft:#726557;
-    --accent:#B8894A;
+    /* One step darker than the original #B8894A, which measured 2.92:1 against
+       --bg — just under the 3:1 WCAG 1.4.11 wants for control boundaries, and this
+       colour outlines the theme toggle, burger, viewer buttons and footer logo.
+       Same hue and saturation, so the gold is unchanged to the eye. */
+    --accent:#B68647;
     --accent-deep:#8C6530;
     --accent-pale:rgba(184,137,74,0.35);
     --accent-wash:rgba(184,137,74,0.06);
@@ -947,8 +951,12 @@
   }
   .field textarea{resize:vertical;min-height:110px;line-height:1.6;}
   .field input::placeholder, .field textarea::placeholder{color:var(--ink-soft);opacity:.55;}
+  /* outline:none means this border is the only focus indicator, so it uses
+     --accent-deep rather than --accent: 4.89:1 instead of 3.03:1 in light mode.
+     --accent-pale carries the ring because --accent-wash is ~0.06 alpha and
+     contributes nothing visible. */
   .field input:focus, .field textarea:focus{
-    outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-wash);
+    outline:none;border-color:var(--accent-deep);box-shadow:0 0 0 3px var(--accent-pale);
   }
   /* keep native date/time picker icon visible on dark backgrounds */
   [data-theme="dark"] .field input[type="date"],
