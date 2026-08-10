@@ -430,15 +430,12 @@
   }
   .hero-print.is-hover::after{border-color:var(--accent);}
   .hero-photo{position:relative;width:100%;height:100%;overflow:hidden;background:var(--surface);}
-  /* Two layers, both always present. Seven full-viewport layers meant seven
-     screen-sized textures; hiding them to save that memory then forced a re-raster of a
-     1900px photograph the moment each became visible, which flashed exactly at the
-     crossfade. Two is cheap enough to leave promoted permanently. */
+  /* One still frame. No slideshow, so nothing is promoted permanently — the single
+     fade-in is short-lived and GSAP promotes it for the duration on its own. */
   .hero-bg-img{
     position:absolute;inset:0;
     background-size:cover;background-position:center 47%;   /* 22% + 25% down */
-    opacity:0;transform:scale(1.1);
-    will-change:opacity, transform;
+    opacity:0;
   }
   /* Sheen lives inside .hero-photo so its overflow:hidden clips the sweep. It cannot
      live on .hero-print — that box deliberately does not clip, because the hairline
@@ -2402,90 +2399,34 @@
   });
 
   /* ============ HERO BACKGROUND SLIDESHOW ============ */
+  /* Placeholder hero frame. One line to swap for whichever photograph should carry the
+     landing page — the scrim and the bottom mask are independent of which image it is. */
+  const HERO_STILL = 'jamjazz-13.webp';
+
   function buildHeroBg() {
     const bg = document.getElementById('heroBg');
-    for(let i = 0; i < 2; i++) {
-      const layer = document.createElement('div');
-      layer.className = 'hero-bg-img';
-      bg.appendChild(layer);
-    }
+    const layer = document.createElement('div');
+    layer.className = 'hero-bg-img';
+    layer.style.backgroundImage = 'url(' + HERO_STILL + ')';
+    bg.appendChild(layer);
   }
   buildHeroBg();
 
+  /* Was a seven-photograph slideshow with crossfades and a Ken Burns zoom. Now a still:
+     the image is decoded before it is shown, then faded up once as part of the page's
+     opening, and nothing moves after that. No interval, no tab-visibility juggling, and
+     no continuously composited layers. */
   function heroBgSlideshow() {
-    const layers = Array.from(document.querySelectorAll('.hero-bg-img'));
-    if(layers.length < 2) return;
-    const srcs = shoots.map((s) => s.file);
-    if(!srcs.length) return;
-
-    const HOLD = 6000;
-    let srcIdx = 0;      // which photograph is on screen
-    let front = 0;       // which of the two layers is showing it
-    let intervalId = null;
-    let busy = false;
-
-    /* Fetch and decode before painting. Without this the browser rasterises a
-       full-viewport photograph during the fade, which is visible as a flash. */
-    function ready(src) {
-      return new Promise((res) => {
-        const im = new Image();
-        const done = () => res();
-        if(im.decode) { im.src = src; im.decode().then(done).catch(done); }
-        else { im.onload = done; im.onerror = done; im.src = src; }
-      });
+    const layer = document.querySelector('.hero-bg-img');
+    if(!layer) return;
+    const reveal = () => gsap.to(layer, { opacity: 1, duration: 1.6, ease: 'power2.out' });
+    const im = new Image();
+    if(im.decode) {
+      im.src = HERO_STILL;
+      im.decode().then(reveal).catch(reveal);
+    } else {
+      im.onload = reveal; im.onerror = reveal; im.src = HERO_STILL;
     }
-
-    async function begin() {
-      await ready(srcs[0]);
-      layers[0].style.backgroundImage = 'url(' + srcs[0] + ')';
-      gsap.set(layers[0], { opacity: 0, scale: 1.1 });
-      gsap.set(layers[1], { opacity: 0 });
-      gsap.to(layers[0], { opacity: 1, duration: 2.2, ease: 'power2.out' });
-      gsap.to(layers[0], { scale: 1, duration: 10, ease: 'sine.out' });
-      startInterval();
-    }
-
-    async function advance() {
-      if(busy || document.hidden) return;
-      busy = true;
-      const nextSrc = srcs[(srcIdx + 1) % srcs.length];
-      await ready(nextSrc);
-
-      const back = layers[1 - front];
-      back.style.backgroundImage = 'url(' + nextSrc + ')';
-      gsap.set(back, { opacity: 0, scale: 1.1 });
-      gsap.to(back, { opacity: 1, duration: 1.8, ease: 'power2.inOut' });
-      gsap.to(back, { scale: 1, duration: 10, ease: 'sine.out' });
-      gsap.to(layers[front], {
-        opacity: 0, duration: 1.8, ease: 'power2.inOut',
-        onComplete: () => { busy = false; }
-      });
-
-      front = 1 - front;
-      srcIdx = (srcIdx + 1) % srcs.length;
-    }
-
-    function startInterval() {
-      if(intervalId) return;
-      intervalId = setInterval(advance, HOLD);
-    }
-
-    /* A backgrounded tab throttles setInterval and GSAP's rAF tweens, so returning could
-       replay several queued transitions at once. Pause while hidden and snap to a clean
-       single-layer state, then start a fresh interval on return. */
-    document.addEventListener('visibilitychange', () => {
-      if(document.hidden) {
-        clearInterval(intervalId);
-        intervalId = null;
-        gsap.killTweensOf(layers);
-        layers.forEach((l, i) => gsap.set(l, { opacity: i === front ? 1 : 0, scale: 1 }));
-        busy = false;
-      } else {
-        startInterval();
-      }
-    });
-
-    begin();
   }
 
   /* ============ THEME TOGGLE ============ */
