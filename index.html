@@ -29,19 +29,19 @@
   :root{
     /* Dark-gold: a warm near-black ground, gold as the brand colour, purple as the
        interactive accent. Every token below clears 4.5:1 against --bg (ink 16.5,
-       gold 10.8, gold-deep 7.7, purple 9.4, purple-deep 6.2). Gold and purple sit at
-       almost the same luminance by design — they are separated by hue, never used as
-       foreground on one another, and never the sole carrier of meaning. */
+       gold 10.8, gold-deep 7.7). Accent and brand are the same gold: the concept reads
+       as one warm family, so a second hue is not competing for attention. */
     --bg:#0B0906;
     --surface:#17120D;
     --ink:#F4E9D4;
     --ink-soft:rgba(244,233,212,0.66);
     --gold:#E3B95F;
     --gold-deep:#C99A3C;
-    --accent:#C6A2F5;
-    --accent-deep:#A57BE0;
-    --accent-pale:rgba(198,162,245,0.38);
-    --accent-wash:rgba(198,162,245,0.10);
+    /* Accent is gold too: one warm family rather than a second hue competing with it. */
+    --accent:#E3B95F;
+    --accent-deep:#C99A3C;
+    --accent-pale:rgba(227,185,95,0.38);
+    --accent-wash:rgba(227,185,95,0.10);
     --on-accent:#17120D;
     --hero-accent:#EFD9A4;
     --hero-accent-soft:rgba(239,217,164,0.84);
@@ -1189,92 +1189,85 @@
      reverted) as a unit rather than hunted through the original rules.
      =================================================================== */
 
-  /* ---- Hero: text column left, photograph right ---- */
-  .hero{min-height:100svh;display:flex;align-items:center;
-    padding:120px 48px calc(72px + env(safe-area-inset-bottom, 0px));text-align:left;}
+  /* ---- Hero: the slideshow is the background; type sits over it, top-aligned ---- */
+  .hero{
+    position:relative;min-height:100svh;display:flex;align-items:flex-start;
+    padding:150px 48px calc(72px + env(safe-area-inset-bottom, 0px));
+    text-align:left;overflow:hidden;
+  }
   .hero-inner{
-    display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);
-    align-items:center;gap:56px;width:100%;max-width:1280px;margin:0 auto;
+    position:relative;z-index:2;display:block;
+    width:100%;max-width:1280px;margin:0 auto;
   }
-  .hero-lead{display:flex;flex-direction:column;align-items:flex-start;gap:30px;text-align:left;}
+  .hero-figure{
+    position:absolute;inset:0;z-index:0;width:auto;
+    grid-column:auto;grid-row:auto;display:block;
+  }
+  .hero-print{position:absolute;inset:0;width:100%;height:100%;margin:0;max-width:none;aspect-ratio:auto;}
+  .hero-photo{width:100%;height:100%;}
+  /* The framed border belonged to the print; edge to edge it would just draw a box
+     around the viewport. */
+  .hero-figure .shot-edge{display:none;}
+  /* Carries the type. Strongest at the top where the text sits, easing to nothing by
+     mid-frame so the photograph is not veiled for the sake of a few lines. */
+  .hero-scrim{
+    position:absolute;inset:0;z-index:1;pointer-events:none;
+    background:linear-gradient(to bottom,
+      var(--hero-scrim) 0%,
+      color-mix(in srgb, var(--hero-scrim) 78%, transparent) 34%,
+      color-mix(in srgb, var(--hero-scrim) 30%, transparent) 62%,
+      transparent 100%);
+  }
+  @supports not (color: color-mix(in srgb, red 50%, blue)) {
+    .hero-scrim{background:linear-gradient(to bottom, var(--hero-scrim) 0%, var(--hero-scrim) 30%, transparent 100%);}
+  }
+
+  .hero-lead{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:26px;text-align:left;max-width:640px;}
   .hero-head{text-align:left;}
-  .hero-eyebrow{
-    display:block;font-family:var(--font-ui);font-size:11.5px;font-weight:600;
-    letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:20px;
-  }
+  /* Order is the point: studio name, then role, then the person. */
   .hero h1{
     font-family:var(--font-display);font-weight:var(--heading-weight);
-    font-size:clamp(46px,6.4vw,86px);line-height:1.04;letter-spacing:-.02em;
+    font-size:clamp(46px,6.6vw,88px);line-height:1.02;letter-spacing:-.02em;
     text-transform:none;color:var(--ink);margin:0;
   }
+  .hero-eyebrow{
+    display:block;margin-top:14px;font-family:var(--font-ui);font-size:12px;font-weight:600;
+    letter-spacing:.3em;text-transform:uppercase;color:var(--gold);
+  }
   .hero-name{
-    margin-top:16px;font-family:var(--font-ui);font-size:12px;font-weight:500;
+    margin-top:10px;font-family:var(--font-ui);font-size:11.5px;font-weight:500;
     letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);
   }
   .hero-copy{max-width:46ch;text-align:left;}
   .hero-copy p{
     font-family:var(--font-body);font-size:15.5px;line-height:1.75;
-    color:var(--ink-soft);margin:0 0 30px;
+    color:var(--ink-soft);margin:0 0 26px;
   }
   .hero-cta{display:flex;align-items:center;gap:22px;flex-wrap:wrap;}
-  .btn-reel{
-    display:inline-flex;align-items:center;gap:13px;background:none;border:none;
-    padding:0;cursor:pointer;font-family:var(--font-ui);font-size:11.5px;font-weight:600;
-    letter-spacing:.16em;text-transform:uppercase;color:var(--ink);
-    transition:color .3s ease;touch-action:manipulation;position:relative;
-  }
-  .btn-reel::after{content:"";position:absolute;left:0;right:0;top:50%;height:44px;transform:translateY(-50%);}
-  .btn-reel-dot{
-    width:38px;height:38px;border:1px solid var(--accent);border-radius:50%;
-    display:flex;align-items:center;justify-content:center;flex-shrink:0;
-    transition:background .35s var(--ease), border-color .35s var(--ease);
-  }
-  .btn-reel-dot svg{width:11px;height:11px;color:var(--accent);margin-left:2px;}
-  .btn-reel:hover .btn-reel-dot{background:var(--accent-wash);border-color:var(--accent-deep);}
   .hero-socials{gap:14px;}
 
-  /* ---- Hero figure: full-bleed photograph with the circular mark ---- */
-  /* The original sheet pins the figure to column 1 and the text to column 2 inside a
-     media query; the concept reverses that, so the explicit placement is cleared and
-     both follow DOM order again. */
-  .hero-figure{position:relative;width:100%;grid-column:auto;grid-row:auto;}
-  .hero-lead, .hero-head, .hero-copy{grid-column:auto;grid-row:auto;}
-  .hero-print{position:relative;width:100%;aspect-ratio:4/5;max-height:74svh;margin:0;
-    min-width:0;max-width:none;}
-  .hero-photo{width:100%;height:100%;background-size:cover;background-position:center;}
-  .hero-badge{
-    position:absolute;right:-14px;bottom:-14px;width:118px;height:118px;
-    display:flex;align-items:center;justify-content:center;
-    background:var(--glass);backdrop-filter:blur(8px);border-radius:50%;
-  }
-  .hero-badge svg{position:absolute;inset:0;width:100%;height:100%;}
-  .hero-badge .badge-text{
-    font-family:var(--font-ui);font-size:9.5px;font-weight:600;letter-spacing:.2em;
-    fill:var(--gold);text-transform:uppercase;
-  }
-  .hero-badge .badge-ring{fill:none;stroke:var(--gold);stroke-width:1;opacity:.42;}
-  .hero-badge-mark{
-    font-family:var(--font-display);font-size:21px;color:var(--ink);letter-spacing:.02em;
-  }
-
   @media (max-width:900px){
-    .hero{padding:104px 24px calc(64px + env(safe-area-inset-bottom, 0px));}
-    .hero-inner{grid-template-columns:1fr;gap:38px;}
-    .hero-figure{order:-1;}
-    .hero-print{aspect-ratio:16/11;max-height:38svh;}
-    .hero-badge{width:92px;height:92px;right:-6px;bottom:-6px;}
-    .hero-badge-mark{font-size:17px;}
+    .hero{padding:118px 22px calc(64px + env(safe-area-inset-bottom, 0px));}
+    .hero-lead{gap:20px;}
+    .hero-copy p{font-size:14.5px;}
   }
 
   /* ---- Gallery: filter rail + mosaic (replaces the one-at-a-time slider) ---- */
   .pf-stage, .pf-dots{display:none !important;}
   #portfolio .section-head{text-align:center;margin-bottom:34px;}
+  /* One row that scrolls sideways rather than wrapping: drag on touch, wheel on desktop.
+     The scrollbar is hidden but the rail stays keyboard- and screen-reader-reachable. */
   .cat-tabs{
-    display:flex;justify-content:center;flex-wrap:wrap;gap:8px 30px;
-    margin:0 auto 34px;max-width:980px;
+    display:flex;flex-wrap:nowrap;justify-content:flex-start;gap:30px;
+    margin:0 auto 34px;max-width:100%;
+    overflow-x:auto;overscroll-behavior-x:contain;
+    scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;padding:0 48px 6px;scroll-padding-inline:48px;
   }
+  .cat-tabs::-webkit-scrollbar{display:none;}
   .cat-tab{
     position:relative;background:none;border:none;padding:8px 2px;cursor:pointer;
+    white-space:nowrap;flex:0 0 auto;scroll-snap-align:center;
     font-family:var(--font-ui);font-size:11.5px;font-weight:600;letter-spacing:.17em;
     text-transform:uppercase;color:var(--pf-ink-soft);
     transition:color .3s ease;touch-action:manipulation;
@@ -1287,28 +1280,54 @@
   .cat-tab.is-active{color:var(--pf-ink);}
   .cat-tab.is-active::before,.cat-tab:hover::before{transform:scaleX(1);transform-origin:left center;}
   .cat-tab::after{content:"";position:absolute;left:0;right:0;top:50%;min-width:44px;height:44px;transform:translateY(-50%);}
+  /* Fades at both ends so a rail that continues past the edge looks like it continues. */
+  .cat-rail{position:relative;width:100%;align-self:stretch;}
+  .cat-rail::before,.cat-rail::after{
+    content:"";position:absolute;top:0;bottom:0;width:46px;pointer-events:none;z-index:2;
+  }
+  .cat-rail::before{left:0;background:linear-gradient(to right, var(--bg), transparent);}
+  .cat-rail::after{right:0;background:linear-gradient(to left, var(--bg), transparent);}
 
-  /* .pf-inner is a column flex container and every tile is absolutely positioned, so
-     without this the mosaic has no content to size against and collapses to zero width. */
   .cat-mosaic{position:relative;margin:0 auto;width:100%;align-self:stretch;}
   .mos-cell{position:absolute;top:0;left:0;overflow:hidden;background:var(--surface);cursor:pointer;
-    border:none;padding:0;touch-action:manipulation;}
-  .mos-cell img{width:100%;height:auto;display:block;transition:transform .8s var(--ease), opacity .5s ease;}
+    border:none;padding:0;touch-action:pan-y;}
+  .mos-cell img{width:100%;height:auto;display:block;transition:transform .8s var(--ease);}
   .mos-cell:hover img,.mos-cell:focus-visible img{transform:scale(1.05);}
+  /* Same edge draw the galleries use, in the concept's gold. */
+  .mos-edge{position:absolute;inset:0;z-index:3;pointer-events:none;}
+  .mos-edge .bar{position:absolute;background:var(--gold);transition:transform .3s var(--ease);}
+  .mos-edge .bar-top{top:0;left:0;right:0;height:2px;transform-origin:right center;transform:scaleX(0);}
+  .mos-edge .bar-left{left:0;top:0;bottom:0;width:2px;transform-origin:top center;transform:scaleY(0);}
+  .mos-edge .bar-bottom{bottom:0;left:0;right:0;height:2px;transform-origin:left center;transform:scaleX(0);}
+  .mos-edge .bar-right{right:0;top:0;bottom:0;width:2px;transform-origin:bottom center;transform:scaleY(0);}
+  .mos-cell:hover .mos-edge .bar-top,.mos-cell:focus-visible .mos-edge .bar-top{transform:scaleX(1);transition-delay:0s;}
+  .mos-cell:hover .mos-edge .bar-left,.mos-cell:focus-visible .mos-edge .bar-left{transform:scaleY(1);transition-delay:.22s;}
+  .mos-cell:hover .mos-edge .bar-bottom,.mos-cell:focus-visible .mos-edge .bar-bottom{transform:scaleX(1);transition-delay:.44s;}
+  .mos-cell:hover .mos-edge .bar-right,.mos-cell:focus-visible .mos-edge .bar-right{transform:scaleY(1);transition-delay:.66s;}
+  /* The gallery name is always legible, not a hover reveal — on touch there is no hover. */
   .mos-cap{
-    position:absolute;left:0;right:0;bottom:0;z-index:2;padding:34px 15px 13px;
+    position:absolute;left:0;right:0;bottom:0;z-index:2;padding:38px 15px 14px;
     display:block;text-align:left;
-    background:linear-gradient(to top, rgba(9,7,5,0.86), rgba(9,7,5,0));
-    opacity:0;transition:opacity .4s var(--ease);
+    background:linear-gradient(to top, rgba(9,7,5,0.88), rgba(9,7,5,0.34) 52%, rgba(9,7,5,0));
+    transition:opacity .4s var(--ease);
   }
-  .mos-cell:hover .mos-cap,.mos-cell:focus-visible .mos-cap{opacity:1;}
-  .mos-cap b{display:block;font-family:var(--font-display);font-size:16px;font-weight:500;color:#F4E9D4;}
-  .mos-cap span{display:block;margin-top:3px;font-family:var(--font-ui);font-size:9.5px;
+  .mos-cap b{display:block;font-family:var(--font-display);font-size:17px;font-weight:500;color:#F4E9D4;line-height:1.2;}
+  .mos-cap span{display:block;margin-top:4px;font-family:var(--font-ui);font-size:9.5px;
     font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);}
-  .mos-cell:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .mos-cell:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+
+  /* The wall fades out at the bottom rather than stopping hard, so the eye is carried
+     into About instead of hitting an edge. */
+  .cat-mosaic-fade{
+    position:absolute;left:0;right:0;bottom:0;height:190px;pointer-events:none;z-index:4;
+    background:linear-gradient(to bottom, transparent, var(--bg));
+  }
   @media (max-width:640px){
-    .cat-tabs{gap:4px 18px;margin-bottom:24px;}
+    .cat-tabs{gap:18px;margin-bottom:24px;padding:0 28px 6px;scroll-padding-inline:28px;}
     .cat-tab{font-size:10px;letter-spacing:.12em;}
+    .cat-rail::before,.cat-rail::after{width:28px;}
+    .cat-mosaic-fade{height:130px;}
+  }
   }
 </style>
 </head>
@@ -1351,47 +1370,35 @@
   <!-- HOME VIEW -->
   <div id="view-home">
     <section class="hero" id="home">
+        <!-- The slideshow is the hero now: full-bleed behind the type, with a scrim
+           carrying the text instead of a framed print beside it. -->
+      <div class="hero-figure">
+        <div class="hero-print" id="heroPrint">
+          <div class="hero-photo" id="heroBg"></div>
+          <span class="shot-edge"><span class="bar bar-top"></span><span class="bar bar-left"></span><span class="bar bar-bottom"></span><span class="bar bar-right"></span><span class="glow"></span></span>
+        </div>
+        <div class="hero-scrim" aria-hidden="true"></div>
+      </div>
+
       <div class="hero-inner">
         <div class="hero-lead">
           <div class="hero-head">
-            <span class="hero-eyebrow" id="heroSubtitle">Professional Image Creator</span>
             <h1 id="heroTitle">Dekagrophy</h1>
+            <span class="hero-eyebrow" id="heroSubtitle">Professional Image Creator</span>
             <div class="hero-name" id="heroSignature">Giancarlo (Deka) Rosete</div>
           </div>
 
           <div class="hero-copy">
-            <p id="heroDesc">Photography, videography and graphic design, from someone who treats every shoot like the one you'll still be showing people years from now.</p>
+            <p id="heroDesc">Photography from someone who treats every shoot like the one you'll still be showing people years from now.</p>
             <div class="hero-cta">
               <button class="btn-accent" id="viewGalleryBtn"><span>View Gallery</span></button>
-              <button class="btn-reel" id="heroContactBtn">
-                <span class="btn-reel-dot"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
-                Let's Work Together
-              </button>
             </div>
           </div>
 
           <div class="hero-socials socials" id="heroSocials"></div>
         </div>
-
-        <div class="hero-figure">
-          <div class="hero-print" id="heroPrint">
-            <div class="hero-photo" id="heroBg"></div>
-            <span class="shot-edge"><span class="bar bar-top"></span><span class="bar bar-left"></span><span class="bar bar-bottom"></span><span class="bar bar-right"></span><span class="glow"></span></span>
-          </div>
-          <!-- Circular mark in the concept's position. It carries the studio name only:
-               the reference reads "award winning", which is not a claim to invent. -->
-          <div class="hero-badge" aria-hidden="true">
-            <svg viewBox="0 0 120 120">
-              <defs><path id="badgeArcTop" d="M60,60 m-44,0 a44,44 0 1,1 88,0" fill="none"/>
-                    <path id="badgeArcBot" d="M60,60 m44,0 a44,44 0 1,1 -88,0" fill="none"/></defs>
-              <text class="badge-text"><textPath href="#badgeArcTop" startOffset="50%" text-anchor="middle">DEKAGROPHY</textPath></text>
-              <text class="badge-text"><textPath href="#badgeArcBot" startOffset="50%" text-anchor="middle">PHOTOGRAPHY</textPath></text>
-              <circle cx="60" cy="60" r="53" class="badge-ring"/>
-            </svg>
-            <span class="hero-badge-mark">DK</span>
-          </div>
-        </div>
       </div>
+
       <div class="scroll-cue" id="scrollCue">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
       </div>
@@ -1408,8 +1415,11 @@
         <!-- Concept gallery: filter rail + mosaic. The original slider below is kept in
              the DOM and hidden, because its setup code owns the category previews and
              autoplay; unpicking that belongs in a follow-up, not in a layout try-out. -->
-        <div class="cat-tabs" id="catTabs" role="tablist" aria-label="Filter galleries by category"></div>
+        <div class="cat-rail">
+          <div class="cat-tabs" id="catTabs" role="tablist" aria-label="Filter galleries by category"></div>
+        </div>
         <div class="cat-mosaic" id="catMosaic"></div>
+        <div class="cat-mosaic-fade" aria-hidden="true"></div>
 
         <div class="pf-stage">
           <button class="pf-arrow pf-prev" id="pfPrev" aria-label="Previous category">
@@ -2758,10 +2768,13 @@
      single category at a time. Tiles are drawn from the galleries themselves, capped per
      gallery so one large shoot cannot crowd out the rest, and each tile opens the gallery
      it came from — the category > galleries > mosaic path is untouched. */
-  const MOSAIC_PER_GALLERY = 4;
+  /* Two per gallery keeps the wall a sample rather than a dump — the full set is one
+     click away. Shoots with no categoryId are skipped: an untagged photograph has no
+     tab to live under. */
+  const MOSAIC_PER_GALLERY = 2;
 
   function conceptTiles(catId) {
-    const list = (catId === 'all') ? shoots : shoots.filter(s => s.categoryId === catId);
+    const list = shoots.filter(s => s.categoryId && (catId === 'all' || s.categoryId === catId));
     const tiles = [];
     list.forEach((sh) => {
       const imgs = sh.images && sh.images.length
@@ -2787,8 +2800,10 @@
       cell.setAttribute('aria-label', t.name + ' — open gallery');
       cell.innerHTML =
         '<img src="' + t.src + '" alt="" loading="lazy" decoding="async">' +
+        '<span class="mos-edge"><span class="bar bar-top"></span><span class="bar bar-left"></span>' +
+          '<span class="bar bar-bottom"></span><span class="bar bar-right"></span></span>' +
         '<span class="mos-cap"><b>' + t.name + '</b><span>' + t.tag + '</span></span>';
-      cell.addEventListener('click', () => { location.hash = '#/shoot/' + t.shootId; });
+      cell.addEventListener('click', () => zoomIntoGallery(cell, '#/shoot/' + t.shootId));
       grid.appendChild(cell);
     });
     layoutConceptMosaic();
@@ -2809,6 +2824,61 @@
     layoutMasonryGrid(grid, { targetColWidth: 260, gap: isMobile ? 6 : 10, minCols: 2, maxColWidth: 460 });
   }
 
+
+  /* Selecting a gallery zooms the home page into it, the same move the category slider
+     uses, anchored on the tile you picked so the page appears to travel toward it. */
+  function zoomIntoGallery(el, hash) {
+    const viewHome = document.getElementById('view-home');
+    const r = el.getBoundingClientRect();
+    const originX = r.left + r.width / 2;
+    const originY = window.scrollY + r.top + r.height / 2;
+    gsap.set(viewHome, { transformOrigin: originX + 'px ' + originY + 'px' });
+    document.body.style.overflow = 'hidden';
+    gsap.timeline({
+      onComplete: () => { location.hash = hash; document.body.style.overflow = ''; }
+    })
+      .to(viewHome, { scale: 1.12, duration: 0.62, ease: 'power2.inOut' }, 0)
+      .to(viewHome, { opacity: 0, duration: 0.34, ease: 'power2.in' }, 0.3);
+  }
+
+
+  let conceptTabs = [], conceptRail = null, conceptIndex = 0;
+
+  function selectConceptTab(i) {
+    if(!conceptRail || !conceptTabs.length) return;
+    conceptIndex = Math.max(0, Math.min(conceptTabs.length - 1, i));
+    const btns = conceptRail.querySelectorAll('.cat-tab');
+    btns.forEach((x, n) => {
+      const on = n === conceptIndex;
+      x.classList.toggle('is-active', on);
+      x.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    // A tab chosen by swiping is off-screen as often as not, so bring it into view.
+    btns[conceptIndex]?.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' });
+    renderConceptMosaic(conceptTabs[conceptIndex].id);
+  }
+
+  /* Mobile only: a horizontal swipe across the wall steps categories. Vertical movement
+     wins ties so this never fights the page scroll, and it is bound behind a coarse-
+     pointer check so a desktop drag-select is untouched. */
+  function setupMosaicSwipe() {
+    const grid = document.getElementById('catMosaic');
+    if(!grid || !window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
+    let x0 = 0, y0 = 0, tracking = false;
+    grid.addEventListener('touchstart', (e) => {
+      if(e.touches.length !== 1) { tracking = false; return; }
+      x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; tracking = true;
+    }, { passive:true });
+    grid.addEventListener('touchend', (e) => {
+      if(!tracking) return;
+      tracking = false;
+      const dx = e.changedTouches[0].clientX - x0;
+      const dy = e.changedTouches[0].clientY - y0;
+      if(Math.abs(dx) < 55 || Math.abs(dx) <= Math.abs(dy)) return;
+      selectConceptTab(conceptIndex + (dx < 0 ? 1 : -1));
+    }, { passive:true });
+  }
+
   function setupConceptGallery() {
     const rail = document.getElementById('catTabs');
     if(!rail) return;
@@ -2825,15 +2895,21 @@
       b.setAttribute('role', 'tab');
       b.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
       b.textContent = t.name;
-      b.addEventListener('click', () => {
-        rail.querySelectorAll('.cat-tab').forEach(x => {
-          x.classList.remove('is-active'); x.setAttribute('aria-selected','false');
-        });
-        b.classList.add('is-active'); b.setAttribute('aria-selected','true');
-        renderConceptMosaic(t.id);
-      });
+      b.addEventListener('click', () => selectConceptTab(i));
       rail.appendChild(b);
     });
+
+    conceptTabs = tabs;
+    conceptRail = rail;
+    // A vertical wheel over the rail scrolls it sideways; without this a mouse-only
+    // visitor has no way to reach tabs past the right edge.
+    rail.addEventListener('wheel', (e) => {
+      if(Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      if(rail.scrollWidth <= rail.clientWidth) return;
+      e.preventDefault();
+      rail.scrollLeft += e.deltaY;
+    }, { passive:false });
+
     renderConceptMosaic('all');
     // Fonts and images settling can change the available width after first layout.
     window.addEventListener('load', () => layoutConceptMosaic());
@@ -3522,6 +3598,7 @@
       location.hash = cat ? '#/category/' + cat.id : '#/';
     });
     setupConceptGallery();
+    setupMosaicSwipe();
 
     document.getElementById('hireBtn')?.addEventListener('click', () => { location.hash = '#/contact'; });
     document.getElementById('heroContactBtn')?.addEventListener('click', () => { location.hash = '#/contact'; });
