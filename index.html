@@ -436,7 +436,7 @@
      crossfade. Two is cheap enough to leave promoted permanently. */
   .hero-bg-img{
     position:absolute;inset:0;
-    background-size:cover;background-position:center 22%;
+    background-size:cover;background-position:center 47%;   /* 22% + 25% down */
     opacity:0;transform:scale(1.1);
     will-change:opacity, transform;
   }
@@ -1217,7 +1217,14 @@
     position:absolute;inset:0;z-index:0;width:auto;
     grid-column:auto;grid-row:auto;display:block;
   }
-  .hero-print{position:absolute;inset:0;width:100%;height:100%;margin:0;max-width:none;aspect-ratio:auto;}
+  /* The photograph itself fades out over the last few percent of the hero, so the
+     section hands off to the page rather than ending on a hard edge. A mask, not an
+     overlay, so it really goes to zero opacity instead of being painted over. */
+  .hero-print{
+    position:absolute;inset:0;width:100%;height:100%;margin:0;max-width:none;aspect-ratio:auto;
+    -webkit-mask-image:linear-gradient(to bottom, #000 90%, transparent 100%);
+    mask-image:linear-gradient(to bottom, #000 90%, transparent 100%);
+  }
   .hero-photo{width:100%;height:100%;}
   /* The framed border belonged to the print; edge to edge it would just draw a box
      around the viewport. */
@@ -2716,8 +2723,25 @@
     window.addEventListener('resize', resize);
     resize();
 
+    /* The landing page covers this canvas completely with a full-bleed photograph, so
+       every frame drawn there is invisible work — and it ran continuously, which is when
+       the flicker was reported: on load, on a theme switch, and while idle. The loop
+       keeps ticking so time stays continuous, but the draw is skipped whenever the
+       canvas cannot be seen. */
+    let heroEl = null;
+    function shaderIsVisible() {
+      if(document.hidden) return false;
+      heroEl = heroEl || document.querySelector('.hero');
+      if(!heroEl) return true;
+      const r = heroEl.getBoundingClientRect();
+      // the hero is opaque edge to edge, so while it still covers the viewport the
+      // canvas contributes nothing
+      return !(r.top <= 0 && r.bottom >= window.innerHeight);
+    }
+
     function frame(t) {
       currentT = t * 0.001;
+      if(!shaderIsVisible()) { requestAnimationFrame(frame); return; }
       const theme = palette[currentTheme()];
       gl.uniform2f(uResolution, canvas.width, canvas.height);
       gl.uniform1f(uTime, currentT);
@@ -2896,10 +2920,11 @@
      single category at a time. Tiles are drawn from the galleries themselves, capped per
      gallery so one large shoot cannot crowd out the rest, and each tile opens the gallery
      it came from — the category > galleries > mosaic path is untouched. */
-  /* Two per gallery keeps the wall a sample rather than a dump — the full set is one
-     click away. Shoots with no categoryId are skipped: an untagged photograph has no
-     tab to live under. */
-  const MOSAIC_PER_GALLERY = 2;
+  /* One per gallery. Two put the same gallery on the wall twice, which read as repeated
+     images even though the photographs differed — every tile is captioned with its
+     gallery name, so a gallery appearing twice looks like a duplicate. Shoots with no
+     categoryId are skipped: an untagged photograph has no tab to live under. */
+  const MOSAIC_PER_GALLERY = 1;
 
   function conceptTiles(catId) {
     const list = shoots.filter(s => s.categoryId && (catId === 'all' || s.categoryId === catId));
