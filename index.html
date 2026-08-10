@@ -23,73 +23,80 @@
   })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Alex+Brush&family=Jost:wght@400;500;600&family=Lora:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Alex+Brush&family=Jost:wght@400;500;600&family=Lora:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
 <style>
   /* ============ THEME TOKENS ============ */
   :root{
-    /* dark theme (default / main) */
-    --bg:#0B0A08;
-    --surface:#171310;
-    --ink:#F3EAD9;
-    --ink-soft:rgba(243,234,217,0.68);
-    --accent:#C9A9EE;
-    --accent-deep:#9E76D6;
-    --accent-pale:rgba(201,169,238,0.4);
-    --accent-wash:rgba(201,169,238,0.09);
-    --on-accent:#171310;
-    --hero-accent:#DFC9FA;
-    --hero-accent-soft:rgba(223,201,250,0.82);
-    --hero-scrim:rgba(8,7,6,0.58);
-    --pf-ink:#F3EAD9;
-    --pf-ink-soft:rgba(243,234,217,0.66);
-    --line:rgba(243,234,217,0.14);
-    --glass:rgba(11,10,8,0.82);
-    --elev-shadow:0 26px 46px -22px rgba(243,234,217,0.16);
+    /* Dark-gold: a warm near-black ground, gold as the brand colour, purple as the
+       interactive accent. Every token below clears 4.5:1 against --bg (ink 16.5,
+       gold 10.8, gold-deep 7.7, purple 9.4, purple-deep 6.2). Gold and purple sit at
+       almost the same luminance by design — they are separated by hue, never used as
+       foreground on one another, and never the sole carrier of meaning. */
+    --bg:#0B0906;
+    --surface:#17120D;
+    --ink:#F4E9D4;
+    --ink-soft:rgba(244,233,212,0.66);
+    --gold:#E3B95F;
+    --gold-deep:#C99A3C;
+    --accent:#C6A2F5;
+    --accent-deep:#A57BE0;
+    --accent-pale:rgba(198,162,245,0.38);
+    --accent-wash:rgba(198,162,245,0.10);
+    --on-accent:#17120D;
+    --hero-accent:#EFD9A4;
+    --hero-accent-soft:rgba(239,217,164,0.84);
+    --hero-scrim:rgba(9,7,5,0.62);
+    --pf-ink:#F4E9D4;
+    --pf-ink-soft:rgba(244,233,212,0.64);
+    --line:rgba(244,233,212,0.14);
+    --glass:rgba(11,9,6,0.84);
+    --elev-shadow:0 26px 46px -22px rgba(227,185,95,0.18);
 
-    --font-display:'Anton', sans-serif;
+    --font-display:'Playfair Display', serif;
     --font-body:'Be Vietnam Pro', sans-serif;
     --font-ui:'Jost', sans-serif;
     --font-accent:'Be Vietnam Pro', sans-serif;
     --font-script:'Alex Brush', cursive;
-    --font-serif:'Lora', serif;
-    --heading-transform:uppercase;
-    --heading-tracking:.01em;
-    --heading-weight:400;
+    --font-serif:'Playfair Display', serif;
+    /* The reference sets its headlines in title-case serif, not condensed uppercase. */
+    --heading-transform:none;
+    --heading-tracking:-.01em;
+    --heading-weight:500;
     --heading-style:normal;
     --ease:cubic-bezier(.22,.61,.36,1);
   }
   [data-theme="light"]{
-    --bg:#FAF7F1;
+    /* Creamy-gold with a cyan accent. Same 4.5:1 floor: ink 15.6, gold 4.9,
+       gold-deep 7.0, cyan 5.5, cyan-deep 7.8. */
+    --bg:#FBF6EA;
     --surface:#FFFFFF;
-    --ink:#2B2420;
-    --ink-soft:#726557;
-    /* One step darker than the original #B8894A, which measured 2.92:1 against
-       --bg — just under the 3:1 WCAG 1.4.11 wants for control boundaries, and this
-       colour outlines the theme toggle, burger, viewer buttons and footer logo.
-       Same hue and saturation, so the gold is unchanged to the eye. */
-    --accent:#B68647;
-    --accent-deep:#8C6530;
-    --accent-pale:rgba(184,137,74,0.35);
-    --accent-wash:rgba(184,137,74,0.06);
+    --ink:#241C14;
+    --ink-soft:#6B5C48;
+    --gold:#8A6526;
+    --gold-deep:#6E4F1B;
+    --accent:#0F6F78;
+    --accent-deep:#0A565E;
+    --accent-pale:rgba(15,111,120,0.34);
+    --accent-wash:rgba(15,111,120,0.07);
     --on-accent:#FFFFFF;
-    --hero-accent:#5C3D1E;
-    --hero-accent-soft:rgba(92,61,30,0.85);
-    --hero-scrim:rgba(250,247,241,0.62);
-    --pf-ink:#2B2420;
-    --pf-ink-soft:#6d6153;
-    --line:rgba(43,36,32,0.14);
-    --glass:rgba(250,247,241,0.86);
-    --elev-shadow:0 26px 42px -22px rgba(43,36,32,0.3);
+    --hero-accent:#4A3410;
+    --hero-accent-soft:rgba(74,52,16,0.86);
+    --hero-scrim:rgba(251,246,234,0.64);
+    --pf-ink:#241C14;
+    --pf-ink-soft:#6B5C48;
+    --line:rgba(36,28,20,0.14);
+    --glass:rgba(251,246,234,0.88);
+    --elev-shadow:0 26px 42px -22px rgba(36,28,20,0.28);
 
-    --font-display:'Anton', sans-serif;
+    --font-display:'Playfair Display', serif;
     --font-body:'Be Vietnam Pro', sans-serif;
     --font-ui:'Jost', sans-serif;
     --font-accent:'Be Vietnam Pro', sans-serif;
     --font-script:'Alex Brush', cursive;
-    --font-serif:'Lora', serif;
-    --heading-transform:uppercase;
-    --heading-tracking:.01em;
-    --heading-weight:400;
+    --font-serif:'Playfair Display', serif;
+    --heading-transform:none;
+    --heading-tracking:-.01em;
+    --heading-weight:500;
     --heading-style:normal;
   }
 
@@ -128,7 +135,7 @@
   .silk{position:fixed;inset:0;z-index:-3;overflow:hidden;transform:translateZ(0);backface-visibility:hidden;}
 
   [data-theme="dark"] .silk{
-    background:linear-gradient(125deg, #0b0a08 0%, #171310 22%, #0d0b09 40%, #1a1512 58%, #0c0a08 76%, #171210 100%);
+    background:linear-gradient(125deg, #0B0906 0%, #17120D 22%, #0E0B08 40%, #1B1510 58%, #0C0A07 76%, #17120E 100%);
   }
   [data-theme="dark"] .silk::before{
     content:"";position:absolute;inset:-15%;
@@ -146,7 +153,7 @@
   }
 
   [data-theme="light"] .silk{
-    background:linear-gradient(125deg, #f3ece0 0%, #fffdf9 22%, #ede2cd 40%, #fffdfa 58%, #f0e6d4 76%, #fffcf7 100%);
+    background:linear-gradient(125deg, #F4EDDF 0%, #FEFBF4 22%, #EEE3CC 40%, #FFFDF8 58%, #F1E8D3 76%, #FEFCF6 100%);
   }
   [data-theme="light"] .silk::before{
     content:"";position:absolute;inset:-15%;
@@ -172,10 +179,10 @@
   /* Matches .silk's flat gradient so the canvas's own box never shows a mismatched/blank
      color if a scroll-heavy frame is ever a beat behind on drawing new WebGL content. */
   [data-theme="dark"] .silk-waves{
-    background:linear-gradient(125deg, #0b0a08 0%, #171310 22%, #0d0b09 40%, #1a1512 58%, #0c0a08 76%, #171210 100%);
+    background:linear-gradient(125deg, #0B0906 0%, #17120D 22%, #0E0B08 40%, #1B1510 58%, #0C0A07 76%, #17120E 100%);
   }
   [data-theme="light"] .silk-waves{
-    background:linear-gradient(125deg, #f3ece0 0%, #fffdf9 22%, #ede2cd 40%, #fffdfa 58%, #f0e6d4 76%, #fffcf7 100%);
+    background:linear-gradient(125deg, #F4EDDF 0%, #FEFBF4 22%, #EEE3CC 40%, #FFFDF8 58%, #F1E8D3 76%, #FEFCF6 100%);
   }
   @media (prefers-reduced-motion: reduce){
     .silk-waves{display:none;}
@@ -193,6 +200,41 @@
     pointer-events:none;
   }
   header .logo, header .header-actions{pointer-events:auto;}
+  header .header-nav{pointer-events:auto;}
+
+  /* Inline navigation, as in the concept: the burger and overlay stay for narrow
+     screens, where five links plus a call to action will not fit. */
+  .header-nav{display:none;align-items:center;gap:30px;}
+  .header-nav a{
+    position:relative;font-family:var(--font-ui);font-size:12px;font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);
+    text-decoration:none;transition:color .3s ease;touch-action:manipulation;
+  }
+  .header-nav a::before{
+    content:"";position:absolute;left:0;right:0;bottom:-7px;height:1.5px;
+    background:var(--gold);transform:scaleX(0);transform-origin:right center;
+    transition:transform .35s var(--ease);
+  }
+  .header-nav a:hover{color:var(--ink);}
+  .header-nav a:hover::before,.header-nav a.is-current::before{transform:scaleX(1);transform-origin:left center;}
+  .header-nav a.is-current{color:var(--ink);}
+  /* 44px target on an 12px link, height only — widening would eat the 30px gap. */
+  .header-nav a::after{content:"";position:absolute;left:0;right:0;top:50%;height:44px;transform:translateY(-50%);}
+
+  .btn-hire{
+    display:none;font-family:var(--font-ui);font-size:11.5px;font-weight:600;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--ink);
+    background:none;border:1px solid var(--gold);padding:13px 22px;cursor:pointer;
+    transition:background .35s var(--ease), color .35s var(--ease);
+    touch-action:manipulation;
+  }
+  .btn-hire:hover{background:var(--gold);color:var(--on-accent);}
+
+  @media (min-width:1080px){
+    .header-nav{display:flex;}
+    .btn-hire{display:inline-block;}
+    .burger{display:none;}
+  }
   header.scrolled{
     background:var(--glass);
     backdrop-filter:blur(14px);
@@ -1140,6 +1182,134 @@
   @media (max-width:640px){
     .shoot-page{padding:130px 22px 90px;}
   }
+
+  /* ===================================================================
+     SECOND DESIGN CONCEPT — layout overrides
+     Kept in one block at the end of the sheet so the concept can be read (and
+     reverted) as a unit rather than hunted through the original rules.
+     =================================================================== */
+
+  /* ---- Hero: text column left, photograph right ---- */
+  .hero{min-height:100svh;display:flex;align-items:center;
+    padding:120px 48px calc(72px + env(safe-area-inset-bottom, 0px));text-align:left;}
+  .hero-inner{
+    display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);
+    align-items:center;gap:56px;width:100%;max-width:1280px;margin:0 auto;
+  }
+  .hero-lead{display:flex;flex-direction:column;align-items:flex-start;gap:30px;text-align:left;}
+  .hero-head{text-align:left;}
+  .hero-eyebrow{
+    display:block;font-family:var(--font-ui);font-size:11.5px;font-weight:600;
+    letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:20px;
+  }
+  .hero h1{
+    font-family:var(--font-display);font-weight:var(--heading-weight);
+    font-size:clamp(46px,6.4vw,86px);line-height:1.04;letter-spacing:-.02em;
+    text-transform:none;color:var(--ink);margin:0;
+  }
+  .hero-name{
+    margin-top:16px;font-family:var(--font-ui);font-size:12px;font-weight:500;
+    letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);
+  }
+  .hero-copy{max-width:46ch;text-align:left;}
+  .hero-copy p{
+    font-family:var(--font-body);font-size:15.5px;line-height:1.75;
+    color:var(--ink-soft);margin:0 0 30px;
+  }
+  .hero-cta{display:flex;align-items:center;gap:22px;flex-wrap:wrap;}
+  .btn-reel{
+    display:inline-flex;align-items:center;gap:13px;background:none;border:none;
+    padding:0;cursor:pointer;font-family:var(--font-ui);font-size:11.5px;font-weight:600;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--ink);
+    transition:color .3s ease;touch-action:manipulation;position:relative;
+  }
+  .btn-reel::after{content:"";position:absolute;left:0;right:0;top:50%;height:44px;transform:translateY(-50%);}
+  .btn-reel-dot{
+    width:38px;height:38px;border:1px solid var(--accent);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    transition:background .35s var(--ease), border-color .35s var(--ease);
+  }
+  .btn-reel-dot svg{width:11px;height:11px;color:var(--accent);margin-left:2px;}
+  .btn-reel:hover .btn-reel-dot{background:var(--accent-wash);border-color:var(--accent-deep);}
+  .hero-socials{gap:14px;}
+
+  /* ---- Hero figure: full-bleed photograph with the circular mark ---- */
+  /* The original sheet pins the figure to column 1 and the text to column 2 inside a
+     media query; the concept reverses that, so the explicit placement is cleared and
+     both follow DOM order again. */
+  .hero-figure{position:relative;width:100%;grid-column:auto;grid-row:auto;}
+  .hero-lead, .hero-head, .hero-copy{grid-column:auto;grid-row:auto;}
+  .hero-print{position:relative;width:100%;aspect-ratio:4/5;max-height:74svh;margin:0;
+    min-width:0;max-width:none;}
+  .hero-photo{width:100%;height:100%;background-size:cover;background-position:center;}
+  .hero-badge{
+    position:absolute;right:-14px;bottom:-14px;width:118px;height:118px;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--glass);backdrop-filter:blur(8px);border-radius:50%;
+  }
+  .hero-badge svg{position:absolute;inset:0;width:100%;height:100%;}
+  .hero-badge .badge-text{
+    font-family:var(--font-ui);font-size:9.5px;font-weight:600;letter-spacing:.2em;
+    fill:var(--gold);text-transform:uppercase;
+  }
+  .hero-badge .badge-ring{fill:none;stroke:var(--gold);stroke-width:1;opacity:.42;}
+  .hero-badge-mark{
+    font-family:var(--font-display);font-size:21px;color:var(--ink);letter-spacing:.02em;
+  }
+
+  @media (max-width:900px){
+    .hero{padding:104px 24px calc(64px + env(safe-area-inset-bottom, 0px));}
+    .hero-inner{grid-template-columns:1fr;gap:38px;}
+    .hero-figure{order:-1;}
+    .hero-print{aspect-ratio:16/11;max-height:38svh;}
+    .hero-badge{width:92px;height:92px;right:-6px;bottom:-6px;}
+    .hero-badge-mark{font-size:17px;}
+  }
+
+  /* ---- Gallery: filter rail + mosaic (replaces the one-at-a-time slider) ---- */
+  .pf-stage, .pf-dots{display:none !important;}
+  #portfolio .section-head{text-align:center;margin-bottom:34px;}
+  .cat-tabs{
+    display:flex;justify-content:center;flex-wrap:wrap;gap:8px 30px;
+    margin:0 auto 34px;max-width:980px;
+  }
+  .cat-tab{
+    position:relative;background:none;border:none;padding:8px 2px;cursor:pointer;
+    font-family:var(--font-ui);font-size:11.5px;font-weight:600;letter-spacing:.17em;
+    text-transform:uppercase;color:var(--pf-ink-soft);
+    transition:color .3s ease;touch-action:manipulation;
+  }
+  .cat-tab::before{
+    content:"";position:absolute;left:0;right:0;bottom:0;height:1.5px;background:var(--gold);
+    transform:scaleX(0);transform-origin:right center;transition:transform .35s var(--ease);
+  }
+  .cat-tab:hover{color:var(--pf-ink);}
+  .cat-tab.is-active{color:var(--pf-ink);}
+  .cat-tab.is-active::before,.cat-tab:hover::before{transform:scaleX(1);transform-origin:left center;}
+  .cat-tab::after{content:"";position:absolute;left:0;right:0;top:50%;min-width:44px;height:44px;transform:translateY(-50%);}
+
+  /* .pf-inner is a column flex container and every tile is absolutely positioned, so
+     without this the mosaic has no content to size against and collapses to zero width. */
+  .cat-mosaic{position:relative;margin:0 auto;width:100%;align-self:stretch;}
+  .mos-cell{position:absolute;top:0;left:0;overflow:hidden;background:var(--surface);cursor:pointer;
+    border:none;padding:0;touch-action:manipulation;}
+  .mos-cell img{width:100%;height:auto;display:block;transition:transform .8s var(--ease), opacity .5s ease;}
+  .mos-cell:hover img,.mos-cell:focus-visible img{transform:scale(1.05);}
+  .mos-cap{
+    position:absolute;left:0;right:0;bottom:0;z-index:2;padding:34px 15px 13px;
+    display:block;text-align:left;
+    background:linear-gradient(to top, rgba(9,7,5,0.86), rgba(9,7,5,0));
+    opacity:0;transition:opacity .4s var(--ease);
+  }
+  .mos-cell:hover .mos-cap,.mos-cell:focus-visible .mos-cap{opacity:1;}
+  .mos-cap b{display:block;font-family:var(--font-display);font-size:16px;font-weight:500;color:#F4E9D4;}
+  .mos-cap span{display:block;margin-top:3px;font-family:var(--font-ui);font-size:9.5px;
+    font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);}
+  .mos-cell:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  @media (max-width:640px){
+    .cat-tabs{gap:4px 18px;margin-bottom:24px;}
+    .cat-tab{font-size:10px;letter-spacing:.12em;}
+  }
 </style>
 </head>
 <body>
@@ -1150,7 +1320,15 @@
 
   <header id="siteHeader">
     <a href="#/" class="logo" aria-label="Home"><span>DK</span></a>
+    <nav class="header-nav" id="headerNav">
+      <a href="#/" class="is-current">Home</a>
+      <a href="#portfolio">Portfolio</a>
+      <a href="#about">About</a>
+      <a href="#social">Social</a>
+      <a href="#/contact">Contact</a>
+    </nav>
     <div class="header-actions">
+      <button class="btn-hire" id="hireBtn">Let's Work Together</button>
       <button class="icon-btn theme-toggle" id="themeToggle" aria-label="Toggle light/dark theme">
         <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -1174,10 +1352,25 @@
   <div id="view-home">
     <section class="hero" id="home">
       <div class="hero-inner">
-        <div class="hero-head">
-          <h1 id="heroTitle">Dekagrophy</h1>
-          <div class="hero-subtitle" id="heroSubtitle">Professional Image Creator</div>
-          <div class="hero-name" id="heroSignature">Giancarlo (Deka) Rosete</div>
+        <div class="hero-lead">
+          <div class="hero-head">
+            <span class="hero-eyebrow" id="heroSubtitle">Professional Image Creator</span>
+            <h1 id="heroTitle">Dekagrophy</h1>
+            <div class="hero-name" id="heroSignature">Giancarlo (Deka) Rosete</div>
+          </div>
+
+          <div class="hero-copy">
+            <p id="heroDesc">Photography, videography and graphic design, from someone who treats every shoot like the one you'll still be showing people years from now.</p>
+            <div class="hero-cta">
+              <button class="btn-accent" id="viewGalleryBtn"><span>View Gallery</span></button>
+              <button class="btn-reel" id="heroContactBtn">
+                <span class="btn-reel-dot"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
+                Let's Work Together
+              </button>
+            </div>
+          </div>
+
+          <div class="hero-socials socials" id="heroSocials"></div>
         </div>
 
         <div class="hero-figure">
@@ -1185,11 +1378,18 @@
             <div class="hero-photo" id="heroBg"></div>
             <span class="shot-edge"><span class="bar bar-top"></span><span class="bar bar-left"></span><span class="bar bar-bottom"></span><span class="bar bar-right"></span><span class="glow"></span></span>
           </div>
-        </div>
-
-        <div class="hero-copy">
-          <p id="heroDesc">Photography, videography and graphic design, from someone who treats every shoot like the one you'll still be showing people years from now.</p>
-          <button class="btn-accent" id="viewGalleryBtn"><span>View Gallery</span></button>
+          <!-- Circular mark in the concept's position. It carries the studio name only:
+               the reference reads "award winning", which is not a claim to invent. -->
+          <div class="hero-badge" aria-hidden="true">
+            <svg viewBox="0 0 120 120">
+              <defs><path id="badgeArcTop" d="M60,60 m-44,0 a44,44 0 1,1 88,0" fill="none"/>
+                    <path id="badgeArcBot" d="M60,60 m44,0 a44,44 0 1,1 -88,0" fill="none"/></defs>
+              <text class="badge-text"><textPath href="#badgeArcTop" startOffset="50%" text-anchor="middle">DEKAGROPHY</textPath></text>
+              <text class="badge-text"><textPath href="#badgeArcBot" startOffset="50%" text-anchor="middle">PHOTOGRAPHY</textPath></text>
+              <circle cx="60" cy="60" r="53" class="badge-ring"/>
+            </svg>
+            <span class="hero-badge-mark">DK</span>
+          </div>
         </div>
       </div>
       <div class="scroll-cue" id="scrollCue">
@@ -1204,6 +1404,12 @@
           <h2>The Gallery</h2>
           <div class="rule"></div>
         </div>
+
+        <!-- Concept gallery: filter rail + mosaic. The original slider below is kept in
+             the DOM and hidden, because its setup code owns the category previews and
+             autoplay; unpicking that belongs in a follow-up, not in a layout try-out. -->
+        <div class="cat-tabs" id="catTabs" role="tablist" aria-label="Filter galleries by category"></div>
+        <div class="cat-mosaic" id="catMosaic"></div>
 
         <div class="pf-stage">
           <button class="pf-arrow pf-prev" id="pfPrev" aria-label="Previous category">
@@ -2346,8 +2552,11 @@
     }
     const palette = {
       // bright: [x = darkest multiplier, y = extra range added by full diffuse light]
-      dark:  { base: hexToRgb01('120f0c'), accent: hexToRgb01('9E76D6'), highlight: hexToRgb01('F3EAD9'), bright: [0.45, 0.75] },
-      light: { base: hexToRgb01('f0e2c4'), accent: hexToRgb01('c99f5f'), highlight: hexToRgb01('A9956B'), bright: [0.805, 0.391] }
+      // Dark-gold concept: the ambient wash is bronze, not purple. Purple is the
+      // interactive accent — spending it on the whole background left every page
+      // reading violet and buried the gold the concept is built on.
+      dark:  { base: hexToRgb01('100C08'), accent: hexToRgb01('7A5A22'), highlight: hexToRgb01('D8C79E'), bright: [0.30, 0.40] },
+      light: { base: hexToRgb01('F4EAD6'), accent: hexToRgb01('C9A461'), highlight: hexToRgb01('A9956B'), bright: [0.805, 0.391] }
     };
     function currentTheme() {
       return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
@@ -2541,6 +2750,103 @@
         nav.classList.remove('open');
       });
     });
+  }
+
+
+  /* ============ CONCEPT GALLERY (filter rail + mosaic) ============ */
+  /* One wall of photographs filtered by category, in place of the slider that showed a
+     single category at a time. Tiles are drawn from the galleries themselves, capped per
+     gallery so one large shoot cannot crowd out the rest, and each tile opens the gallery
+     it came from — the category > galleries > mosaic path is untouched. */
+  const MOSAIC_PER_GALLERY = 4;
+
+  function conceptTiles(catId) {
+    const list = (catId === 'all') ? shoots : shoots.filter(s => s.categoryId === catId);
+    const tiles = [];
+    list.forEach((sh) => {
+      const imgs = sh.images && sh.images.length
+        ? sh.images.slice(0, MOSAIC_PER_GALLERY)
+        : [{ thumb: sh.cardThumb || sh.file, ratio: sh.ratio }];
+      imgs.forEach(im => tiles.push({
+        src: im.thumb || im.file, ratio: im.ratio || sh.ratio || '1/1',
+        name: sh.name, tag: sh.tag, shootId: sh.id
+      }));
+    });
+    return tiles;
+  }
+
+  function renderConceptMosaic(catId) {
+    const grid = document.getElementById('catMosaic');
+    if(!grid) return;
+    grid.innerHTML = '';
+    conceptTiles(catId).forEach((t) => {
+      const cell = document.createElement('button');
+      cell.type = 'button';
+      cell.className = 'mos-cell';
+      cell.style.aspectRatio = t.ratio;
+      cell.setAttribute('aria-label', t.name + ' — open gallery');
+      cell.innerHTML =
+        '<img src="' + t.src + '" alt="" loading="lazy" decoding="async">' +
+        '<span class="mos-cap"><b>' + t.name + '</b><span>' + t.tag + '</span></span>';
+      cell.addEventListener('click', () => { location.hash = '#/shoot/' + t.shootId; });
+      grid.appendChild(cell);
+    });
+    layoutConceptMosaic();
+  }
+
+  /* The masonry reads clientWidth synchronously, and on first paint the section has not
+     been laid out yet — it measured 0 and collapsed the grid to zero width. Retry on the
+     next frame until the container has a real width. */
+  function layoutConceptMosaic(attempt) {
+    const grid = document.getElementById('catMosaic');
+    if(!grid || !grid.children.length) return;
+    grid.style.width = '';
+    if(!grid.clientWidth) {
+      if((attempt || 0) < 40) requestAnimationFrame(() => layoutConceptMosaic((attempt || 0) + 1));
+      return;
+    }
+    const isMobile = window.matchMedia('(max-width:640px)').matches;
+    layoutMasonryGrid(grid, { targetColWidth: 260, gap: isMobile ? 6 : 10, minCols: 2, maxColWidth: 460 });
+  }
+
+  function setupConceptGallery() {
+    const rail = document.getElementById('catTabs');
+    if(!rail) return;
+    // Only categories that actually have galleries earn a tab; an empty filter is a
+    // dead end, and Celebrations has nothing of its own yet.
+    const withWork = categories.filter(c => galleriesFor(c.id).length);
+    const tabs = [{ id:'all', name:'All' }].concat(withWork.map(c => ({ id:c.id, name:c.name })));
+
+    rail.innerHTML = '';
+    tabs.forEach((t, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'cat-tab' + (i === 0 ? ' is-active' : '');
+      b.setAttribute('role', 'tab');
+      b.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
+      b.textContent = t.name;
+      b.addEventListener('click', () => {
+        rail.querySelectorAll('.cat-tab').forEach(x => {
+          x.classList.remove('is-active'); x.setAttribute('aria-selected','false');
+        });
+        b.classList.add('is-active'); b.setAttribute('aria-selected','true');
+        renderConceptMosaic(t.id);
+      });
+      rail.appendChild(b);
+    });
+    renderConceptMosaic('all');
+    // Fonts and images settling can change the available width after first layout.
+    window.addEventListener('load', () => layoutConceptMosaic());
+
+    let t;
+    window.addEventListener('resize', () => {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        const active = rail.querySelector('.cat-tab.is-active');
+        const idx = Array.from(rail.children).indexOf(active);
+        renderConceptMosaic(tabs[Math.max(0, idx)].id);
+      }, 160);
+    }, { passive:true });
   }
 
   /* ============ CATEGORY PAGE ============ */
@@ -3215,6 +3521,11 @@
       const cat = id ? categoryOf(id) : null;
       location.hash = cat ? '#/category/' + cat.id : '#/';
     });
+    setupConceptGallery();
+
+    document.getElementById('hireBtn')?.addEventListener('click', () => { location.hash = '#/contact'; });
+    document.getElementById('heroContactBtn')?.addEventListener('click', () => { location.hash = '#/contact'; });
+
     document.getElementById('categoryBack').addEventListener('click', () => {
       location.hash = '#/';
     });
