@@ -171,10 +171,20 @@
   }
 
   /* ============ SILK WAVES (animated 3D shader) ============ */
+  /* No dvh here. On Android the URL bar collapsing changes dvh, which changes the
+     canvas's clientHeight, which fires resize, which reassigns canvas.width — and
+     reassigning that clears the WebGL drawing buffer. That is the flicker: a cleared
+     frame every time the address bar moved. inset:0 on a fixed element already tracks
+     the stable layout viewport, so the explicit sizing was redundant as well as harmful. */
   .silk-waves{
-    position:fixed;inset:0;z-index:-3;width:100vw;height:100vh;height:100dvh;
+    position:fixed;inset:0;z-index:-3;
+    /* A canvas is a replaced element, so inset:0 alone leaves it at its intrinsic
+       300x150 — it needs explicit percentages. These resolve against the initial
+       containing block, which does not move when Android hides the URL bar, so the
+       size stays put where dvh did not. */
+    width:100%;height:100%;
     pointer-events:none;display:block;
-    transform:translateZ(0);will-change:transform;backface-visibility:hidden;
+    transform:translateZ(0);backface-visibility:hidden;
   }
   /* Matches .silk's flat gradient so the canvas's own box never shows a mismatched/blank
      color if a scroll-heavy frame is ever a beat behind on drawing new WebGL content. */
@@ -1331,23 +1341,10 @@
     font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);}
   .mos-cell:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
 
-  /* The wall fades out at the bottom rather than stopping hard, so the eye is carried
-     into About instead of hitting an edge. */
-  .cat-mosaic-fade{
-    position:absolute;left:0;right:0;bottom:0;height:230px;pointer-events:none;z-index:4;
-    background:linear-gradient(to bottom,
-      transparent 0%,
-      color-mix(in srgb, var(--bg) 55%, transparent) 58%,
-      var(--bg) 100%);
-  }
-  @supports not (color: color-mix(in srgb, red 50%, blue)) {
-    .cat-mosaic-fade{background:linear-gradient(to bottom, transparent, var(--bg));}
-  }
   @media (max-width:640px){
     .cat-tabs{gap:18px;margin-bottom:24px;padding:0 28px 6px;scroll-padding-inline:28px;}
     .cat-tab{font-size:10px;letter-spacing:.12em;}
     .cat-rail::before,.cat-rail::after{width:28px;}
-    .cat-mosaic-fade{height:130px;}
   }
   }
 
@@ -1516,7 +1513,6 @@
           <div class="cat-tabs" id="catTabs" role="tablist" aria-label="Filter galleries by category"></div>
         </div>
         <div class="cat-mosaic" id="catMosaic"></div>
-        <div class="cat-mosaic-fade" aria-hidden="true"></div>
 
         <div class="pf-stage">
           <button class="pf-arrow pf-prev" id="pfPrev" aria-label="Previous category">
@@ -2659,10 +2655,9 @@
       rippleData[i * 3 + 2] = currentT;
       rippleCursor = (rippleCursor + 1) % RIPPLE_COUNT;
     }
-    // pointerdown covers both a mouse click and a tap the instant it starts, on one listener.
-    window.addEventListener('pointerdown', (e) => {
-      addRipple(e.clientX / window.innerWidth, 1.0 - e.clientY / window.innerHeight);
-    }, { passive: true });
+    // Tap-to-ripple belonged to the first design and is deliberately not bound here.
+    // addRipple and the shader's ripple pass stay in place so it can be restored by
+    // re-adding a single listener, rather than being unpicked from the shader.
 
     function hexToRgb01(hex) {
       const r = parseInt(hex.substring(0,2),16) / 255;
@@ -2691,8 +2686,13 @@
       const w = canvas.clientWidth || window.innerWidth;
       const h = canvas.clientHeight || window.innerHeight;
       const scale = Math.min(1, MAX_DIM / Math.max(w, h));
-      canvas.width = Math.max(1, Math.round(w * scale));
-      canvas.height = Math.max(1, Math.round(h * scale));
+      const nw = Math.max(1, Math.round(w * scale));
+      const nh = Math.max(1, Math.round(h * scale));
+      // Second guard, belt and braces: assigning canvas.width/height clears the drawing
+      // buffer even when the value is unchanged, so only touch them if they differ.
+      if(nw === canvas.width && nh === canvas.height) return;
+      canvas.width = nw;
+      canvas.height = nh;
       gl.viewport(0, 0, canvas.width, canvas.height);
     }
     window.addEventListener('resize', resize);
@@ -2975,8 +2975,8 @@
 
   let conceptSettled = false;
 
-  /* Out, swap, in. The exit is shorter than the entrance (roughly two thirds), which is
-     the ratio the rest of the site's transitions already use. */
+  /* Out, swap, in — kept brief so stepping through categories feels immediate rather
+     than something to wait through. Exit stays shorter than the entrance. */
   function transitionConceptMosaic(catId, dir) {
     const grid = document.getElementById('catMosaic');
     if(!grid) { renderConceptMosaic(catId); return; }
@@ -2984,11 +2984,11 @@
     const shift = dir === 0 ? 0 : dir * 34;
     gsap.killTweensOf(grid);
     gsap.to(grid, {
-      opacity: 0, x: -shift, duration: 0.24, ease: 'power2.in',
+      opacity: 0, x: -shift, duration: 0.10, ease: 'power2.in',
       onComplete: () => {
         renderConceptMosaic(catId);
         gsap.fromTo(grid, { opacity: 0, x: shift },
-                          { opacity: 1, x: 0, duration: 0.42, ease: 'power3.out',
+                          { opacity: 1, x: 0, duration: 0.18, ease: 'power3.out',
                             clearProps: 'x' });
       }
     });
