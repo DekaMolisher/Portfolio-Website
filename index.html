@@ -430,18 +430,16 @@
   }
   .hero-print.is-hover::after{border-color:var(--accent);}
   .hero-photo{position:relative;width:100%;height:100%;overflow:hidden;background:var(--surface);}
-  /* Once the slideshow went full-bleed these became seven full-viewport layers. With
-     will-change on all of them the browser holds seven screen-sized textures — tens of
-     megabytes on a phone, on top of the WebGL background — and the compositor starts
-     evicting and repainting them, which is the flicker. Only the two layers in the
-     current crossfade are composited; the rest are hidden and cost nothing. */
+  /* Two layers, both always present. Seven full-viewport layers meant seven
+     screen-sized textures; hiding them to save that memory then forced a re-raster of a
+     1900px photograph the moment each became visible, which flashed exactly at the
+     crossfade. Two is cheap enough to leave promoted permanently. */
   .hero-bg-img{
     position:absolute;inset:0;
     background-size:cover;background-position:center 22%;
     opacity:0;transform:scale(1.1);
-    visibility:hidden;
+    will-change:opacity, transform;
   }
-  .hero-bg-img.is-live{visibility:visible;will-change:opacity, transform;}
   /* Sheen lives inside .hero-photo so its overflow:hidden clips the sweep. It cannot
      live on .hero-print — that box deliberately does not clip, because the hairline
      frame sits outside it at inset:-11px. */
@@ -1230,12 +1228,13 @@
     position:absolute;inset:0;z-index:1;pointer-events:none;
     background:linear-gradient(to bottom,
       var(--bg) 0%,
-      color-mix(in srgb, var(--bg) 82%, transparent) 26%,
-      color-mix(in srgb, var(--bg) 45%, transparent) 48%,
-      transparent 78%);
+      color-mix(in srgb, var(--bg) 88%, transparent) 30%,
+      color-mix(in srgb, var(--bg) 62%, transparent) 55%,
+      color-mix(in srgb, var(--bg) 30%, transparent) 78%,
+      transparent 100%);
   }
   @supports not (color: color-mix(in srgb, red 50%, blue)) {
-    .hero-scrim{background:linear-gradient(to bottom, var(--bg) 0%, var(--bg) 20%, transparent 78%);}
+    .hero-scrim{background:linear-gradient(to bottom, var(--bg) 0%, var(--bg) 24%, transparent 100%);}
   }
 
   .hero-lead{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:26px;text-align:left;max-width:640px;}
@@ -2398,44 +2397,65 @@
   /* ============ HERO BACKGROUND SLIDESHOW ============ */
   function buildHeroBg() {
     const bg = document.getElementById('heroBg');
-    shoots.forEach((s) => {
+    for(let i = 0; i < 2; i++) {
       const layer = document.createElement('div');
       layer.className = 'hero-bg-img';
-      layer.style.backgroundImage = `url(${s.file})`;
       bg.appendChild(layer);
-    });
+    }
   }
   buildHeroBg();
 
   function heroBgSlideshow() {
-    const layers = document.querySelectorAll('.hero-bg-img');
-    if(!layers.length) return;
-    let idx = 0;
+    const layers = Array.from(document.querySelectorAll('.hero-bg-img'));
+    if(layers.length < 2) return;
+    const srcs = shoots.map((s) => s.file);
+    if(!srcs.length) return;
+
     const HOLD = 6000;
+    let srcIdx = 0;      // which photograph is on screen
+    let front = 0;       // which of the two layers is showing it
     let intervalId = null;
+    let busy = false;
 
-    // fade the very first frame in as part of the page's opening animation
-    layers[0].classList.add('is-live');
-    gsap.set(layers[0], { opacity: 0, scale: 1.1 });
-    gsap.to(layers[0], { opacity: 1, duration: 2.2, ease: 'power2.out', delay: 0.2 });
-    gsap.to(layers[0], { scale: 1, duration: 10, ease: 'sine.out', delay: 0.2 });
+    /* Fetch and decode before painting. Without this the browser rasterises a
+       full-viewport photograph during the fade, which is visible as a flash. */
+    function ready(src) {
+      return new Promise((res) => {
+        const im = new Image();
+        const done = () => res();
+        if(im.decode) { im.src = src; im.decode().then(done).catch(done); }
+        else { im.onload = done; im.onerror = done; im.src = src; }
+      });
+    }
 
-    function advance() {
-      const current = layers[idx];
-      const nextIdx = (idx + 1) % layers.length;
-      const next = layers[nextIdx];
+    async function begin() {
+      await ready(srcs[0]);
+      layers[0].style.backgroundImage = 'url(' + srcs[0] + ')';
+      gsap.set(layers[0], { opacity: 0, scale: 1.1 });
+      gsap.set(layers[1], { opacity: 0 });
+      gsap.to(layers[0], { opacity: 1, duration: 2.2, ease: 'power2.out' });
+      gsap.to(layers[0], { scale: 1, duration: 10, ease: 'sine.out' });
+      startInterval();
+    }
 
-      next.classList.add('is-live');
-      gsap.set(next, { opacity: 0, scale: 1.1 });
-      gsap.to(next, { opacity: 1, duration: 1.8, ease: 'power2.inOut' });
-      gsap.to(next, { scale: 1, duration: 10, ease: 'sine.out' });
-      gsap.to(current, {
+    async function advance() {
+      if(busy || document.hidden) return;
+      busy = true;
+      const nextSrc = srcs[(srcIdx + 1) % srcs.length];
+      await ready(nextSrc);
+
+      const back = layers[1 - front];
+      back.style.backgroundImage = 'url(' + nextSrc + ')';
+      gsap.set(back, { opacity: 0, scale: 1.1 });
+      gsap.to(back, { opacity: 1, duration: 1.8, ease: 'power2.inOut' });
+      gsap.to(back, { scale: 1, duration: 10, ease: 'sine.out' });
+      gsap.to(layers[front], {
         opacity: 0, duration: 1.8, ease: 'power2.inOut',
-        // released only once it is actually invisible, so it never blinks out mid-fade
-        onComplete: () => { if(current !== layers[idx]) current.classList.remove('is-live'); }
+        onComplete: () => { busy = false; }
       });
 
-      idx = nextIdx;
+      front = 1 - front;
+      srcIdx = (srcIdx + 1) % srcs.length;
     }
 
     function startInterval() {
@@ -2443,24 +2463,22 @@
       intervalId = setInterval(advance, HOLD);
     }
 
-    // A backgrounded tab throttles/pauses setInterval and rAF-driven GSAP tweens, so
-    // resuming after a while back could replay several queued-up transitions at once,
-    // in a burst (photos flickering rather than a smooth crossfade). Pausing the
-    // interval and snapping to a clean single-layer state while hidden avoids that,
-    // and a fresh interval on return means the next transition is a full HOLD away
-    // instead of firing immediately with stale backlog.
+    /* A backgrounded tab throttles setInterval and GSAP's rAF tweens, so returning could
+       replay several queued transitions at once. Pause while hidden and snap to a clean
+       single-layer state, then start a fresh interval on return. */
     document.addEventListener('visibilitychange', () => {
       if(document.hidden) {
         clearInterval(intervalId);
         intervalId = null;
         gsap.killTweensOf(layers);
-        layers.forEach((layer, i) => gsap.set(layer, { opacity: i === idx ? 1 : 0, scale: 1 }));
+        layers.forEach((l, i) => gsap.set(l, { opacity: i === front ? 1 : 0, scale: 1 }));
+        busy = false;
       } else {
         startInterval();
       }
     });
 
-    startInterval();
+    begin();
   }
 
   /* ============ THEME TOGGLE ============ */
