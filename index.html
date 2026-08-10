@@ -1213,13 +1213,13 @@
   .hero-scrim{
     position:absolute;inset:0;z-index:1;pointer-events:none;
     background:linear-gradient(to bottom,
-      var(--hero-scrim) 0%,
-      color-mix(in srgb, var(--hero-scrim) 78%, transparent) 34%,
-      color-mix(in srgb, var(--hero-scrim) 30%, transparent) 62%,
-      transparent 100%);
+      var(--bg) 0%,
+      color-mix(in srgb, var(--bg) 82%, transparent) 26%,
+      color-mix(in srgb, var(--bg) 45%, transparent) 48%,
+      transparent 78%);
   }
   @supports not (color: color-mix(in srgb, red 50%, blue)) {
-    .hero-scrim{background:linear-gradient(to bottom, var(--hero-scrim) 0%, var(--hero-scrim) 30%, transparent 100%);}
+    .hero-scrim{background:linear-gradient(to bottom, var(--bg) 0%, var(--bg) 20%, transparent 78%);}
   }
 
   .hero-lead{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:26px;text-align:left;max-width:640px;}
@@ -1250,6 +1250,19 @@
     .hero{padding:118px 22px calc(64px + env(safe-area-inset-bottom, 0px));}
     .hero-lead{gap:20px;}
     .hero-copy p{font-size:14.5px;}
+    /* The original sheet centres the hero stack on narrow screens; the concept keeps it
+       left so the lines start at one edge and the photograph keeps the rest of the frame. */
+    .hero, .hero-inner, .hero-head, .hero-copy, .hero-lead{text-align:left;}
+    .hero-head{align-items:flex-start;}
+    .hero-lead{align-items:flex-start;}
+    .hero h1, .hero-eyebrow, .hero-name, .hero-copy p{text-align:left;}
+    /* .hero-copy is a centring flex column in the original sheet, so the button is
+       centred as a flex item and text-align cannot reach it. */
+    .hero-copy{display:flex;flex-direction:column;align-items:flex-start;}
+    .hero-cta{justify-content:flex-start;align-self:flex-start;}
+    /* Socials are in the menu and the footer already; on a phone they were a third copy
+       competing with the one call to action. */
+    .hero-socials{display:none;}
   }
 
   /* ---- Gallery: filter rail + mosaic (replaces the one-at-a-time slider) ---- */
@@ -1280,13 +1293,9 @@
   .cat-tab.is-active{color:var(--pf-ink);}
   .cat-tab.is-active::before,.cat-tab:hover::before{transform:scaleX(1);transform-origin:left center;}
   .cat-tab::after{content:"";position:absolute;left:0;right:0;top:50%;min-width:44px;height:44px;transform:translateY(-50%);}
-  /* Fades at both ends so a rail that continues past the edge looks like it continues. */
+  /* No edge fades on the rail: --bg is near-black, and over the lit background it read
+     as a black rectangle sitting behind the tabs rather than a soft edge. */
   .cat-rail{position:relative;width:100%;align-self:stretch;}
-  .cat-rail::before,.cat-rail::after{
-    content:"";position:absolute;top:0;bottom:0;width:46px;pointer-events:none;z-index:2;
-  }
-  .cat-rail::before{left:0;background:linear-gradient(to right, var(--bg), transparent);}
-  .cat-rail::after{right:0;background:linear-gradient(to left, var(--bg), transparent);}
 
   .cat-mosaic{position:relative;margin:0 auto;width:100%;align-self:stretch;}
   .mos-cell{position:absolute;top:0;left:0;overflow:hidden;background:var(--surface);cursor:pointer;
@@ -1319,8 +1328,14 @@
   /* The wall fades out at the bottom rather than stopping hard, so the eye is carried
      into About instead of hitting an edge. */
   .cat-mosaic-fade{
-    position:absolute;left:0;right:0;bottom:0;height:190px;pointer-events:none;z-index:4;
-    background:linear-gradient(to bottom, transparent, var(--bg));
+    position:absolute;left:0;right:0;bottom:0;height:230px;pointer-events:none;z-index:4;
+    background:linear-gradient(to bottom,
+      transparent 0%,
+      color-mix(in srgb, var(--bg) 55%, transparent) 58%,
+      var(--bg) 100%);
+  }
+  @supports not (color: color-mix(in srgb, red 50%, blue)) {
+    .cat-mosaic-fade{background:linear-gradient(to bottom, transparent, var(--bg));}
   }
   @media (max-width:640px){
     .cat-tabs{gap:18px;margin-bottom:24px;padding:0 28px 6px;scroll-padding-inline:28px;}
@@ -2846,7 +2861,12 @@
 
   function selectConceptTab(i) {
     if(!conceptRail || !conceptTabs.length) return;
-    conceptIndex = Math.max(0, Math.min(conceptTabs.length - 1, i));
+    const next = Math.max(0, Math.min(conceptTabs.length - 1, i));
+    if(next === conceptIndex && conceptSettled) return;
+    // Direction carries meaning: the wall leaves the way your finger went and the new one
+    // arrives from the opposite edge, so a swipe feels like travelling along the rail.
+    const dir = next > conceptIndex ? 1 : (next < conceptIndex ? -1 : 0);
+    conceptIndex = next;
     const btns = conceptRail.querySelectorAll('.cat-tab');
     btns.forEach((x, n) => {
       const on = n === conceptIndex;
@@ -2855,7 +2875,28 @@
     });
     // A tab chosen by swiping is off-screen as often as not, so bring it into view.
     btns[conceptIndex]?.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' });
-    renderConceptMosaic(conceptTabs[conceptIndex].id);
+    transitionConceptMosaic(conceptTabs[conceptIndex].id, dir);
+  }
+
+  let conceptSettled = false;
+
+  /* Out, swap, in. The exit is shorter than the entrance (roughly two thirds), which is
+     the ratio the rest of the site's transitions already use. */
+  function transitionConceptMosaic(catId, dir) {
+    const grid = document.getElementById('catMosaic');
+    if(!grid) { renderConceptMosaic(catId); return; }
+    conceptSettled = true;
+    const shift = dir === 0 ? 0 : dir * 34;
+    gsap.killTweensOf(grid);
+    gsap.to(grid, {
+      opacity: 0, x: -shift, duration: 0.24, ease: 'power2.in',
+      onComplete: () => {
+        renderConceptMosaic(catId);
+        gsap.fromTo(grid, { opacity: 0, x: shift },
+                          { opacity: 1, x: 0, duration: 0.42, ease: 'power3.out',
+                            clearProps: 'x' });
+      }
+    });
   }
 
   /* Mobile only: a horizontal swipe across the wall steps categories. Vertical movement
