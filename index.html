@@ -420,12 +420,18 @@
   }
   .hero-print.is-hover::after{border-color:var(--accent);}
   .hero-photo{position:relative;width:100%;height:100%;overflow:hidden;background:var(--surface);}
+  /* Once the slideshow went full-bleed these became seven full-viewport layers. With
+     will-change on all of them the browser holds seven screen-sized textures — tens of
+     megabytes on a phone, on top of the WebGL background — and the compositor starts
+     evicting and repainting them, which is the flicker. Only the two layers in the
+     current crossfade are composited; the rest are hidden and cost nothing. */
   .hero-bg-img{
     position:absolute;inset:0;
     background-size:cover;background-position:center 22%;
     opacity:0;transform:scale(1.1);
-    will-change:opacity, transform;
+    visibility:hidden;
   }
+  .hero-bg-img.is-live{visibility:visible;will-change:opacity, transform;}
   /* Sheen lives inside .hero-photo so its overflow:hidden clips the sweep. It cannot
      live on .hero-print — that box deliberately does not clip, because the hairline
      frame sits outside it at inset:-11px. */
@@ -1344,6 +1350,82 @@
     .cat-mosaic-fade{height:130px;}
   }
   }
+
+  /* ---- About: editorial two-column, portrait carrying the concept's edge draw ---- */
+  #about{position:relative;}
+  .about{grid-template-columns:1fr 1.05fr;gap:76px;align-items:center;}
+  /* The heavy inset frame belonged to the old print language; the portrait now sits
+     flush and takes the same gold edge the gallery tiles use. */
+  .about-frame{border:none;padding:0;position:relative;overflow:hidden;background:var(--surface);}
+  .about-frame img{aspect-ratio:4/5;object-fit:cover;transition:transform .9s var(--ease);}
+  .about-frame:hover img,.about-frame.is-hover img{transform:scale(1.04);}
+  .about-frame .frame-corner{width:100%;height:100%;left:0;bottom:0;}
+  .about-frame .frame-corner .edge{background:var(--gold);}
+  .about-frame .frame-corner .edge-v{width:2px;}
+  .about-frame .frame-corner .edge-h{height:2px;}
+
+  .about-copy{max-width:52ch;}
+  .about-copy .eyebrow{
+    display:inline-flex;align-items:center;gap:14px;
+    font-family:var(--font-ui);font-size:11.5px;font-weight:600;letter-spacing:.3em;
+    text-transform:uppercase;color:var(--gold);margin-bottom:22px;
+  }
+  .about-copy .eyebrow::after{content:"";width:52px;height:1px;background:var(--gold);opacity:.55;}
+  .about-copy h2{
+    font-family:var(--font-display);font-weight:var(--heading-weight);
+    font-size:clamp(30px,3.5vw,50px);line-height:1.08;letter-spacing:-.015em;
+    text-transform:none;color:var(--ink);margin:0 0 24px;
+  }
+  .about-copy p{
+    font-family:var(--font-body);font-size:15px;line-height:1.8;color:var(--ink-soft);
+    margin:0 0 18px;
+  }
+  .know-more{margin-top:26px;}
+
+  @media (max-width:900px){
+    .about{grid-template-columns:1fr;gap:34px;}
+    .about-frame img{aspect-ratio:3/4;}
+    .about-copy{max-width:none;}
+    .about-copy h2{font-size:clamp(27px,7.4vw,38px);}
+  }
+
+  /* ---- Contact: the brief on the left, the form beside it ---- */
+  .contact-page{padding:150px 48px 120px;max-width:1120px;}
+  .contact-layout{display:grid;grid-template-columns:0.85fr 1.15fr;gap:72px;align-items:start;}
+  .contact-header{max-width:none;margin-bottom:0;position:sticky;top:130px;}
+  .contact-header .eyebrow{
+    display:inline-flex;align-items:center;gap:14px;
+    font-family:var(--font-ui);font-size:11.5px;font-weight:600;letter-spacing:.3em;
+    text-transform:uppercase;color:var(--gold);margin-bottom:20px;
+  }
+  .contact-header .eyebrow::after{content:"";width:52px;height:1px;background:var(--gold);opacity:.55;}
+  .contact-header h1{
+    font-family:var(--font-display);font-weight:var(--heading-weight);
+    font-size:clamp(34px,4.6vw,62px);line-height:1.04;letter-spacing:-.02em;
+    text-transform:none;margin-bottom:20px;
+  }
+  .contact-header p{max-width:38ch;}
+  .contact-aside{
+    margin-top:34px;padding-top:26px;border-top:1px solid var(--line);
+    font-family:var(--font-body);font-size:14px;line-height:1.8;color:var(--ink-soft);
+  }
+  .contact-aside b{
+    display:block;font-family:var(--font-ui);font-size:10.5px;font-weight:600;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;
+  }
+  .field label{
+    font-family:var(--font-ui);font-size:10.5px;font-weight:600;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--ink-soft);
+  }
+  .field input, .field textarea{border-color:var(--line);background:var(--surface);}
+
+  @media (max-width:900px){
+    .contact-page{padding:120px 22px 90px;}
+    .contact-layout{grid-template-columns:1fr;gap:40px;}
+    .contact-header{position:static;}
+    .contact-header h1{font-size:clamp(30px,8vw,42px);}
+    .contact-header p{max-width:none;}
+  }
 </style>
 </head>
 <body>
@@ -1589,10 +1671,16 @@
         Back
       </button>
 
+      <div class="contact-layout">
       <div class="contact-header">
         <span class="eyebrow">Let's Create Together</span>
         <h1>Tell Me About<br>Your Shoot</h1>
-        <p>Fill out the form below and I'll follow up to lock in the details.</p>
+        <p>Fill out the form and I'll follow up to lock in the details.</p>
+        <div class="contact-aside">
+          <b>What happens next</b>
+          You'll hear back with availability, what a session covers, and any
+          questions I have about the look you're after.
+        </div>
       </div>
 
       <form class="contact-form" id="contactForm">
@@ -1648,6 +1736,7 @@
         <button type="submit" class="btn-accent submit-btn"><span>Send Inquiry</span></button>
         <p class="form-error" id="contactError">Something went wrong sending that — please try again, or email me directly at <a href="mailto:giancarlorrv@gmail.com">giancarlorrv@gmail.com</a>.</p>
       </form>
+      </div>
 
       <div class="contact-success" id="contactSuccess">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg>
@@ -2330,6 +2419,7 @@
     let intervalId = null;
 
     // fade the very first frame in as part of the page's opening animation
+    layers[0].classList.add('is-live');
     gsap.set(layers[0], { opacity: 0, scale: 1.1 });
     gsap.to(layers[0], { opacity: 1, duration: 2.2, ease: 'power2.out', delay: 0.2 });
     gsap.to(layers[0], { scale: 1, duration: 10, ease: 'sine.out', delay: 0.2 });
@@ -2339,10 +2429,15 @@
       const nextIdx = (idx + 1) % layers.length;
       const next = layers[nextIdx];
 
+      next.classList.add('is-live');
       gsap.set(next, { opacity: 0, scale: 1.1 });
       gsap.to(next, { opacity: 1, duration: 1.8, ease: 'power2.inOut' });
       gsap.to(next, { scale: 1, duration: 10, ease: 'sine.out' });
-      gsap.to(current, { opacity: 0, duration: 1.8, ease: 'power2.inOut' });
+      gsap.to(current, {
+        opacity: 0, duration: 1.8, ease: 'power2.inOut',
+        // released only once it is actually invisible, so it never blinks out mid-fade
+        onComplete: () => { if(current !== layers[idx]) current.classList.remove('is-live'); }
+      });
 
       idx = nextIdx;
     }
