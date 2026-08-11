@@ -1,0 +1,18 @@
+{
+  "name": "dekagrophy-instagram-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Keyword-triggered auto-replies for Instagram DMs to @dekagrophy",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test-matching.js",
+    "test:webhook": "node test-webhook.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
