@@ -91,12 +91,30 @@ signature rejection, cooldown, echoes, reel shares.
    (Instagram app → Settings → Account type).
 2. Go to <https://developers.facebook.com> → **My Apps** → **Create App** →
    choose **Business**.
-3. Add the **Instagram** product to the app and connect @dekagrophy.
-4. From the Instagram API setup page, collect:
+3. Add the **Instagram** product, then open **Instagram → API setup with
+   Instagram login**. Use this panel, *not* "API setup with Facebook login" —
+   they are different flows and mixing them causes errors.
+4. Under **Generate access tokens**, click **Add an Instagram Account**, log in
+   as @dekagrophy, then click **Generate token**. Collect:
    - **Instagram access token** → `IG_ACCESS_TOKEN`
    - **App secret** (App settings → Basic) → `IG_APP_SECRET`
 5. Invent any random string for `IG_VERIFY_TOKEN` — you will paste the same
    value in two places in step 3.
+
+#### If you see "Insufficient Developer Role"
+
+While the app is in Development mode, only accounts with a role on the app can
+authorize it. The login popup silently reuses whatever Instagram session the
+browser already has, so this is usually the wrong account rather than a broken
+app. Try in this order:
+
+1. **Wrong account in the browser.** Open a private window, log into
+   `instagram.com` as @dekagrophy specifically, then retry from the dashboard.
+2. **No role on the app.** App Dashboard → **App roles → Roles → Add People** →
+   **Instagram Tester** → `dekagrophy`. Then, as @dekagrophy, go to
+   **instagram.com → Edit Profile → Apps and Websites → Tester Invites** and
+   **accept** it. The invite does nothing until accepted.
+3. **Account is still Personal.** It must be Business or Creator.
 
 ### 2. Deploy to Render
 
@@ -113,6 +131,14 @@ signature rejection, cooldown, echoes, reel shares.
    | --- | --- |
    | `IG_VERIFY_TOKEN` | your random string |
    | `IG_ACCESS_TOKEN` | from step 1 |
+   | `IG_APP_SECRET` | from step 1 |
+
+   These three live only in Render's environment variables — never in
+   `config.json`, never in a committed file, never pasted into a chat or an
+   issue. If a secret is exposed, reset it immediately at **App settings →
+   Basic → App secret → Reset**; the app secret is what proves a webhook
+   really came from Meta, so anyone holding it can forge requests to your
+   endpoint.
    | `IG_APP_SECRET` | from step 1 |
 
 5. Deploy, then copy the service URL, e.g. `https://dekagrophy-bot.onrender.com`.
