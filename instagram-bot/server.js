@@ -92,15 +92,24 @@ function signatureValid(req) {
 }
 
 app.post('/webhook', async (req, res) => {
-  if (!signatureValid(req)) return res.sendStatus(403);
+  if (!signatureValid(req)) {
+    /* Almost always IG_APP_SECRET not matching the app secret in the dashboard. */
+    console.log('webhook REJECTED: bad signature — check IG_APP_SECRET');
+    return res.sendStatus(403);
+  }
 
   /* Meta retries anything not acknowledged within a few seconds, so acknowledge
      first and do the work after. */
   res.sendStatus(200);
 
+  console.log('webhook received:', JSON.stringify(req.body));
+
   const config = loadConfig();
-  if (!config || config.enabled === false) return;
-  if (req.body.object !== 'instagram') return;
+  if (!config) return;
+  if (config.enabled === false) return console.log('skipped: config disabled');
+  if (req.body.object !== 'instagram') {
+    return console.log(`skipped: object is "${req.body.object}", not "instagram"`);
+  }
 
   for (const entry of req.body.entry || []) {
     for (const event of entry.messaging || []) {
@@ -115,26 +124,28 @@ app.post('/webhook', async (req, res) => {
 
 async function handleMessage(config, event) {
   const message = event.message;
-  if (!message) return;
+  if (!message) return console.log('skipped: event carries no message');
 
   /* Your own outgoing messages come back as webhooks. */
-  if (message.is_echo) return;
+  if (message.is_echo) return console.log('skipped: echo of your own message');
 
   /* Reel shares, story replies, photos, stickers and voice notes all arrive with
      attachments and no meaningful text — never auto-reply to those. */
-  if (message.attachments && message.attachments.length) return;
+  if (message.attachments && message.attachments.length) {
+    return console.log('skipped: message has an attachment (reel/photo/voice)');
+  }
 
   const text = message.text;
-  if (!text || !text.trim()) return;
+  if (!text || !text.trim()) return console.log('skipped: empty text');
 
   const senderId = event.sender && event.sender.id;
-  if (!senderId) return;
+  if (!senderId) return console.log('skipped: no sender id');
 
   const rule = matchRule(config, text);
-  if (!rule) return;
+  if (!rule) return console.log(`no rule matched: "${text}"`);
 
   if (onCooldown(senderId, config.cooldownHours ?? 168)) {
-    console.log(`skipped ${senderId}: on cooldown`);
+    console.log(`skipped ${senderId}: on cooldown (rule "${rule.name}")`);
     return;
   }
 
