@@ -869,9 +869,11 @@
   }
 
   /* ============ SOCIAL SHOWCASE ============ */
-  .social-showcase{display:grid;grid-template-columns:0.8fr 1fr;gap:70px;align-items:center;}
-  .social-frame{position:relative;border:1px solid var(--line);padding:18px;overflow:hidden;max-width:374px;}
-  .social-frame img{width:100%;height:100%;object-fit:cover;aspect-ratio:9/16;display:block;position:relative;z-index:1;}
+  /* 3:4 portrait rather than the old 9:16 tower, and closer to the copy — the wide gap
+     made the two halves read as separate sections. */
+  .social-showcase{display:grid;grid-template-columns:0.62fr 1fr;gap:42px;align-items:center;}
+  .social-frame{position:relative;border:1px solid var(--line);padding:14px;overflow:hidden;max-width:330px;}
+  .social-frame img{width:100%;height:100%;object-fit:cover;aspect-ratio:3/4;display:block;position:relative;z-index:1;}
   .social-frame.is-hover .frame-corner .glow{opacity:1;}
   .social-copy .eyebrow{margin-bottom:16px;display:inline-block;}
   .social-copy h2{font-size:clamp(28px,5vw,50px);margin-bottom:16px;line-height:1.1;}
@@ -1223,9 +1225,12 @@
     mask-image:linear-gradient(to bottom, #000 90%, transparent 100%);
   }
   .hero-photo{width:100%;height:100%;}
-  /* The framed border belonged to the print; edge to edge it would just draw a box
-     around the viewport. */
+  /* Everything that belonged to the framed print goes: the drawn border, the corner
+     bars, and the sheen that swept across on hover. Full-bleed, they only put a box and
+     a moving highlight over the photograph. */
   .hero-figure .shot-edge{display:none;}
+  .hero-print::after{display:none;}
+  .hero-photo::after{display:none;}
   /* Carries the type. Strongest at the top where the text sits, easing to nothing by
      mid-frame so the photograph is not veiled for the sake of a few lines. */
   .hero-scrim{
@@ -1241,7 +1246,16 @@
     .hero-scrim{background:linear-gradient(to bottom, var(--bg) 0%, var(--bg) 24%, transparent 100%);}
   }
 
-  .hero-lead{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:26px;text-align:left;max-width:640px;}
+  /* Left at every width, not just on phones. .hero-copy is a centring flex column in
+     the original sheet, so the button is centred as a flex item where text-align can
+     never reach it — it needs align-items too. */
+  .hero, .hero-inner, .hero-head, .hero-copy, .hero-lead{text-align:left;}
+  .hero h1, .hero-eyebrow, .hero-name, .hero-copy p{text-align:left;}
+  .hero-lead{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:26px;max-width:640px;}
+  .hero-head{align-items:flex-start;}
+  .hero-copy{display:flex;flex-direction:column;align-items:flex-start;}
+  .hero-cta{justify-content:flex-start;align-self:flex-start;}
+  .hero-socials{justify-content:flex-start;align-self:flex-start;}
   .hero-head{text-align:left;}
   /* Order is the point: studio name, then role, then the person. */
   .hero h1{
@@ -1269,16 +1283,6 @@
     .hero{padding:118px 22px calc(64px + env(safe-area-inset-bottom, 0px));}
     .hero-lead{gap:20px;}
     .hero-copy p{font-size:14.5px;}
-    /* The original sheet centres the hero stack on narrow screens; the concept keeps it
-       left so the lines start at one edge and the photograph keeps the rest of the frame. */
-    .hero, .hero-inner, .hero-head, .hero-copy, .hero-lead{text-align:left;}
-    .hero-head{align-items:flex-start;}
-    .hero-lead{align-items:flex-start;}
-    .hero h1, .hero-eyebrow, .hero-name, .hero-copy p{text-align:left;}
-    /* .hero-copy is a centring flex column in the original sheet, so the button is
-       centred as a flex item and text-align cannot reach it. */
-    .hero-copy{display:flex;flex-direction:column;align-items:flex-start;}
-    .hero-cta{justify-content:flex-start;align-self:flex-start;}
     /* Socials are in the menu and the footer already; on a phone they were a third copy
        competing with the one call to action. */
     .hero-socials{display:none;}
@@ -1290,7 +1294,10 @@
   /* One row that scrolls sideways rather than wrapping: drag on touch, wheel on desktop.
      The scrollbar is hidden but the rail stays keyboard- and screen-reader-reachable. */
   .cat-tabs{
-    display:flex;flex-wrap:nowrap;justify-content:flex-start;gap:30px;
+    display:flex;flex-wrap:nowrap;gap:30px;
+    /* safe centring: centred while the tabs fit, falling back to flex-start once they
+       overflow, so the first tab never becomes unreachable off the left edge */
+    justify-content:center;justify-content:safe center;
     margin:0 auto 34px;max-width:100%;
     overflow-x:auto;overscroll-behavior-x:contain;
     scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
@@ -1321,17 +1328,33 @@
     border:none;padding:0;touch-action:pan-y;}
   .mos-cell img{width:100%;height:auto;display:block;transition:transform .8s var(--ease);}
   .mos-cell:hover img,.mos-cell:focus-visible img{transform:scale(1.05);}
-  /* Same edge draw the galleries use, in the concept's gold. */
+  /* The edges fade up rather than drawing in, then the glow takes over. */
   .mos-edge{position:absolute;inset:0;z-index:3;pointer-events:none;}
-  .mos-edge .bar{position:absolute;background:var(--gold);transition:transform .3s var(--ease);}
-  .mos-edge .bar-top{top:0;left:0;right:0;height:2px;transform-origin:right center;transform:scaleX(0);}
-  .mos-edge .bar-left{left:0;top:0;bottom:0;width:2px;transform-origin:top center;transform:scaleY(0);}
-  .mos-edge .bar-bottom{bottom:0;left:0;right:0;height:2px;transform-origin:left center;transform:scaleX(0);}
-  .mos-edge .bar-right{right:0;top:0;bottom:0;width:2px;transform-origin:bottom center;transform:scaleY(0);}
-  .mos-cell:hover .mos-edge .bar-top,.mos-cell:focus-visible .mos-edge .bar-top{transform:scaleX(1);transition-delay:0s;}
-  .mos-cell:hover .mos-edge .bar-left,.mos-cell:focus-visible .mos-edge .bar-left{transform:scaleY(1);transition-delay:.22s;}
-  .mos-cell:hover .mos-edge .bar-bottom,.mos-cell:focus-visible .mos-edge .bar-bottom{transform:scaleX(1);transition-delay:.44s;}
-  .mos-cell:hover .mos-edge .bar-right,.mos-cell:focus-visible .mos-edge .bar-right{transform:scaleY(1);transition-delay:.66s;}
+  .mos-edge .bar{position:absolute;background:var(--gold);opacity:0;transition:opacity .32s var(--ease);}
+  .mos-edge .bar-top{top:0;left:0;right:0;height:2px;}
+  .mos-edge .bar-left{left:0;top:0;bottom:0;width:2px;}
+  .mos-edge .bar-bottom{bottom:0;left:0;right:0;height:2px;}
+  .mos-edge .bar-right{right:0;top:0;bottom:0;width:2px;}
+  .mos-cell:hover .mos-edge .bar,
+  .mos-cell:focus-visible .mos-edge .bar{opacity:1;}
+  .mos-edge .glow{
+    position:absolute;inset:0;opacity:0;transition:opacity .5s var(--ease) .12s;
+    box-shadow:inset 0 0 26px -4px var(--accent-pale), 0 0 24px -6px var(--accent-pale);
+  }
+  .mos-cell:hover .mos-edge .glow,
+  .mos-cell:focus-visible .mos-edge .glow{opacity:1;}
+
+  /* Selecting a gallery: an accent glow grows up out of the bottom edge of the tile
+     that was picked, so the choice is acknowledged before the page moves. */
+  .mos-flare{
+    position:absolute;left:0;right:0;bottom:0;height:100%;z-index:4;pointer-events:none;
+    background:linear-gradient(to top, var(--accent), color-mix(in srgb, var(--accent) 45%, transparent) 42%, transparent 78%);
+    opacity:0;transform:scaleY(0);transform-origin:bottom center;
+  }
+  @supports not (color: color-mix(in srgb, red 50%, blue)) {
+    .mos-flare{background:linear-gradient(to top, var(--accent), transparent 70%);}
+  }
+
   /* The gallery name is always legible, not a hover reveal — on touch there is no hover. */
   .mos-cap{
     position:absolute;left:0;right:0;bottom:0;z-index:2;padding:38px 15px 14px;
@@ -2385,20 +2408,11 @@
     // Desktop pins the section and lets scroll drive the slide. On a phone that fights
     // the reading flow — you scroll to read on, not to browse sideways — so the pin is
     // dropped there and swipe alone changes category.
+    /* The pin that used to drive this slider is gone. The slider itself is hidden and
+       the mosaic replaced it, but its ScrollTrigger still pinned #portfolio for about
+       five viewport heights on desktop — scrolling stuck there, then snapped to About.
+       pf.trigger simply stays undefined; the one place that reads it already guards. */
     const last = pf.slides.length - 1;
-    const pinnable = window.matchMedia('(min-width:821px)').matches;
-    if(last > 0 && pinnable) {
-      pf.trigger = ScrollTrigger.create({
-        trigger: '#portfolio',
-        start: 'top top',
-        end: () => '+=' + (window.innerHeight * last * 0.85),
-        pin: true,
-        pinSpacing: true,
-        snap: { snapTo: 1 / last, duration: 0.35, ease: 'power2.inOut' },
-        invalidateOnRefresh: true,
-        onUpdate: (self) => setSlide(Math.round(self.progress * last))
-      });
-    }
 
     // Horizontal swipe on the slides themselves, for phones
     let sx = 0, sy = 0, swiping = false;
@@ -3156,7 +3170,8 @@
       cell.innerHTML =
         '<img src="' + t.src + '" alt="" loading="lazy" decoding="async">' +
         '<span class="mos-edge"><span class="bar bar-top"></span><span class="bar bar-left"></span>' +
-          '<span class="bar bar-bottom"></span><span class="bar bar-right"></span></span>' +
+          '<span class="bar bar-bottom"></span><span class="bar bar-right"></span><span class="glow"></span></span>' +
+        '<span class="mos-flare"></span>' +
         '<span class="mos-cap"><b>' + t.name + '</b><span>' + t.tag + '</span></span>';
       cell.addEventListener('click', () => zoomIntoGallery(cell, '#/shoot/' + t.shootId));
       grid.appendChild(cell);
@@ -3183,6 +3198,12 @@
   /* Selecting a gallery zooms the home page into it, the same move the category slider
      uses, anchored on the tile you picked so the page appears to travel toward it. */
   function zoomIntoGallery(el, hash) {
+    // the flare grows out of the tile's bottom edge while the page begins to travel
+    const flare = el.querySelector('.mos-flare');
+    if(flare) {
+      gsap.fromTo(flare, { opacity: 0, scaleY: 0 },
+                         { opacity: 0.85, scaleY: 1, duration: 0.42, ease: 'power2.out' });
+    }
     const viewHome = document.getElementById('view-home');
     const r = el.getBoundingClientRect();
     const originX = r.left + r.width / 2;
@@ -3385,8 +3406,9 @@
       filled.innerHTML = `
         <img src="${im.thumb}" alt="${displayName}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async">
         <span class="cell-edge"><span class="bar bar-top"></span><span class="bar bar-left"></span><span class="bar bar-bottom"></span><span class="bar bar-right"></span><span class="glow"></span></span>
-        <span class="code">${codePrefix}-${String(i+1).padStart(2,'0')}</span>
-        <span class="label">${displayName}</span>
+        <!-- No per-photograph code or gallery name here: every tile in a gallery would
+             repeat the same words, and the heading above already says which gallery this
+             is. They stay on the home mosaic, where tiles come from different galleries. -->
       `;
       filled.addEventListener('click', () => openViewer(fullFiles, i, displayName));
       grid.appendChild(filled);
