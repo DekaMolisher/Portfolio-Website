@@ -1250,11 +1250,11 @@
     text-transform:none;color:var(--ink);margin:0;
   }
   .hero-eyebrow{
-    display:block;margin-top:14px;font-family:var(--font-ui);font-size:12px;font-weight:600;
+    display:block;margin-top:7px;font-family:var(--font-ui);font-size:12px;font-weight:600;
     letter-spacing:.3em;text-transform:uppercase;color:var(--gold);
   }
   .hero-name{
-    margin-top:10px;font-family:var(--font-ui);font-size:11.5px;font-weight:500;
+    margin-top:5px;font-family:var(--font-ui);font-size:11.5px;font-weight:500;
     letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);
   }
   .hero-copy{max-width:46ch;text-align:left;}
@@ -3449,10 +3449,11 @@
         lastTapY = t.clientY;
         clearTimeout(singleTapTimeout);
         singleTapTimeout = setTimeout(() => {
-          if(viewerState.zoom <= 1) {
-            hudHiddenByTap = !hudHiddenByTap;
-            updateViewerChrome();
-          }
+          // No zoom check: this branch is only reached when the finger moved less than
+          // 10px, so it is a tap and not a pan, and requiring a zoom-out first just to
+          // clear the controls made looking closely at a photograph a chore.
+          hudHiddenByTap = !hudHiddenByTap;
+          updateViewerChrome();
         }, DOUBLE_TAP_WINDOW);
       }
     }
@@ -3508,10 +3509,13 @@
 
   /* Mouse equivalent of the tap toggle. Touch already handles this in touchend, and a tap
      also emits a synthetic click, so recent touches are ignored to avoid toggling twice
-     and landing back where we started. Above 1x the mouse is panning, so it is left alone. */
+     and landing back where we started. Zoom level is not checked — what must not toggle
+     the HUD is a pan, and a pan is a drag, so the guard is on movement instead. */
+  let mouseDownX = 0, mouseDownY = 0;
+  viewerImgEl.addEventListener('mousedown', (e) => { mouseDownX = e.clientX; mouseDownY = e.clientY; });
   viewerImgEl.addEventListener('click', (e) => {
     if(Date.now() - lastTouchEndTime < 600) return;
-    if(viewerState.zoom > 1) return;
+    if(Math.abs(e.clientX - mouseDownX) > 6 || Math.abs(e.clientY - mouseDownY) > 6) return;
     e.stopPropagation();
     hudHiddenByTap = !hudHiddenByTap;
     updateViewerChrome();
