@@ -67,14 +67,26 @@ app.use(
   })
 );
 
+/* Every request, so an empty log is unambiguous evidence that nothing reached
+   the server at all — rather than something arriving and being dropped. */
+app.use((req, _res, next) => {
+  console.log(`${req.method} ${req.originalUrl}`);
+  next();
+});
+
 /* Meta calls this once when you register the webhook URL. */
 app.get('/webhook', (req, res) => {
   if (
     req.query['hub.mode'] === 'subscribe' &&
     req.query['hub.verify_token'] === IG_VERIFY_TOKEN
   ) {
+    console.log('handshake OK');
     return res.status(200).send(req.query['hub.challenge']);
   }
+  console.log(
+    `handshake FAILED: token sent "${req.query['hub.verify_token']}" ` +
+      `${IG_VERIFY_TOKEN ? 'does not match IG_VERIFY_TOKEN' : 'but IG_VERIFY_TOKEN is not set'}`
+  );
   res.sendStatus(403);
 });
 
