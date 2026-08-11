@@ -2442,12 +2442,33 @@
     });
   }
 
+
+  /* A handful of landscape photographs spread across four columns end up small with a
+     lot of empty space under them — four wide tiles want to be a 2x2 block, not a thin
+     strip. Columns are capped at the square root of the count so a small set squares up,
+     and the cap only applies when the set is actually wide; portrait photographs are
+     tall enough that four narrow columns still read well. Large sets are untouched,
+     since their natural column count is already below the cap. */
+  function wideSetOptions(ratios, gap) {
+    const asp = ratios.map((r) => {
+      const [w, h] = String(r || '1/1').split('/').map(Number);
+      return (h > 0 ? w / h : 1);
+    });
+    const wideShare = asp.filter((a) => a >= 1.15).length / (asp.length || 1);
+    if(wideShare < 0.6) return { targetColWidth: 260, gap, minCols: 2, maxColWidth: 460 };
+    return {
+      targetColWidth: 260, gap, minCols: 2,
+      maxCols: Math.max(2, Math.ceil(Math.sqrt(asp.length))),
+      maxColWidth: 640
+    };
+  }
+
   /* Shared true-masonry engine: places each child of `container` in whichever column is
      currently shortest, then sizes the container to exactly the used columns' width so
      it centers instead of hugging the left edge. Every child must already be able to
      report its natural height at an arbitrary width without waiting on anything async
      (e.g. via a CSS aspect-ratio) since this reads getBoundingClientRect() synchronously. */
-  function layoutMasonryGrid(container, { targetColWidth = 280, gap = 24, minCols = 1, maxColWidth = Infinity } = {}) {
+  function layoutMasonryGrid(container, { targetColWidth = 280, gap = 24, minCols = 1, maxCols = Infinity, maxColWidth = Infinity } = {}) {
     const items = Array.from(container.children);
     if(!items.length) return;
 
@@ -2459,7 +2480,7 @@
     // single-photo gallery should never be split into empty extra columns just to
     // satisfy a mobile minimum.
     const naturalCols = Math.floor((availableWidth + gap) / (targetColWidth + gap));
-    const numCols = Math.min(items.length, Math.max(1, minCols, naturalCols));
+    const numCols = Math.min(items.length, maxCols, Math.max(1, minCols, naturalCols));
     const colWidth = Math.min(maxColWidth, (availableWidth - (numCols - 1) * gap) / numCols);
     const colHeights = new Array(numCols).fill(0);
 
@@ -2488,7 +2509,8 @@
     // its 6/10 — wide enough that the gallery read as separated tiles rather than one
     // mosaic. Column width and the 480 cap stay put; only the spacing tightens.
     const isMobile = window.matchMedia('(max-width:640px)').matches;
-    layoutMasonryGrid(container, { targetColWidth: 260, gap: isMobile ? 6 : 10, minCols: 2, maxColWidth: 480 });
+    const ratios = Array.from(container.children).map((c) => c.style.aspectRatio);
+    layoutMasonryGrid(container, wideSetOptions(ratios, isMobile ? 6 : 10));
   }
 
   /* ============ ENDLESS ROLL ============ */
@@ -3200,7 +3222,8 @@
       return;
     }
     const isMobile = window.matchMedia('(max-width:640px)').matches;
-    layoutMasonryGrid(grid, { targetColWidth: 260, gap: isMobile ? 6 : 10, minCols: 2, maxColWidth: 460 });
+    const ratios = Array.from(grid.children).map((c) => c.style.aspectRatio);
+    layoutMasonryGrid(grid, wideSetOptions(ratios, isMobile ? 6 : 10));
   }
 
 
