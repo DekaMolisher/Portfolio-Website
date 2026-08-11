@@ -1251,8 +1251,17 @@
      never reach it — it needs align-items too. */
   .hero, .hero-inner, .hero-head, .hero-copy, .hero-lead{text-align:left;}
   .hero h1, .hero-eyebrow, .hero-name, .hero-copy p{text-align:left;}
-  .hero-lead{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:26px;max-width:640px;}
-  .hero-head{align-items:flex-start;}
+  /* width:100% and justify-self matter here: the original .hero-inner still carries
+     justify-items:center, which was shrink-to-fitting this column and centring it
+     between roughly 600px and 900px. */
+  .hero-lead{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;
+    gap:26px;width:100%;max-width:640px;justify-self:start;margin-right:auto;}
+  /* .hero-lead is a column flex container, so the cross axis is horizontal and the
+     original sheet's align-self:end on .hero-head pushed the titles to the RIGHT edge.
+     It only looked correct at 1440+, where the head happens to be exactly as wide as its
+     parent. Width 100% keeps it flush no matter how long the longest line is. */
+  .hero-head{align-items:flex-start;align-self:flex-start;width:100%;}
+  .hero-copy{align-self:flex-start;width:100%;}
   .hero-copy{display:flex;flex-direction:column;align-items:flex-start;}
   .hero-cta{justify-content:flex-start;align-self:flex-start;}
   .hero-socials{justify-content:flex-start;align-self:flex-start;}
