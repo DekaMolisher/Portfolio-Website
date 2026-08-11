@@ -872,7 +872,11 @@
   /* The image column used to be a fraction wider than the portrait inside it, so most
      of the space between the two halves was column slack rather than the gap. Sizing the
      column to its content means the gap is the only thing separating them. */
-  .social-showcase{display:grid;grid-template-columns:max-content 1fr;gap:34px;align-items:center;justify-content:start;}
+  /* Both columns are sized to their content and the pair is centred. With 1fr the copy
+     column stretched to 836px while its text is capped at 420px, so roughly 400px of the
+     column was empty and the whole section read as sitting left of centre. */
+  .social-showcase{display:grid;grid-template-columns:max-content minmax(0,460px);
+    gap:34px;align-items:center;justify-content:center;}
   .social-frame{position:relative;border:1px solid var(--line);padding:14px;overflow:hidden;max-width:330px;}
   .social-frame img{width:100%;height:100%;object-fit:cover;aspect-ratio:3/4;display:block;position:relative;z-index:1;}
   .social-frame.is-hover .frame-corner .glow{opacity:1;}
