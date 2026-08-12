@@ -50,18 +50,23 @@ Everything you will want to change lives in **`config.json`**. No code.
 | `cooldownHours` | How long before the same person can get another auto-reply. `168` = one week. |
 | `skipIfContains` | A hard veto. If a message contains any of these, it is never replied to — even if it also matches a keyword. |
 | `rules[].name` | A label for your own reference and the logs. |
-| `rules[].keywords` | Any of these appearing anywhere in the message triggers the rule. |
+| `rules[].keywords` | Any of these appearing as whole words in the message triggers the rule. |
 | `rules[].reply` | The message sent back. `\n` is a line break. |
 
 Notes on matching:
 
 - Matching ignores case and accents, so `cuanto cuesta` also matches
   "¿Cuánto Cuesta?".
-- Keywords match **anywhere** in the message, so `cuanto cuesta` matches
-  "oye y cuanto cuesta una sesion?".
+- Keywords match anywhere in the message but only as **whole words**, so
+  `precio` fires on "cual es el precio?" and not on "te aprecio mucho".
+  Punctuation does not get in the way — `precio` still matches "precio?".
 - Rules are checked **top to bottom** and the first match wins. Put your specific
   rules above the general ones.
-- Prefer phrases over single words. `precio` is safer than `foto`.
+- Because matching is word-aware, single words like `precio` or `agendar` are
+  safe to use. Still avoid words that turn up in ordinary conversation — `foto`
+  would fire on "mándame la foto".
+- `skipIfContains` works differently on purpose: it is a plain substring test, so
+  `jaja` also catches "jajajaja".
 
 ### Check your edits before they go live
 
@@ -155,7 +160,44 @@ app. Try in this order:
 4. Click **Verify and Save** — it should succeed immediately.
 5. Subscribe to the **`messages`** field.
 
-### 4. Test it
+### 4. Subscribe the account to the app
+
+**Do not skip this — it is the step with no button in the dashboard.**
+
+Configuring the webhook tells Meta that the *app* can receive message events. It
+does not subscribe your *account* to them. That requires a `POST` to
+`/me/subscribed_apps`, and without it Meta delivers nothing at all: no error, no
+retry, and a completely silent log that is indistinguishable from a broken
+server.
+
+Visit, in a browser:
+
+```
+https://your-service.onrender.com/admin/status?token=YOUR_IG_VERIFY_TOKEN
+```
+
+That reports which credentials are set, whether Meta accepts the access token,
+which account it resolves to, and `subscribedToMessages`. If that last one is
+`false`:
+
+```
+https://your-service.onrender.com/admin/subscribe?token=YOUR_IG_VERIFY_TOKEN
+```
+
+Then re-check `/admin/status` and confirm it flipped to `true`.
+
+Both routes are guarded by `IG_VERIFY_TOKEN`, and the request log redacts it.
+They only read status and subscribe — they cannot send messages or change the
+config.
+
+### 5. Check the account-side toggle
+
+In the Instagram app, as the business account:
+**Settings → Messages and story replies → Connected tools → Allow access to
+messages** must be ON. It is off by default and silently blocks delivery
+regardless of everything else.
+
+### 6. Test it
 
 DM @dekagrophy from another account with "cuanto cuesta una sesion". You should
 get the pricing template back within a second or two. Then send "hola" from a
