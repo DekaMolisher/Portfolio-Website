@@ -112,6 +112,61 @@ signature rejection, cooldown, echoes, reel shares.
 
 ---
 
+## Conversation mode (optional)
+
+By default a matching keyword sends one canned reply. Turn on conversation mode
+and it instead starts a real exchange: the assistant asks what they need,
+collects the details over a few messages, and then emails you **the same
+template the website's contact form sends** — so an Instagram inquiry lands in
+your inbox looking identical to a web one.
+
+```json
+"agent": { "enabled": true, "model": "claude-opus-5", "maxTurns": 20 }
+```
+
+Two environment variables are needed on the host:
+
+| Key | Where to get it |
+| --- | --- |
+| `ANTHROPIC_API_KEY` | <https://console.anthropic.com> → API keys |
+| `EMAILJS_PRIVATE_KEY` | EmailJS dashboard → Account → API keys → Private Key |
+
+The public EmailJS key in the website's source cannot send from a server; the
+private key is what authorises it. It belongs in the host's environment
+variables, never in `config.json`.
+
+### What stays the same
+
+**The keyword list is still the entry condition.** A conversation only starts if
+a message matches a rule, so ordinary chats with your regulars are untouched —
+the anti-spam behaviour is unchanged. Once a conversation *is* running, every
+following message from that person goes to the assistant until it finishes,
+expires, or hits `maxTurns`.
+
+### What it will and won't say
+
+The assistant is instructed never to quote a price, never to confirm a date, and
+never to invent details — it says Deka will confirm. Edit `businessContext` to
+correct what it knows about your services, and `extraInstructions` to add rules
+of your own. Both live in `config.json`.
+
+### Limits worth knowing
+
+- **Conversations live in memory.** The free hosting tier restarts periodically,
+  and a restart drops anything in progress — the next message from that person
+  simply starts over. Nothing breaks; they just repeat themselves once.
+- **24-hour window.** Instagram only allows replying within 24 hours of the
+  person's last message, so a conversation someone abandons cannot be revived.
+- **Cost.** Each completed conversation is a few cents at `claude-opus-5`. Set
+  `"model": "claude-haiku-4-5"` in the agent block for a cheaper, less capable
+  assistant.
+- **Every failure falls back.** A missing API key, a refusal, or an outage sends
+  the plain keyword reply instead — never silence.
+
+Check the behaviour with `npm run test:agent`, which drives the whole flow
+(question turns, the hand-over, a failed email, a refusal) against a stubbed
+model, so it needs no API key and costs nothing.
+
 ## One-time setup
 
 ### 1. Instagram side

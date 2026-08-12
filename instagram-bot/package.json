@@ -10,9 +10,11 @@
   "scripts": {
     "start": "node server.js",
     "test": "node test-matching.js",
-    "test:webhook": "node test-webhook.js"
+    "test:webhook": "node test-webhook.js",
+    "test:agent": "node test-agent.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.116.0",
     "express": "^4.21.2"
   }
 }

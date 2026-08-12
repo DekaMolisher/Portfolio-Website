@@ -3,6 +3,13 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const { matchRule, detectLanguage, pickReply } = require('./matching');
+const { runAgent, createClient } = require('./agent');
+const { sendInquiry } = require('./mailer');
+const store = require('./store');
+
+/* Built once on first use — a missing API key is a config problem, not a
+   startup failure, since the keyword bot still works without it. */
+let anthropic = null;
 
 const {
   IG_VERIFY_TOKEN,
@@ -227,15 +234,27 @@ async function handleMessage(config, event) {
   const senderId = event.sender && event.sender.id;
   if (!senderId) return console.log('skipped: no sender id');
 
-  const rule = matchRule(config, text);
-  if (!rule) return console.log(`no rule matched: "${text}"`);
+  const agentConfig = config.agent || {};
+  const ttlHours = agentConfig.conversationTtlHours ?? 24;
 
-  if (onCooldown(senderId, config.cooldownHours ?? 168)) {
+  /* Someone already mid-conversation continues there, whatever they say next —
+     the keyword gate is the entry condition, not a per-message filter. */
+  const active = agentConfig.enabled ? store.get(senderId, ttlHours) : null;
+
+  const rule = active ? null : matchRule(config, text);
+  if (!active && !rule) return console.log(`no rule matched: "${text}"`);
+
+  if (!active && onCooldown(senderId, config.cooldownHours ?? 168)) {
     console.log(`skipped ${senderId}: on cooldown (rule "${rule.name}")`);
     return;
   }
 
   const language = detectLanguage(text, config.defaultLanguage);
+
+  if (agentConfig.enabled) {
+    return handleWithAgent({ config, senderId, text, language, active, ttlHours });
+  }
+
   const replyText = pickReply(rule, language, config.defaultLanguage);
   if (!replyText) {
     return console.log(`rule "${rule.name}" has no usable reply — check config.json`);
@@ -244,6 +263,71 @@ async function handleMessage(config, event) {
   await sendReply(senderId, replyText);
   lastRepliedAt.set(senderId, Date.now());
   console.log(`replied to ${senderId} with rule "${rule.name}" in ${language}`);
+}
+
+/* The conversational path. Falls back to the keyword reply on any failure, so a
+   missing API key, a refusal, or an outage degrades to the behaviour that was
+   working before rather than to silence. */
+async function handleWithAgent({ config, senderId, text, language, active, ttlHours }) {
+  const client = anthropic || (anthropic = createClient());
+  if (!client) {
+    console.log('agent enabled but ANTHROPIC_API_KEY is not set — using keyword reply');
+    return keywordFallback(config, senderId, text, language);
+  }
+
+  const convo = active || store.start(senderId);
+  const maxTurns = config.agent.maxTurns ?? 20;
+  if (convo.turns >= maxTurns) {
+    console.log(`conversation with ${senderId} hit maxTurns — handing off`);
+    store.end(senderId);
+    return;
+  }
+
+  let result;
+  try {
+    result = await runAgent({
+      client,
+      config,
+      history: convo.messages,
+      userMessage: text,
+      language,
+      onSubmit: (inquiry) => sendInquiry(inquiry, senderId)
+    });
+  } catch (err) {
+    console.error('agent error:', err.message);
+    store.end(senderId);
+    return keywordFallback(config, senderId, text, language);
+  }
+
+  if (result.refused || !result.reply) {
+    console.log(`agent produced no reply for ${senderId} — using keyword reply`);
+    store.end(senderId);
+    return keywordFallback(config, senderId, text, language);
+  }
+
+  await sendReply(senderId, result.reply);
+
+  if (result.inquiry) {
+    store.end(senderId);
+    lastRepliedAt.set(senderId, Date.now());
+    console.log(`inquiry submitted for ${senderId}: ${JSON.stringify(result.inquiry)}`);
+    return;
+  }
+
+  convo.messages = result.messages;
+  convo.turns += 1;
+  store.save(senderId, convo);
+  console.log(`agent replied to ${senderId} (turn ${convo.turns}, ${language})`);
+}
+
+async function keywordFallback(config, senderId, text, language) {
+  const rule = matchRule(config, text);
+  if (!rule) return;
+  const replyText = pickReply(rule, language, config.defaultLanguage);
+  if (!replyText) return;
+  await sendReply(senderId, replyText);
+  lastRepliedAt.set(senderId, Date.now());
+  console.log(`fell back to rule "${rule.name}" for ${senderId}`);
 }
 
 app.get('/', (_req, res) => res.send('ok'));

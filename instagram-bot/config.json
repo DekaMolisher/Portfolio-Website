@@ -4,7 +4,17 @@
   "_comment_cooldown": "Once someone gets an auto-reply, they won't get another for this many hours. Stops repeat replies during a back-and-forth.",
   "cooldownHours": 168,
 
-  "_comment_language": "Each reply has an 'es' and an 'en' version. The whole message is scored to decide which to send, so a message that opens in one language but is mostly written in the other gets answered in the one it is mostly written in. defaultLanguage is used only when a message is too short or too mixed to call.",
+  "_comment_agent": "When enabled, a matching keyword starts a real conversation instead of sending one canned reply: the assistant asks what they need, collects the details, and emails you the same template the website form sends. Needs ANTHROPIC_API_KEY and EMAILJS_PRIVATE_KEY. Set enabled to false to go back to plain keyword replies.",
+  "agent": {
+    "enabled": false,
+    "model": "claude-opus-5",
+    "maxTurns": 20,
+    "conversationTtlHours": 24,
+    "businessContext": "Deka shoots portraits, weddings, quinceañeras, concerts, events and brand content, and also does videography and graphic design. He is based in San Diego and works in both English and Spanish.",
+    "extraInstructions": ""
+  },
+
+  "_comment_language":"Each reply has an 'es' and an 'en' version. The whole message is scored to decide which to send, so a message that opens in one language but is mostly written in the other gets answered in the one it is mostly written in. defaultLanguage is used only when a message is too short or too mixed to call.",
   "defaultLanguage": "es",
 
   "_comment_skipIfContains": "If a message contains ANY of these, it is never auto-replied to — even if it also matches a rule keyword. Use for your regulars and casual talk.",
