@@ -4,6 +4,7 @@
 const config = require('./config.json');
 const { runAgent, buildSystemPrompt, SUBMIT_INQUIRY } = require('./agent');
 const { toTemplateParams } = require('./mailer');
+const { createHandleLookup } = require('./profile');
 const store = require('./store');
 
 let failures = 0;
@@ -139,6 +140,45 @@ const FULL_INQUIRY = {
   check('an english conversation is told to answer in english', /in English/.test(buildSystemPrompt(config, 'en')));
   check('a spanish conversation is told to answer in spanish', /in Spanish/.test(buildSystemPrompt(config, 'es')));
   check('the prompt forbids quoting prices', /Never quote a price/.test(buildSystemPrompt(config, 'es')));
+  check('the prompt forbids asking for the instagram handle',
+    /Never ask for their Instagram handle/.test(buildSystemPrompt(config, 'es')));
+
+  /* --- the sender's @handle is captured rather than asked for --- */
+  {
+    const lookup = createHandleLookup(async (pathname, opts) => {
+      check('the handle lookup asks for the username field', opts.params.fields === 'username');
+      check('the handle lookup addresses the sender by id', pathname === '/17841400000000000');
+      return { ok: true, body: { username: 'ana.reyes' } };
+    });
+    check('the sender id is traded for an @handle',
+      (await lookup('17841400000000000')) === '@ana.reyes');
+
+    let calls = 0;
+    const counting = createHandleLookup(async () => {
+      calls++;
+      return { ok: true, body: { username: 'ana' } };
+    });
+    await counting('user-1');
+    await counting('user-1');
+    check('a resolved handle is looked up only once', calls === 1);
+
+    const denied = createHandleLookup(async () => ({ ok: false, body: { error: 'no permission' } }));
+    check('a refused lookup reports no handle', (await denied('user-2')) === null);
+
+    const broken = createHandleLookup(async () => { throw new Error('network down'); });
+    check('a failed lookup does not throw', (await broken('user-3')) === null);
+
+    let retries = 0;
+    const flaky = createHandleLookup(async () => {
+      retries++;
+      return retries === 1 ? { ok: false, body: {} } : { ok: true, body: { username: 'ana' } };
+    });
+    await flaky('user-4');
+    check('a failed lookup is retried rather than cached', (await flaky('user-4')) === '@ana');
+
+    check('the handle is what reaches the email',
+      toTemplateParams(FULL_INQUIRY, '@ana.reyes').instagram === '@ana.reyes');
+  }
 
   // --- the tool schema is strict, so arguments always validate
   check('the submit tool is strict', SUBMIT_INQUIRY.strict === true);

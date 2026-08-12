@@ -143,6 +143,19 @@ the anti-spam behaviour is unchanged. Once a conversation *is* running, every
 following message from that person goes to the assistant until it finishes,
 expires, or hits `maxTurns`.
 
+### Who wrote in
+
+The webhook identifies people by a 17-digit app-scoped id, which tells you
+nothing. Before the inquiry is emailed, that id is traded for the sender's
+**@handle** through the profile API, so an Instagram inquiry names them the way
+Instagram does — and the assistant is told never to ask for it, because asking
+someone their handle mid-DM reads as though you do not know who you are talking
+to.
+
+It needs the same `instagram_business_manage_messages` permission the bot
+already uses to reply. If the lookup is refused the raw id is sent instead and
+the reason is logged; the inquiry still arrives.
+
 ### What it will and won't say
 
 The assistant is instructed never to quote a price, never to confirm a date, and

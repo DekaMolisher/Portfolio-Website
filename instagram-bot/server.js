@@ -5,6 +5,7 @@ const path = require('path');
 const { matchRule, detectLanguage, pickReply } = require('./matching');
 const { runAgent, createClient } = require('./agent');
 const { sendInquiry } = require('./mailer');
+const { createHandleLookup } = require('./profile');
 const store = require('./store');
 
 /* Built once on first use — a missing API key is a config problem, not a
@@ -64,6 +65,10 @@ async function graph(pathname, { method = 'GET', params = {} } = {}) {
   }
   return { status: res.status, ok: res.ok, body };
 }
+
+/* Turns the sender's numeric id into their @handle, so an inquiry that came in
+   through Instagram names the person the way Instagram does. */
+const lookupHandle = createHandleLookup(graph);
 
 async function sendReply(recipientId, text) {
   const url = `https://${IG_GRAPH_HOST}/${IG_GRAPH_VERSION}/me/messages`;
@@ -291,7 +296,9 @@ async function handleWithAgent({ config, senderId, text, language, active, ttlHo
       history: convo.messages,
       userMessage: text,
       language,
-      onSubmit: (inquiry) => sendInquiry(inquiry, senderId)
+      /* Falls back to the raw id if the handle cannot be resolved — worth less
+         in the inbox, but better than nothing to go on. */
+      onSubmit: async (inquiry) => sendInquiry(inquiry, (await lookupHandle(senderId)) || senderId)
     });
   } catch (err) {
     console.error('agent error:', err.message);

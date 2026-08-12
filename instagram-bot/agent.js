@@ -73,6 +73,10 @@ function buildSystemPrompt(config, language) {
       'WhatsApp is fine), what kind of session they want, and roughly when. Location and ' +
       'the vibe they are after are useful too, but do not interrogate them for it.',
     '',
+    'Never ask for their Instagram handle. You are already talking to them on Instagram, ' +
+      'and their handle is attached to the inquiry automatically — asking for it reads as ' +
+      'though you do not know who you are speaking to.',
+    '',
     'Once you have those, call the submit_inquiry tool. After it succeeds, tell them Deka ' +
       'has their details and will follow up personally, and stop asking questions.',
     '',
