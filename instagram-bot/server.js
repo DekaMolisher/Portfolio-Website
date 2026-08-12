@@ -39,6 +39,25 @@ function onCooldown(senderId, cooldownHours) {
   return Date.now() - previous < cooldownHours * 3600 * 1000;
 }
 
+async function graph(pathname, { method = 'GET', params = {} } = {}) {
+  const url = new URL(`https://${IG_GRAPH_HOST}/${IG_GRAPH_VERSION}${pathname}`);
+  for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
+
+  const res = await fetch(url, {
+    method,
+    headers: { Authorization: `Bearer ${IG_ACCESS_TOKEN}` }
+  });
+
+  const raw = await res.text();
+  let body;
+  try {
+    body = JSON.parse(raw);
+  } catch {
+    body = raw;
+  }
+  return { status: res.status, ok: res.ok, body };
+}
+
 async function sendReply(recipientId, text) {
   const url = `https://${IG_GRAPH_HOST}/${IG_GRAPH_VERSION}/me/messages`;
   const res = await fetch(url, {
@@ -70,7 +89,9 @@ app.use(
 /* Every request, so an empty log is unambiguous evidence that nothing reached
    the server at all — rather than something arriving and being dropped. */
 app.use((req, _res, next) => {
-  console.log(`${req.method} ${req.originalUrl}`);
+  /* Redacted: the admin routes carry the shared token in the query string, and
+     these logs are visible to anyone with dashboard access. */
+  console.log(`${req.method} ${req.originalUrl.replace(/token=[^&]*/g, 'token=***')}`);
   next();
 });
 
@@ -88,6 +109,59 @@ app.get('/webhook', (req, res) => {
       `${IG_VERIFY_TOKEN ? 'does not match IG_VERIFY_TOKEN' : 'but IG_VERIFY_TOKEN is not set'}`
   );
   res.sendStatus(403);
+});
+
+/* Setup helpers, reachable from a browser because the free hosting tier has no
+   shell. Guarded by IG_VERIFY_TOKEN, which is already a shared secret. */
+function adminAuthed(req) {
+  return Boolean(IG_VERIFY_TOKEN) && req.query.token === IG_VERIFY_TOKEN;
+}
+
+/* Reports whether the access token works and whether this Instagram account is
+   actually subscribed to the app — configuring the webhook in the dashboard
+   does not do this, and without it Meta delivers nothing. */
+app.get('/admin/status', async (req, res) => {
+  if (!adminAuthed(req)) return res.status(403).json({ error: 'bad or missing ?token=' });
+
+  const me = await graph('/me', { params: { fields: 'id,username' } });
+  const subs = await graph('/me/subscribed_apps');
+
+  const subscribedFields = Array.isArray(subs.body && subs.body.data)
+    ? subs.body.data.flatMap((app) => app.subscribed_fields || [])
+    : [];
+
+  res.json({
+    env: {
+      IG_ACCESS_TOKEN: IG_ACCESS_TOKEN ? 'set' : 'MISSING',
+      IG_APP_SECRET: IG_APP_SECRET ? 'set' : 'MISSING',
+      IG_VERIFY_TOKEN: IG_VERIFY_TOKEN ? 'set' : 'MISSING'
+    },
+    account: me.ok ? me.body : { error: 'token rejected', detail: me.body },
+    subscribedApps: subs.body,
+    subscribedToMessages: subscribedFields.includes('messages'),
+    nextStep: subscribedFields.includes('messages')
+      ? 'Subscribed. If DMs still do not arrive, check Instagram > Settings > Messages and story replies > Connected tools > Allow access to messages.'
+      : 'NOT subscribed — open /admin/subscribe?token=... to fix.'
+  });
+});
+
+/* The step with no button in the dashboard. */
+app.get('/admin/subscribe', async (req, res) => {
+  if (!adminAuthed(req)) return res.status(403).json({ error: 'bad or missing ?token=' });
+
+  const result = await graph('/me/subscribed_apps', {
+    method: 'POST',
+    params: { subscribed_fields: 'messages' }
+  });
+
+  console.log(`admin subscribe -> ${result.status} ${JSON.stringify(result.body)}`);
+  res.status(result.ok ? 200 : 400).json({
+    ok: result.ok,
+    response: result.body,
+    nextStep: result.ok
+      ? 'Now re-check /admin/status, then send yourself a test DM.'
+      : 'Failed. The error above is from Meta — usually the access token lacks the messaging permission.'
+  });
 });
 
 function signatureValid(req) {

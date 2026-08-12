@@ -100,6 +100,14 @@ async function post(body, { signed = true } = {}) {
   await post(event('cuanto cuesta', { attachments: [{ type: 'ig_reel' }] }, 'user-4'));
   check('shared reel ignored', sent.length === 0);
 
+  for (const route of ['/admin/status', '/admin/subscribe']) {
+    const noToken = await realFetch(`${BASE}${route}`);
+    check(`${route} rejects a missing token`, noToken.status === 403);
+
+    const wrongToken = await realFetch(`${BASE}${route}?token=nope`);
+    check(`${route} rejects a wrong token`, wrongToken.status === 403);
+  }
+
   console.log(failures ? `\n${failures} failing` : '\nall passing');
   process.exit(failures ? 1 : 0);
 })();
