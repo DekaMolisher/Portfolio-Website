@@ -33,7 +33,12 @@ function toTemplateParams(inquiry, instagramHandle) {
     date: orDash(inquiry.date),
     time: orDash(inquiry.time),
     to_email: INQUIRY_TO_EMAIL,
-    reply_to: inquiry.email || INQUIRY_TO_EMAIL
+    reply_to: inquiry.email || INQUIRY_TO_EMAIL,
+    /* The template renders a mosaic of the reference photos the website form
+       collects. Instagram inquiries carry none, so these go out empty rather
+       than absent — an undeclared variable would render as literal braces. */
+    photos_html: '',
+    photo_count: '0'
   };
 }
 
