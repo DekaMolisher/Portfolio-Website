@@ -4133,16 +4133,14 @@
     /* Strips the reference photos back out of an otherwise-ready set of params.
        Used for the client's confirmation copy, which does not need its own
        photos posted back, and as the retry when a send fails carrying them. */
-    /* `keepCount` separates the two reasons for stripping. The client's copy
-       does not need its own photos posted back but should still say how many
-       it received; the retry after a rejected send must report none, because
-       none arrived. */
-    function withoutPhotos(params, keepCount) {
+    /* Used when a send is rejected while carrying the photos. Everything about
+       them goes, the count included, because none of them arrived. */
+    function withoutPhotos(params) {
       const copy = Object.assign({}, params);
       const slots = window.InquiryPhotos ? InquiryPhotos.MAX_PHOTOS : 6;
       for (let i = 1; i <= slots; i++) delete copy['photo' + i];
       copy.photos_html = '';
-      if (!keepCount) copy.photo_count = '0';
+      copy.photo_count = '0';
       return copy;
     }
 
@@ -4180,17 +4178,17 @@
       /* Resizing six phone photos takes a moment, and it happens before the
          send, so the button says what is actually going on. */
       const files = photoPicker.files();
-      let attached = 0;
+      let photos = [];
       if (files.length && window.InquiryPhotos) {
         submitLabel.textContent = files.length > 1 ? 'Preparing photos…' : 'Preparing photo…';
         try {
           const prepared = await InquiryPhotos.prepare(files);
-          prepared.photos.forEach((photo) => { templateParams[photo.cid] = photo.base64; });
-          templateParams.photos_html = InquiryPhotos.buildMosaicHtml(prepared.photos, {
-            heading: `Reference photos (${prepared.photos.length})`
+          photos = prepared.photos;
+          photos.forEach((photo) => { templateParams[photo.cid] = photo.base64; });
+          templateParams.photos_html = InquiryPhotos.buildMosaicHtml(photos, {
+            heading: `Reference photos (${photos.length})`
           });
-          templateParams.photo_count = String(prepared.photos.length);
-          attached = prepared.photos.length;
+          templateParams.photo_count = String(photos.length);
           if (prepared.failed.length) {
             photoPicker.say(
               `Couldn't read ${prepared.failed.join(', ')} — the rest are attached.`, true);
@@ -4202,18 +4200,27 @@
 
       submitLabel.textContent = 'Sending…';
 
-      const confirmClient = (params) => {
+      /* The client's copy carries the same attachments, so their confirmation
+         shows them what they sent rather than telling them a number. The
+         mosaic is rebuilt rather than reused only because the heading is
+         addressed to them instead of to Deka — the photos are identical. */
+      const confirmClient = (params, sent) => {
         // Best-effort: a copy for the client shouldn't block or fail the booking itself.
-        if (EMAILJS_CLIENT_TEMPLATE_ID !== 'YOUR_CLIENT_TEMPLATE_ID') {
-          emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_CLIENT_TEMPLATE_ID, withoutPhotos(params, true))
-            .catch((err) => console.error('EmailJS client confirmation failed:', err));
+        if (EMAILJS_CLIENT_TEMPLATE_ID === 'YOUR_CLIENT_TEMPLATE_ID') return;
+        const copy = Object.assign({}, params);
+        if (sent && sent.length) {
+          copy.photos_html = InquiryPhotos.buildMosaicHtml(sent, {
+            heading: `The photos you sent (${sent.length})`
+          });
         }
+        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_CLIENT_TEMPLATE_ID, copy)
+          .catch((err) => console.error('EmailJS client confirmation failed:', err));
       };
 
       try {
         await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
         revealSuccess();
-        confirmClient(templateParams);
+        confirmClient(templateParams, photos);
       } catch (err) {
         console.error('EmailJS send failed:', err);
 
@@ -4221,12 +4228,12 @@
            the only part of the payload with a size limit on it. An inquiry that
            arrives without its references still beats one that never arrives, so
            it goes again without them and says so. */
-        if (attached) {
+        if (photos.length) {
           try {
             const bare = withoutPhotos(templateParams);
             await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, bare);
             revealSuccess(true);
-            confirmClient(bare);
+            confirmClient(bare, null);
             return;
           } catch (retryErr) {
             console.error('EmailJS retry without photos failed:', retryErr);
