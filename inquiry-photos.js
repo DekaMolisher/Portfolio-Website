@@ -159,8 +159,10 @@
     const heading = opts.heading
       ? `<table role="presentation" width="${containerWidth}" cellpadding="0" cellspacing="0" ` +
         `border="0" style="width:100%;max-width:${containerWidth}px;"><tr>` +
-        `<td style="padding:26px 0 12px;font:600 11px/1.4 Helvetica,Arial,sans-serif;` +
-        `letter-spacing:.14em;text-transform:uppercase;color:#8A6A1F;">` +
+        /* Matches the section headings in email-templates/, which is the only
+           reason this styling is here rather than in the template. */
+        `<td style="padding:26px 0 12px;font:700 11px/1.4 Helvetica,Arial,sans-serif;` +
+        `letter-spacing:.18em;text-transform:uppercase;color:#9A7128;">` +
         `${escapeHtml(opts.heading)}</td></tr></table>`
       : '';
 
