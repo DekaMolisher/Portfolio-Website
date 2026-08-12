@@ -1,7 +1,7 @@
 /* Run with `npm test`. Add your own lines to SHOULD_REPLY / SHOULD_IGNORE after
    editing config.json to confirm the bot fires only where you expect. */
 const config = require('./config.json');
-const { matchRule } = require('./matching');
+const { matchRule, detectLanguage, pickReply } = require('./matching');
 
 const SHOULD_REPLY = [
   ['Quiero agendar una sesión', 'booking'],
@@ -24,7 +24,11 @@ const SHOULD_REPLY = [
   ['info porfa', 'info'],
   ['quiero una sesion de fotos', 'booking'],
   ['me gustaria agendar algo para el sabado', 'booking'],
-  ['tienes cupo este mes?', 'availability']
+  ['tienes cupo este mes?', 'availability'],
+  ['Hey, whats up! Quiero saber los costos de tus servicios', 'pricing'],
+  ['whats your pricing like', 'pricing'],
+  ['do you have any openings next month', 'availability'],
+  ['i want to book a shoot', 'booking']
 ];
 
 const SHOULD_IGNORE = [
@@ -65,6 +69,41 @@ for (const text of SHOULD_IGNORE) {
     failures++;
   } else {
     console.log(`ok    ${'(ignored)'.padEnd(13)} <- ${text}`);
+  }
+}
+
+/* Which language each message gets answered in. The mixed cases are the point:
+   detection reads the whole message, not the opening words. */
+const LANGUAGE = [
+  ['Hey, whats up! Quiero saber los costos de tus servicios', 'es'],
+  ['Hola! How much for a session?', 'en'],
+  ['Buenas, cuanto cobras por una sesion de fotos?', 'es'],
+  ['Hi, im interested in booking a shoot in San Diego', 'en'],
+  ['Hello, quiero agendar una sesion para mi novia porfa', 'es'],
+  ['Hey! Do you shoot quinceañeras?', 'en'],
+  ['whats your pricing like', 'en'],
+  ['oye tienes disponibilidad este finde?', 'es']
+];
+
+console.log('');
+for (const [text, expected] of LANGUAGE) {
+  const got = detectLanguage(text, config.defaultLanguage);
+  if (got !== expected) {
+    console.log(`FAIL  expected ${expected}, got ${got}  <- ${text}`);
+    failures++;
+  } else {
+    console.log(`ok    reply in ${got}  <- ${text}`);
+  }
+}
+
+/* Every rule must be able to answer in both languages. */
+for (const rule of config.rules) {
+  for (const language of ['es', 'en']) {
+    const reply = pickReply(rule, language, config.defaultLanguage);
+    if (!reply) {
+      console.log(`FAIL  rule "${rule.name}" has no ${language} reply`);
+      failures++;
+    }
   }
 }
 

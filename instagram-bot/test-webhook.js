@@ -85,6 +85,17 @@ async function post(body, { signed = true } = {}) {
   check('same sender on cooldown gets nothing', sent.length === 0);
 
   sent.length = 0;
+  await post(event('Hi! How much for a session?', {}, 'user-en'));
+  check('english inquiry gets the english reply', /Pricing depends/i.test(sent[0]?.message?.text || ''));
+
+  sent.length = 0;
+  await post(event('Hey, whats up! Quiero saber los costos', {}, 'user-mixed'));
+  check(
+    'mixed message answered in its majority language',
+    /precios dependen/i.test(sent[0]?.message?.text || '')
+  );
+
+  sent.length = 0;
   await post(event('hola deka! como estas', {}, 'user-2'));
   check('casual message ignored', sent.length === 0);
 

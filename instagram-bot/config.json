@@ -4,6 +4,9 @@
   "_comment_cooldown": "Once someone gets an auto-reply, they won't get another for this many hours. Stops repeat replies during a back-and-forth.",
   "cooldownHours": 168,
 
+  "_comment_language": "Each reply has an 'es' and an 'en' version. The whole message is scored to decide which to send, so a message that opens in one language but is mostly written in the other gets answered in the one it is mostly written in. defaultLanguage is used only when a message is too short or too mixed to call.",
+  "defaultLanguage": "es",
+
   "_comment_skipIfContains": "If a message contains ANY of these, it is never auto-replied to — even if it also matches a rule keyword. Use for your regulars and casual talk.",
   "skipIfContains": [
     "jajaja",
@@ -37,6 +40,7 @@
         "tarifa",
         "tarifas",
         "costo",
+        "costos",
         "presupuesto",
         "cotizacion",
         "cotizar",
@@ -48,7 +52,10 @@
         "cost",
         "quote"
       ],
-      "reply": "¡Hola! Gracias por escribir 🙌\n\nLos precios dependen del tipo de sesión (retrato, boda, quinceañera, evento o contenido de marca), la duración y cuántas fotos editadas quieres.\n\nCuéntame qué tienes en mente y te paso una cotización exacta — o llena el formulario aquí y te respondo con todos los detalles:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact\n\n— Deka"
+      "reply": {
+        "es": "¡Hola! Gracias por escribir 🙌\n\nLos precios dependen del tipo de sesión (retrato, boda, quinceañera, evento o contenido de marca), la duración y cuántas fotos editadas quieres.\n\nCuéntame qué tienes en mente y te paso una cotización exacta — o llena el formulario aquí y te respondo con todos los detalles:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact\n\n— Deka",
+        "en": "Hey! Thanks for reaching out 🙌\n\nPricing depends on the type of session (portraits, weddings, quinceañeras, events or brand content), how long we shoot, and how many edited photos you want.\n\nTell me what you have in mind and I'll send you an exact quote — or fill out the form here and I'll come back with all the details:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact\n\n— Deka"
+      }
     },
     {
       "name": "availability",
@@ -67,7 +74,10 @@
         "openings",
         "free on"
       ],
-      "reply": "¡Hola! Gracias por escribir 🙌\n\nSí manejo agenda — dime la fecha (o el rango de fechas) que tienes en mente y el tipo de sesión, y te confirmo disponibilidad.\n\nSi prefieres, mándame los detalles por aquí y te contesto con la agenda:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact\n\n— Deka"
+      "reply": {
+        "es": "¡Hola! Gracias por escribir 🙌\n\nSí manejo agenda — dime la fecha (o el rango de fechas) que tienes en mente y el tipo de sesión, y te confirmo disponibilidad.\n\nSi prefieres, mándame los detalles por aquí y te contesto con la agenda:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact\n\n— Deka",
+        "en": "Hey! Thanks for reaching out 🙌\n\nHappy to check — let me know the date (or range of dates) you have in mind and what kind of session it is, and I'll confirm availability.\n\nYou can also send the details through here and I'll get back to you with my schedule:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact\n\n— Deka"
+      }
     },
     {
       "name": "booking",
@@ -90,7 +100,10 @@
         "schedule a shoot",
         "hire you"
       ],
-      "reply": "¡Hola! Qué gusto que quieras trabajar juntos 🙌\n\nPara agendar solo necesito: tipo de sesión, fecha tentativa, lugar y qué vibra buscas.\n\nMándamelo por aquí y te confirmo todo de una vez:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact\n\nTambién puedes contestarme por acá y lo vemos.\n\n— Deka"
+      "reply": {
+        "es": "¡Hola! Qué gusto que quieras trabajar juntos 🙌\n\nPara agendar solo necesito: tipo de sesión, fecha tentativa, lugar y qué vibra buscas.\n\nMándamelo por aquí y te confirmo todo de una vez:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact\n\nTambién puedes contestarme por acá y lo vemos.\n\n— Deka",
+        "en": "Hey! Would love to shoot with you 🙌\n\nTo get you booked I just need: the type of session, a rough date, the location, and the vibe you're going for.\n\nSend that over here and I'll confirm everything in one go:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact\n\nOr just reply here and we'll figure it out.\n\n— Deka"
+      }
     },
     {
       "name": "info",
@@ -106,7 +119,10 @@
         "how does it work",
         "packages"
       ],
-      "reply": "¡Hola! Gracias por escribir 🙌\n\nUna sesión típica incluye la planeación del concepto, la sesión completa y una selección de fotos editadas en alta resolución. El número de fotos y la duración se ajustan al paquete.\n\nAquí puedes ver el portafolio completo y mandarme los detalles de lo que buscas:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact\n\n— Deka"
+      "reply": {
+        "es": "¡Hola! Gracias por escribir 🙌\n\nUna sesión típica incluye la planeación del concepto, la sesión completa y una selección de fotos editadas en alta resolución. El número de fotos y la duración se ajustan al paquete.\n\nAquí puedes ver el portafolio completo y mandarme los detalles de lo que buscas:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact\n\n— Deka",
+        "en": "Hey! Thanks for reaching out 🙌\n\nA typical session covers planning the concept, the shoot itself, and a set of edited high-resolution photos. The number of images and the shoot length depend on the package.\n\nYou can see the full portfolio here and send me the details of what you're after:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact\n\n— Deka"
+      }
     }
   ]
 }

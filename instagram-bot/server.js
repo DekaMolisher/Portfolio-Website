@@ -2,7 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
-const { matchRule } = require('./matching');
+const { matchRule, detectLanguage, pickReply } = require('./matching');
 
 const {
   IG_VERIFY_TOKEN,
@@ -235,9 +235,15 @@ async function handleMessage(config, event) {
     return;
   }
 
-  await sendReply(senderId, rule.reply);
+  const language = detectLanguage(text, config.defaultLanguage);
+  const replyText = pickReply(rule, language, config.defaultLanguage);
+  if (!replyText) {
+    return console.log(`rule "${rule.name}" has no usable reply — check config.json`);
+  }
+
+  await sendReply(senderId, replyText);
   lastRepliedAt.set(senderId, Date.now());
-  console.log(`replied to ${senderId} with rule "${rule.name}"`);
+  console.log(`replied to ${senderId} with rule "${rule.name}" in ${language}`);
 }
 
 app.get('/', (_req, res) => res.send('ok'));

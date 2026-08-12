@@ -39,4 +39,59 @@ function matchRule(config, text) {
   );
 }
 
-module.exports = { normalize, matchRule };
+/* Function words carry the signal: a greeting borrowed from the other language
+   ("Hey, ... quiero saber los costos") barely moves the count, while the words
+   holding the sentence together are almost never borrowed. Words that exist in
+   both languages — "me", "no", "son", "a", "the" as a surname — are in neither
+   list, since counting them adds noise on both sides. */
+const ES_WORDS = new Set(
+  ('que de la el los las un una unos unas por para con como cuanto cuando quiero ' +
+   'quisiera tienes tiene hay es esta este esa ese eso y mi mis tu tus su sus te ' +
+   'se en del al muy pero porque tambien gracias hola buenas dime saber costo ' +
+   'costos precio precios servicios sesion sesiones fotos foto hacer necesito ' +
+   'puedo puedes algo todo bien oye porfa favor disponible disponibilidad ' +
+   'agendar reservar cuesta vale sale cobras interesa gustaria').split(' ')
+);
+
+const EN_WORDS = new Set(
+  ('the is are was were you your yours i my mine how much many what when where ' +
+   'do does did can could would should want need have has had hi hey hello ' +
+   'thanks thank for with about and or but please im its dont available price ' +
+   'prices session sessions photos photo shoot shooting book booking looking ' +
+   'interested wondering we our they this that there here just like get some ' +
+   'know take').split(' ')
+);
+
+/* Which language to answer in. Scores the whole message rather than reading the
+   opening words, so a message that opens in one language and continues in
+   another is answered in the one it is actually written in. */
+function detectLanguage(text, defaultLanguage = 'es') {
+  const words = normalize(text).split(/[^a-z0-9']+/).filter(Boolean);
+
+  let es = 0;
+  let en = 0;
+  for (const word of words) {
+    if (ES_WORDS.has(word)) es++;
+    if (EN_WORDS.has(word)) en++;
+  }
+
+  /* Characters that only occur in Spanish, read from the raw text since
+     normalize() strips them. Worth more than a single word. */
+  if (/[ñáéíóú¿¡]/i.test(text)) es += 2;
+
+  if (es > en) return 'es';
+  if (en > es) return 'en';
+  return defaultLanguage;
+}
+
+/* A reply may be a plain string (same text for everyone) or an object keyed by
+   language. Falls back to the default language, then to whatever is defined, so
+   a half-translated config still answers instead of throwing. */
+function pickReply(rule, language, defaultLanguage = 'es') {
+  const reply = rule.reply;
+  if (typeof reply === 'string') return reply;
+  if (!reply || typeof reply !== 'object') return null;
+  return reply[language] || reply[defaultLanguage] || Object.values(reply)[0] || null;
+}
+
+module.exports = { normalize, matchRule, detectLanguage, pickReply };

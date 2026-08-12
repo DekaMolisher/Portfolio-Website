@@ -51,7 +51,31 @@ Everything you will want to change lives in **`config.json`**. No code.
 | `skipIfContains` | A hard veto. If a message contains any of these, it is never replied to — even if it also matches a keyword. |
 | `rules[].name` | A label for your own reference and the logs. |
 | `rules[].keywords` | Any of these appearing as whole words in the message triggers the rule. |
-| `rules[].reply` | The message sent back. `\n` is a line break. |
+| `rules[].reply` | The message sent back, as `{"es": "...", "en": "..."}`. `\n` is a line break. |
+| `defaultLanguage` | Used only when a message is too short or too mixed to call. |
+
+### Which language a reply is sent in
+
+Every rule carries a Spanish and an English version, and the language is chosen
+per message:
+
+```json
+"reply": {
+  "es": "¡Hola! Los precios dependen…",
+  "en": "Hey! Pricing depends…"
+}
+```
+
+The **whole message** is scored, not its opening words, because people switch
+languages mid-sentence. "Hey, whats up! Quiero saber los costos de tus
+servicios" opens in English but is written in Spanish, and is answered in
+Spanish. Scoring counts the small function words — *que, los, para, tus* against
+*the, your, how, much* — since those are rarely borrowed, and Spanish-only
+characters (ñ, á, ¿) count too. When nothing separates them, `defaultLanguage`
+decides.
+
+A reply may still be a plain string instead of an object, in which case everyone
+gets the same text.
 
 Notes on matching:
 
