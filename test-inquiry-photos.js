@@ -125,6 +125,19 @@ const photosOf = (...list) => list;
 {
   check('an empty set renders nothing', buildMosaicHtml([]) === '');
   check('a missing set renders nothing', buildMosaicHtml(null) === '');
+  /* The heading rides along with the photos rather than living in the email
+     template, so an inquiry without any leaves no empty section behind. */
+  check('an empty set renders no heading either',
+    buildMosaicHtml([], { heading: 'Reference photos (0)' }) === '');
+}
+
+/* --- the heading is part of the mosaic when there is one --- */
+{
+  const photos = [{ ...LANDSCAPE, cid: 'photo1' }];
+  const html = buildMosaicHtml(photos, { heading: 'Reference photos (1)' });
+  check('the heading is rendered above the photos', html.indexOf('Reference photos (1)') < html.indexOf('<img'));
+  check('the heading is escaped', !/<script/.test(buildMosaicHtml(photos, { heading: '<script>x</script>' })));
+  check('no heading is rendered when none is asked for', !/Reference photos/.test(buildMosaicHtml(photos)));
 }
 
 /* --- alt text is attacker-supplied only in the sense that filenames are --- */

@@ -4133,12 +4133,16 @@
     /* Strips the reference photos back out of an otherwise-ready set of params.
        Used for the client's confirmation copy, which does not need its own
        photos posted back, and as the retry when a send fails carrying them. */
-    function withoutPhotos(params) {
+    /* `keepCount` separates the two reasons for stripping. The client's copy
+       does not need its own photos posted back but should still say how many
+       it received; the retry after a rejected send must report none, because
+       none arrived. */
+    function withoutPhotos(params, keepCount) {
       const copy = Object.assign({}, params);
       const slots = window.InquiryPhotos ? InquiryPhotos.MAX_PHOTOS : 6;
       for (let i = 1; i <= slots; i++) delete copy['photo' + i];
       copy.photos_html = '';
-      copy.photo_count = '0';
+      if (!keepCount) copy.photo_count = '0';
       return copy;
     }
 
@@ -4182,7 +4186,9 @@
         try {
           const prepared = await InquiryPhotos.prepare(files);
           prepared.photos.forEach((photo) => { templateParams[photo.cid] = photo.base64; });
-          templateParams.photos_html = InquiryPhotos.buildMosaicHtml(prepared.photos);
+          templateParams.photos_html = InquiryPhotos.buildMosaicHtml(prepared.photos, {
+            heading: `Reference photos (${prepared.photos.length})`
+          });
           templateParams.photo_count = String(prepared.photos.length);
           attached = prepared.photos.length;
           if (prepared.failed.length) {
@@ -4199,7 +4205,7 @@
       const confirmClient = (params) => {
         // Best-effort: a copy for the client shouldn't block or fail the booking itself.
         if (EMAILJS_CLIENT_TEMPLATE_ID !== 'YOUR_CLIENT_TEMPLATE_ID') {
-          emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_CLIENT_TEMPLATE_ID, withoutPhotos(params))
+          emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_CLIENT_TEMPLATE_ID, withoutPhotos(params, true))
             .catch((err) => console.error('EmailJS client confirmation failed:', err));
         }
       };

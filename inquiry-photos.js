@@ -152,10 +152,22 @@
       `<td width="${pct(width)}" style="width:${pct(width)};font-size:0;line-height:0;` +
       `${bottom ? `padding-bottom:${bottom}px;` : ''}">&nbsp;</td>`;
 
+    /* The heading is emitted here rather than written into the email template
+       so that an inquiry with no photos produces nothing at all — no stray
+       "Reference photos (0)" above an empty space. It also means the template
+       needs no conditional, which EmailJS does not document support for. */
+    const heading = opts.heading
+      ? `<table role="presentation" width="${containerWidth}" cellpadding="0" cellspacing="0" ` +
+        `border="0" style="width:100%;max-width:${containerWidth}px;"><tr>` +
+        `<td style="padding:26px 0 12px;font:600 11px/1.4 Helvetica,Arial,sans-serif;` +
+        `letter-spacing:.14em;text-transform:uppercase;color:#8A6A1F;">` +
+        `${escapeHtml(opts.heading)}</td></tr></table>`
+      : '';
+
     /* One table per row rather than one table with several rows: table-layout
        fixed takes its columns from the first row, and mosaic rows hold
        different numbers of photos. */
-    return rows
+    return heading + rows
       .map((cells, rowIndex) => {
         const isLastRow = rowIndex === rows.length - 1;
         const bottom = isLastRow ? 0 : gap;
