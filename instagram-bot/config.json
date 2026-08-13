@@ -6,7 +6,7 @@
 
   "_comment_agent": "When enabled, a matching keyword starts a real conversation instead of sending one canned reply: the assistant asks what they need, collects the details, and emails you the same template the website form sends. Needs ANTHROPIC_API_KEY and EMAILJS_PRIVATE_KEY. Set enabled to false to go back to plain keyword replies.",
   "agent": {
-    "enabled": false,
+    "enabled": true,
     "model": "claude-opus-5",
     "maxTurns": 20,
     "conversationTtlHours": 24,
