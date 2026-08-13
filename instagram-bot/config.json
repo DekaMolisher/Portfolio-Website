@@ -8,7 +8,7 @@
   "_comment_startCooldown": "Replaces cooldownHours while the agent is on, and is short on purpose. cooldownHours stops the same canned reply going out twice; a conversation is meant to be a back-and-forth, so the week-long gate would instead silence anyone whose conversation was lost to a restart. This is only the gate on STARTING a new conversation.",
   "agent": {
     "enabled": true,
-    "model": "claude-opus-5",
+    "model": "claude-sonnet-5",
     "maxTurns": 20,
     "conversationTtlHours": 24,
     "startCooldownHours": 1,

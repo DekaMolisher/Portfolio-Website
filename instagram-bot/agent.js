@@ -112,9 +112,15 @@ async function runAgent({ client, config, history, userMessage, language, onSubm
   const messages = [...history, { role: 'user', content: userMessage }];
 
   const request = {
-    model: agent.model || 'claude-opus-5',
+    /* Whatever this is set to must be a 5-generation or 4.6+ model — the two
+       parameters below are how those models are configured, and older ones
+       (Haiku 4.5, Sonnet 4.5) take a different shape. Getting it wrong is
+       expensive to notice: every call 400s, and the caller's fallback quietly
+       turns each one into a canned keyword reply, so the bot looks like it is
+       working right up until you check why no inquiries arrive. */
+    model: agent.model || 'claude-sonnet-5',
     max_tokens: 8000,
-    /* Thinking stays on. With it disabled, Opus 5 can write a tool call into
+    /* Thinking stays on. With it disabled, the model can write a tool call into
        visible text instead of emitting a tool_use block — the turn would look
        fine and the inquiry email would silently never send. Low effort keeps
        replies fast and cheap without that risk. */

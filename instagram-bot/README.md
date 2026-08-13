@@ -207,9 +207,16 @@ of your own. Both live in `config.json`.
   simply starts over. Nothing breaks; they just repeat themselves once.
 - **24-hour window.** Instagram only allows replying within 24 hours of the
   person's last message, so a conversation someone abandons cannot be revived.
-- **Cost.** Each completed conversation is a few cents at `claude-opus-5`. Set
-  `"model": "claude-haiku-4-5"` in the agent block for a cheaper, less capable
-  assistant.
+- **Cost.** A completed conversation runs around 5–8 cents on `claude-sonnet-5`.
+  `claude-opus-5` is roughly triple that and buys little here — the job is
+  asking four questions and filling in a form.
+- **Don't drop below Sonnet.** Haiku 4.5 is cheaper again, but it is a
+  4.5-generation model and `thinking: {type: "adaptive"}` and `output_config`
+  in `agent.js` are how 4.6-and-later models are configured. Point the agent at
+  an older one and every request fails, which the fallback turns into canned
+  keyword replies — so it keeps answering people and simply stops collecting
+  anything. Saving three cents a conversation is not worth a failure that looks
+  like success.
 - **Every failure falls back.** A missing API key, a refusal, or an outage sends
   the plain keyword reply instead — never silence.
 
