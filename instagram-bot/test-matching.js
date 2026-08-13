@@ -107,5 +107,45 @@ for (const rule of config.rules) {
   }
 }
 
+/* The fill-in form that follows every reply as a second message. */
+{
+  const { pickFollowUp } = require('./matching');
+
+  for (const language of ['es', 'en']) {
+    if (!pickFollowUp(config, null, language, config.defaultLanguage)) {
+      console.log(`FAIL  no ${language} follow-up form`);
+      failures++;
+    }
+  }
+
+  const es = pickFollowUp(config, null, 'es', config.defaultLanguage);
+  const en = pickFollowUp(config, null, 'en', config.defaultLanguage);
+
+  if (es === en) {
+    console.log('FAIL  the follow-up form is not translated');
+    failures++;
+  }
+  /* Numbered end to end: the point of the form is that it can be filled in
+     line by line, so a gap in the sequence is a broken form. */
+  for (const [language, form] of [['es', es], ['en', en]]) {
+    for (const n of ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣']) {
+      if (!form.includes(n)) {
+        console.log(`FAIL  ${language} form is missing item ${n}`);
+        failures++;
+      }
+    }
+  }
+
+  if (pickFollowUp(config, { followUp: false }, 'es', config.defaultLanguage) !== null) {
+    console.log('FAIL  a rule cannot opt out of the follow-up form');
+    failures++;
+  }
+  if (pickFollowUp({}, null, 'es', 'es') !== null) {
+    console.log('FAIL  the form is sent even when none is configured');
+    failures++;
+  }
+  console.log('ok    follow-up form: translated, fully numbered, opt-outable');
+}
+
 console.log(failures ? `\n${failures} failing` : '\nall passing');
 process.exit(failures ? 1 : 0);

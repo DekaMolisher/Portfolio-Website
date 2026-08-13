@@ -52,7 +52,32 @@ Everything you will want to change lives in **`config.json`**. No code.
 | `rules[].name` | A label for your own reference and the logs. |
 | `rules[].keywords` | Any of these appearing as whole words in the message triggers the rule. |
 | `rules[].reply` | The message sent back, as `{"es": "...", "en": "..."}`. `\n` is a line break. |
+| `followUp` | A fill-in form sent as a **second** message after any reply. `null` switches it off. |
 | `defaultLanguage` | Used only when a message is too short or too mixed to call. |
+
+### The fill-in form
+
+Every reply is followed by a second message: a numbered list the person can copy
+and fill in, so their answer comes back in one block instead of five scattered
+messages.
+
+```
+📋 Para darte precio y confirmarte fecha, cópiame esta lista y llénala:
+
+1️⃣ Nombre:
+2️⃣ Tipo de sesión: (retrato / boda / quinceañera / evento / marca)
+…
+```
+
+It is **its own message on purpose.** Instagram selects a whole message at a
+time, so a form glued to the end of the reply could not be copied without the
+paragraph above it.
+
+One form serves every rule — the questions are the same whatever phrase brought
+them in, and one form is one thing to edit rather than four. To skip it for a
+particular rule, add `"followUp": false` to that rule. Sending it is
+best-effort: if that second message fails, the reply has already gone, which
+matters more.
 
 ### Which language a reply is sent in
 

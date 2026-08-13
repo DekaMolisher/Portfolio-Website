@@ -7,13 +7,19 @@
   "_comment_agent": "When enabled, a matching keyword starts a real conversation instead of sending one canned reply: the assistant asks what they need, collects the details, and emails you the same template the website form sends. Needs ANTHROPIC_API_KEY and EMAILJS_PRIVATE_KEY set on the host — without them it quietly falls back to the canned replies. Check /admin/status?token=... to see whether it is actually ready. Set enabled to false to go back to plain keyword replies.",
   "_comment_startCooldown": "Replaces cooldownHours while the agent is on, and is short on purpose. cooldownHours stops the same canned reply going out twice; a conversation is meant to be a back-and-forth, so the week-long gate would instead silence anyone whose conversation was lost to a restart. This is only the gate on STARTING a new conversation.",
   "agent": {
-    "enabled": true,
+    "enabled": false,
     "model": "claude-sonnet-5",
     "maxTurns": 20,
     "conversationTtlHours": 24,
     "startCooldownHours": 1,
     "businessContext": "Deka shoots portraits, weddings, quinceañeras, concerts, events and brand content, and also does videography and graphic design. He is based in San Diego and works in both English and Spanish.",
     "extraInstructions": ""
+  },
+
+  "_comment_followUp": "Sent as a SECOND message right after the rule's reply, so it is a clean block to copy — Instagram selects a whole message at a time, and a form glued to the end of a paragraph comes with the paragraph. Same form for every rule; add \"followUp\": false to a rule to skip it there. Set to null to switch it off everywhere.",
+  "followUp": {
+    "es": "📋 Para darte precio y confirmarte fecha, cópiame esta lista y llénala:\n\n1️⃣ Nombre:\n2️⃣ Tipo de sesión: (retrato / boda / quinceañera / evento / marca)\n3️⃣ Fecha tentativa:\n4️⃣ Hora del día:\n5️⃣ Lugar o ciudad:\n6️⃣ Cuántas personas:\n7️⃣ La vibra que buscas:\n\nMándamela llena y te confirmo todo de una vez 🙌",
+    "en": "📋 To quote you and check the date, copy this list and fill it in:\n\n1️⃣ Name:\n2️⃣ Session type: (portrait / wedding / quinceañera / event / brand)\n3️⃣ Rough date:\n4️⃣ Time of day:\n5️⃣ Location or city:\n6️⃣ How many people:\n7️⃣ The vibe you're going for:\n\nSend it back filled in and I'll confirm everything in one go 🙌"
   },
 
   "_comment_language":"Each reply has an 'es' and an 'en' version. The whole message is scored to decide which to send, so a message that opens in one language but is mostly written in the other gets answered in the one it is mostly written in. defaultLanguage is used only when a message is too short or too mixed to call.",

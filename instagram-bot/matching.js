@@ -94,4 +94,18 @@ function pickReply(rule, language, defaultLanguage = 'es') {
   return reply[language] || reply[defaultLanguage] || Object.values(reply)[0] || null;
 }
 
-module.exports = { normalize, matchRule, detectLanguage, pickReply };
+/* The fill-in form sent as a second, separate message after the rule's reply.
+   It is one form shared by every rule rather than one per rule, because the
+   questions are the same whatever phrase brought them in — and a single form is
+   one thing to edit rather than four. A rule opts out with "followUp": false.
+
+   Sent separately rather than appended to the reply so it is a clean block to
+   copy: selecting a message in Instagram takes the whole thing, and a form
+   glued to a paragraph of prose comes with the prose. */
+function pickFollowUp(config, rule, language, defaultLanguage = 'es') {
+  if (rule && rule.followUp === false) return null;
+  if (!config.followUp) return null;
+  return pickReply({ reply: config.followUp }, language, defaultLanguage);
+}
+
+module.exports = { normalize, matchRule, detectLanguage, pickReply, pickFollowUp };

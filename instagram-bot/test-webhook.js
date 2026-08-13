@@ -81,9 +81,14 @@ async function post(body, { signed = true } = {}) {
 
   sent.length = 0;
   await post(event('¿Cuánto cuesta una sesión?'));
-  check('inquiry triggers exactly one reply', sent.length === 1);
+  check('inquiry triggers the reply and the form', sent.length === 2);
   check('reply uses the pricing template', /precios dependen/i.test(sent[0]?.message?.text || ''));
   check('reply is addressed to the sender', sent[0]?.recipient?.id === 'user-1');
+  /* Its own message, not appended: selecting a message in Instagram takes the
+     whole thing, so a form glued to the reply cannot be copied on its own. */
+  check('the form is a separate second message', /cópiame esta lista/i.test(sent[1]?.message?.text || ''));
+  check('the form is numbered end to end', /1️⃣[\s\S]*7️⃣/.test(sent[1]?.message?.text || ''));
+  check('the form goes to the same person', sent[1]?.recipient?.id === 'user-1');
 
   sent.length = 0;
   await post(event('cuanto cuesta', {}, 'user-1'));
@@ -92,6 +97,7 @@ async function post(body, { signed = true } = {}) {
   sent.length = 0;
   await post(event('Hi! How much for a session?', {}, 'user-en'));
   check('english inquiry gets the english reply', /Pricing depends/i.test(sent[0]?.message?.text || ''));
+  check('the form follows the same language', /copy this list/i.test(sent[1]?.message?.text || ''));
 
   sent.length = 0;
   await post(event('Hey, whats up! Quiero saber los costos', {}, 'user-mixed'));
@@ -133,8 +139,11 @@ async function post(body, { signed = true } = {}) {
     check('/admin/status reports whether the agent is on', typeof status.agent.enabled === 'boolean');
     check('/admin/status flags the missing API key', status.agent.ANTHROPIC_API_KEY === 'MISSING');
     check('/admin/status does not claim to be ready without it', status.agent.ready === false);
+    /* Matches whichever reason applies — off, or on with a key missing — since
+       the flag is meant to be flipped and the test should not pin it. Either
+       way the note has to say that canned replies are what goes out. */
     check('/admin/status explains what that means',
-      /falls back to the canned reply/i.test(status.agent.note));
+      /canned/i.test(status.agent.note));
     check('/admin/status still reports the Instagram side',
       status.subscribedToMessages === true);
   }
