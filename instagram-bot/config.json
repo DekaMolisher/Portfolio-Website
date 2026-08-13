@@ -4,12 +4,14 @@
   "_comment_cooldown": "Once someone gets an auto-reply, they won't get another for this many hours. Stops repeat replies during a back-and-forth.",
   "cooldownHours": 168,
 
-  "_comment_agent": "When enabled, a matching keyword starts a real conversation instead of sending one canned reply: the assistant asks what they need, collects the details, and emails you the same template the website form sends. Needs ANTHROPIC_API_KEY and EMAILJS_PRIVATE_KEY. Set enabled to false to go back to plain keyword replies.",
+  "_comment_agent": "When enabled, a matching keyword starts a real conversation instead of sending one canned reply: the assistant asks what they need, collects the details, and emails you the same template the website form sends. Needs ANTHROPIC_API_KEY and EMAILJS_PRIVATE_KEY set on the host — without them it quietly falls back to the canned replies. Check /admin/status?token=... to see whether it is actually ready. Set enabled to false to go back to plain keyword replies.",
+  "_comment_startCooldown": "Replaces cooldownHours while the agent is on, and is short on purpose. cooldownHours stops the same canned reply going out twice; a conversation is meant to be a back-and-forth, so the week-long gate would instead silence anyone whose conversation was lost to a restart. This is only the gate on STARTING a new conversation.",
   "agent": {
     "enabled": true,
     "model": "claude-opus-5",
     "maxTurns": 20,
     "conversationTtlHours": 24,
+    "startCooldownHours": 1,
     "businessContext": "Deka shoots portraits, weddings, quinceañeras, concerts, events and brand content, and also does videography and graphic design. He is based in San Diego and works in both English and Spanish.",
     "extraInstructions": ""
   },

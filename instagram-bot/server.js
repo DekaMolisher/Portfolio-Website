@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { matchRule, detectLanguage, pickReply } = require('./matching');
 const { runAgent, createClient } = require('./agent');
-const { sendInquiry } = require('./mailer');
+const { sendInquiry, configured: mailerConfigured } = require('./mailer');
 const { createHandleLookup } = require('./profile');
 const store = require('./store');
 
@@ -142,6 +142,14 @@ app.get('/admin/status', async (req, res) => {
     ? subs.body.data.flatMap((app) => app.subscribed_fields || [])
     : [];
 
+  /* Conversation mode fails soft by design — a missing key sends the canned
+     reply instead of erroring — which makes "enabled" and "actually working"
+     two different things, and the difference invisible from the outside. This
+     reports both so it can be told apart without reading the logs. */
+  const agent = loadConfig().agent || {};
+  const hasKey = Boolean(process.env.ANTHROPIC_API_KEY);
+  const canEmail = mailerConfigured();
+
   res.json({
     env: {
       IG_ACCESS_TOKEN: IG_ACCESS_TOKEN ? 'set' : 'MISSING',
@@ -151,6 +159,21 @@ app.get('/admin/status', async (req, res) => {
     account: me.ok ? me.body : { error: 'token rejected', detail: me.body },
     subscribedApps: subs.body,
     subscribedToMessages: subscribedFields.includes('messages'),
+    agent: {
+      enabled: Boolean(agent.enabled),
+      model: agent.model || 'claude-opus-5',
+      ANTHROPIC_API_KEY: hasKey ? 'set' : 'MISSING',
+      EMAILJS_PRIVATE_KEY: canEmail ? 'set' : 'MISSING',
+      conversationsInProgress: store.size(),
+      ready: Boolean(agent.enabled) && hasKey && canEmail,
+      note: !agent.enabled
+        ? 'Off — every match gets the canned keyword reply.'
+        : !hasKey
+          ? 'Enabled but ANTHROPIC_API_KEY is MISSING, so every message falls back to the canned reply. Add it in the host environment variables.'
+          : !canEmail
+            ? 'Replying, but EMAILJS_PRIVATE_KEY is MISSING — it will collect the details and then fail to email them to you. Add it in the host environment variables.'
+            : 'Ready. A matching keyword starts a conversation; the finished inquiry is emailed to you.'
+    },
     nextStep: subscribedFields.includes('messages')
       ? 'Subscribed. If DMs still do not arrive, check Instagram > Settings > Messages and story replies > Connected tools > Allow access to messages.'
       : 'NOT subscribed — open /admin/subscribe?token=... to fix.'
@@ -249,8 +272,18 @@ async function handleMessage(config, event) {
   const rule = active ? null : matchRule(config, text);
   if (!active && !rule) return console.log(`no rule matched: "${text}"`);
 
-  if (!active && onCooldown(senderId, config.cooldownHours ?? 168)) {
-    console.log(`skipped ${senderId}: on cooldown (rule "${rule.name}")`);
+  /* cooldownHours exists to stop the same canned reply going out twice, and a
+     week is right for that. It is wrong for a conversation, which is supposed
+     to be a back-and-forth: applied there it silences anyone whose conversation
+     was dropped by a restart, for a week, with no way back. So conversation
+     mode gets its own short gate on *starting* one — enough to blunt someone
+     spamming the trigger words, not enough to lose a real client. */
+  const cooldownHours = agentConfig.enabled
+    ? (agentConfig.startCooldownHours ?? 1)
+    : (config.cooldownHours ?? 168);
+
+  if (!active && onCooldown(senderId, cooldownHours)) {
+    console.log(`skipped ${senderId}: on cooldown ${cooldownHours}h (rule "${rule.name}")`);
     return;
   }
 

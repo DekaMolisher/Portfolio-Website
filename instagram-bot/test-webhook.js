@@ -13,10 +13,15 @@ const BASE = 'http://127.0.0.1:3999';
    server pass through to the real fetch. */
 const realFetch = global.fetch;
 const sent = [];
-global.fetch = async (url, opts) => {
+global.fetch = async (url, opts = {}) => {
   if (String(url).includes('instagram.com')) {
-    sent.push(JSON.parse(opts.body));
-    return { ok: true, status: 200, text: async () => '' };
+    /* Sends carry a body; the profile and subscription lookups are GETs, so
+       they are answered rather than recorded. */
+    if (opts.body) sent.push(JSON.parse(opts.body));
+    const body = String(url).includes('/me/subscribed_apps')
+      ? { data: [{ subscribed_fields: ['messages'] }] }
+      : { id: '17841400000000000', username: 'dekagrophy' };
+    return { ok: true, status: 200, text: async () => JSON.stringify(body) };
   }
   return realFetch(url, opts);
 };
@@ -117,6 +122,21 @@ async function post(body, { signed = true } = {}) {
 
     const wrongToken = await realFetch(`${BASE}${route}?token=nope`);
     check(`${route} rejects a wrong token`, wrongToken.status === 403);
+  }
+
+  /* Conversation mode fails soft, so "enabled" and "working" can differ without
+     any outward sign. These tests run with no ANTHROPIC_API_KEY, which is the
+     exact state of a host where the variable was never added — the status route
+     has to name that rather than just report enabled. */
+  {
+    const status = await realFetch(`${BASE}/admin/status?token=test-verify`).then((r) => r.json());
+    check('/admin/status reports whether the agent is on', typeof status.agent.enabled === 'boolean');
+    check('/admin/status flags the missing API key', status.agent.ANTHROPIC_API_KEY === 'MISSING');
+    check('/admin/status does not claim to be ready without it', status.agent.ready === false);
+    check('/admin/status explains what that means',
+      /falls back to the canned reply/i.test(status.agent.note));
+    check('/admin/status still reports the Instagram side',
+      status.subscribedToMessages === true);
   }
 
   console.log(failures ? `\n${failures} failing` : '\nall passing');

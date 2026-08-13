@@ -112,28 +112,58 @@ signature rejection, cooldown, echoes, reel shares.
 
 ---
 
-## Conversation mode (optional)
+## Conversation mode
 
-By default a matching keyword sends one canned reply. Turn on conversation mode
-and it instead starts a real exchange: the assistant asks what they need,
-collects the details over a few messages, and then emails you **the same
-template the website's contact form sends** — so an Instagram inquiry lands in
-your inbox looking identical to a web one.
+Instead of one canned reply, a matching keyword starts a real exchange: the
+assistant asks what they need, collects the details over a few messages, and
+then emails you **the same template the website's contact form sends** — so an
+Instagram inquiry lands in your inbox looking identical to a web one.
+
+It is switched on in `config.json`:
 
 ```json
 "agent": { "enabled": true, "model": "claude-opus-5", "maxTurns": 20 }
 ```
 
-Two environment variables are needed on the host:
+**Being enabled is not the same as working.** Two environment variables have to
+exist on the host, and without them it silently sends the canned replies
+instead:
 
 | Key | Where to get it |
 | --- | --- |
 | `ANTHROPIC_API_KEY` | <https://console.anthropic.com> → API keys |
 | `EMAILJS_PRIVATE_KEY` | EmailJS dashboard → Account → API keys → Private Key |
 
+On Render: **Dashboard → your service → Environment → Add Environment
+Variable**, then let it redeploy.
+
 The public EmailJS key in the website's source cannot send from a server; the
 private key is what authorises it. It belongs in the host's environment
 variables, never in `config.json`.
+
+### Check it is actually running
+
+```
+https://your-service.onrender.com/admin/status?token=YOUR_IG_VERIFY_TOKEN
+```
+
+The `agent` block in the response answers the question directly:
+
+```json
+"agent": {
+  "enabled": true,
+  "ANTHROPIC_API_KEY": "set",
+  "EMAILJS_PRIVATE_KEY": "set",
+  "conversationsInProgress": 0,
+  "ready": true,
+  "note": "Ready. A matching keyword starts a conversation…"
+}
+```
+
+`ready` is the one to read. If it is `false`, `note` says which of the two keys
+is missing and what happens meanwhile. This exists because the failure is
+designed to be invisible from the outside — someone messaging you still gets a
+sensible reply, just the canned one.
 
 ### What stays the same
 
@@ -142,6 +172,13 @@ a message matches a rule, so ordinary chats with your regulars are untouched —
 the anti-spam behaviour is unchanged. Once a conversation *is* running, every
 following message from that person goes to the assistant until it finishes,
 expires, or hits `maxTurns`.
+
+**`cooldownHours` does not apply.** A week between replies is right for a canned
+message and wrong for a conversation, which is meant to be a back-and-forth.
+Worse, applied here it would silence anyone whose conversation was lost to a
+restart — for a week, with no way back. Conversation mode uses
+`agent.startCooldownHours` (default `1`) instead, and only as the gate on
+*starting* a new conversation.
 
 ### Who wrote in
 
