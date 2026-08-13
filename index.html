@@ -1076,9 +1076,7 @@
   .form-row.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
   @media (max-width:600px){.form-row.two-col{grid-template-columns:1fr;}}
 
-  /* relative so the visually-hidden file input below is positioned against its
-     own field rather than drifting to the nearest positioned ancestor */
-  .field{display:flex;flex-direction:column;gap:9px;position:relative;}
+  .field{display:flex;flex-direction:column;gap:9px;}
   .field label{
     font-family:var(--font-ui);font-size:11.5px;font-weight:600;
     letter-spacing:.12em;text-transform:uppercase;color:var(--ink);
@@ -1111,52 +1109,6 @@
   [data-theme="light"] .field input[type="date"],
   [data-theme="light"] .field input[type="time"]{color-scheme:light;}
 
-  /* The real input stays in the layout but invisible, rather than display:none,
-     so it can still take keyboard focus — the drop zone is its <label>, so a
-     focus ring on the input has to be drawn on the zone. */
-  .photo-input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;}
-  /* .field .photo-drop, not .photo-drop: this is a <label>, so the uppercase
-     field-label styling above outranks a lone class selector and the zone comes
-     out shouting. */
-  .field .photo-drop{
-    display:flex;flex-direction:column;align-items:center;gap:7px;
-    padding:26px 20px;cursor:pointer;text-align:center;
-    background:var(--surface);border:1px dashed var(--line);
-    transition:border-color .3s ease, background .3s ease;
-    /* it is a <label>, so the uppercase field-label styling lands on it
-       otherwise — this should read as ordinary prose */
-    text-transform:none;letter-spacing:normal;font-weight:400;
-  }
-  .photo-drop:hover, .photo-drop.dragging{border-color:var(--accent-deep);background:var(--accent-wash);}
-  .photo-drop.dragging{border-style:solid;}
-  .photo-input:focus-visible + .photo-drop{
-    border-color:var(--accent-deep);box-shadow:0 0 0 3px var(--accent-pale);
-  }
-  .photo-drop svg{width:26px;height:26px;stroke:var(--ink-soft);fill:none;}
-  .photo-drop-label{font-family:var(--font-body);font-size:14px;color:var(--ink);}
-  .photo-drop-label b{color:var(--accent-deep);font-weight:600;}
-  .photo-drop-meta{font-family:var(--font-body);font-size:12.5px;color:var(--ink-soft);}
-  .photo-drop.full{cursor:not-allowed;opacity:.55;}
-
-  .photo-list{
-    list-style:none;display:grid;gap:10px;margin:0;padding:0;
-    grid-template-columns:repeat(auto-fill,minmax(96px,1fr));
-  }
-  .photo-list:empty{display:none;}
-  .photo-item{position:relative;aspect-ratio:1;background:var(--surface);border:1px solid var(--line);}
-  .photo-item img{width:100%;height:100%;object-fit:cover;display:block;}
-  .photo-remove{
-    position:absolute;top:5px;right:5px;width:22px;height:22px;
-    display:flex;align-items:center;justify-content:center;
-    background:rgba(0,0,0,.62);border:0;cursor:pointer;border-radius:50%;
-    transition:background .2s ease;
-  }
-  .photo-remove:hover{background:rgba(0,0,0,.85);}
-  .photo-remove svg{width:11px;height:11px;stroke:#fff;stroke-width:2.2;fill:none;}
-  .photo-note{font-family:var(--font-body);font-size:12.5px;color:var(--ink-soft);margin:0;line-height:1.6;}
-  .photo-note:empty{display:none;}
-  .photo-note.warn{color:var(--accent-deep);}
-
   .submit-btn{align-self:flex-start;margin-top:8px;}
   .submit-btn[disabled]{opacity:.6;cursor:not-allowed;}
   .form-error{display:none;font-family:var(--font-body);font-size:13.5px;color:var(--ink-soft);margin-top:14px;line-height:1.6;}
@@ -1168,9 +1120,6 @@
   .contact-success svg{width:52px;height:52px;stroke:var(--accent);margin:0 auto 22px;}
   .contact-success h2{font-size:clamp(26px,4vw,36px);margin-bottom:14px;}
   .contact-success p{font-family:var(--font-body);color:var(--ink-soft);max-width:420px;margin:0 auto 30px;line-height:1.7;}
-  .contact-success .photo-warning{display:none;font-size:13.5px;color:var(--accent-deep);}
-  .contact-success .photo-warning.visible{display:block;}
-  .contact-success .photo-warning a{color:inherit;text-decoration:underline;}
 
   @media (max-width:640px){
     .contact-page{padding:130px 22px 90px;}
@@ -1813,19 +1762,6 @@
           <textarea id="fBrief" name="brief" rows="4" placeholder="e.g. Engagement portraits at golden hour, relaxed and candid..."></textarea>
         </div>
 
-        <div class="field">
-          <label for="fPhotos">Reference Photos <span class="optional">(optional, up to 6)</span></label>
-          <p class="field-hint">Already have a look in mind? Show me instead of describing it.</p>
-          <input type="file" id="fPhotos" accept="image/*" multiple class="photo-input">
-          <label class="photo-drop" for="fPhotos" id="photoDrop">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 15l4.5-4.5a2 2 0 012.8 0L15 15"/><path d="M14 13.5l1.8-1.8a2 2 0 012.8 0L21 15"/><circle cx="15.5" cy="8.5" r="1.2"/></svg>
-            <span class="photo-drop-label">Drag photos here, or <b>browse</b></span>
-            <span class="photo-drop-meta">Any shape or size — they get resized before sending</span>
-          </label>
-          <ul class="photo-list" id="photoList"></ul>
-          <p class="photo-note" id="photoNote" role="status" aria-live="polite"></p>
-        </div>
-
         <div class="form-row two-col">
           <div class="field">
             <label for="fDate">Preferred Date</label>
@@ -1846,7 +1782,6 @@
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg>
         <h2>Message Sent</h2>
         <p>Thanks for reaching out — I'll get back to you shortly to confirm the details.</p>
-        <p class="photo-warning" id="contactPhotoWarning">Your reference photos couldn't be attached, but everything else came through. Feel free to email them to <a href="mailto:giancarlorrv@gmail.com">giancarlorrv@gmail.com</a>.</p>
         <button class="btn-ghost" id="contactAnother">Send Another Inquiry</button>
       </div>
     </div>
@@ -1886,7 +1821,6 @@
 <script src="vendor/ScrollTrigger.min.js"></script>
 <script src="vendor/ScrollToPlugin.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script src="inquiry-photos.js"></script>
 
 <script>
   gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
@@ -3995,119 +3929,6 @@
 
   window.addEventListener('hashchange', router);
 
-  /* ============ REFERENCE PHOTOS ============ */
-  /* Holds the photos the client picked and keeps the previews in sync. The
-     files are kept raw here and only compressed on submit — resizing on every
-     pick would burn CPU on photos that get removed again. */
-  function setupPhotoPicker() {
-    const input = document.getElementById('fPhotos');
-    const drop = document.getElementById('photoDrop');
-    const list = document.getElementById('photoList');
-    const note = document.getElementById('photoNote');
-    const max = window.InquiryPhotos ? InquiryPhotos.MAX_PHOTOS : 6;
-
-    let chosen = [];
-
-    function say(message, warn) {
-      note.textContent = message || '';
-      note.classList.toggle('warn', Boolean(warn));
-    }
-
-    function render() {
-      list.innerHTML = '';
-      chosen.forEach((entry, index) => {
-        const li = document.createElement('li');
-        li.className = 'photo-item';
-
-        const img = document.createElement('img');
-        img.src = entry.url;
-        img.alt = `Reference photo ${index + 1}`;
-
-        const remove = document.createElement('button');
-        remove.type = 'button';
-        remove.className = 'photo-remove';
-        remove.setAttribute('aria-label', `Remove reference photo ${index + 1}`);
-        remove.innerHTML =
-          '<svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
-        remove.addEventListener('click', () => {
-          URL.revokeObjectURL(entry.url);
-          chosen.splice(index, 1);
-          render();
-          say('');
-        });
-
-        li.append(img, remove);
-        list.appendChild(li);
-      });
-
-      drop.classList.toggle('full', chosen.length >= max);
-    }
-
-    /* Deduplicated on name and size: picking twice from the file dialog is easy
-       to do by accident and there is no way to tell the copies apart later. */
-    function add(files) {
-      const incoming = Array.from(files).filter((file) => file.type.startsWith('image/'));
-      const rejected = files.length - incoming.length;
-      let full = false;
-
-      incoming.forEach((file) => {
-        if (chosen.length >= max) {
-          full = true;
-          return;
-        }
-        if (chosen.some((c) => c.file.name === file.name && c.file.size === file.size)) return;
-        chosen.push({ file, url: URL.createObjectURL(file) });
-      });
-
-      render();
-      if (full) say(`That's the limit — ${max} photos is plenty to work from.`, true);
-      else if (rejected) say('Only images can be attached — anything else was skipped.', true);
-      else say('');
-    }
-
-    input.addEventListener('change', () => {
-      add(input.files);
-      /* Clearing lets the same file be picked again after being removed;
-         without it the change event never fires for a repeat pick. */
-      input.value = '';
-    });
-
-    /* The drop zone is the input's <label>, so clicking it already opens the
-       picker. Only the full case needs intercepting. */
-    drop.addEventListener('click', (e) => {
-      if (chosen.length >= max) {
-        e.preventDefault();
-        say(`That's the limit — ${max} photos is plenty to work from.`, true);
-      }
-    });
-
-    ['dragenter', 'dragover'].forEach((type) => {
-      drop.addEventListener(type, (e) => {
-        e.preventDefault();
-        drop.classList.add('dragging');
-      });
-    });
-    ['dragleave', 'dragend'].forEach((type) => {
-      drop.addEventListener(type, () => drop.classList.remove('dragging'));
-    });
-    drop.addEventListener('drop', (e) => {
-      e.preventDefault();
-      drop.classList.remove('dragging');
-      if (e.dataTransfer && e.dataTransfer.files.length) add(e.dataTransfer.files);
-    });
-
-    return {
-      files: () => chosen.map((c) => c.file),
-      say,
-      clear() {
-        chosen.forEach((c) => URL.revokeObjectURL(c.url));
-        chosen = [];
-        render();
-        say('');
-      }
-    };
-  }
-
   /* ============ CONTACT FORM ============ */
   function setupContactForm() {
     const form = document.getElementById('contactForm');
@@ -4115,11 +3936,8 @@
     const errorMsg = document.getElementById('contactError');
     const submitBtn = form.querySelector('.submit-btn');
     const submitLabel = submitBtn.querySelector('span');
-    const photoWarning = document.getElementById('contactPhotoWarning');
-    const photoPicker = setupPhotoPicker();
 
-    function revealSuccess(photosDropped) {
-      photoWarning.classList.toggle('visible', Boolean(photosDropped));
+    function revealSuccess() {
       gsap.to(form, {
         duration: 0.35, opacity: 0, y: -10, ease: 'power2.in',
         onComplete: () => {
@@ -4130,21 +3948,7 @@
       });
     }
 
-    /* Strips the reference photos back out of an otherwise-ready set of params.
-       Used for the client's confirmation copy, which does not need its own
-       photos posted back, and as the retry when a send fails carrying them. */
-    /* Used when a send is rejected while carrying the photos. Everything about
-       them goes, the count included, because none of them arrived. */
-    function withoutPhotos(params) {
-      const copy = Object.assign({}, params);
-      const slots = window.InquiryPhotos ? InquiryPhotos.MAX_PHOTOS : 6;
-      for (let i = 1; i <= slots; i++) delete copy['photo' + i];
-      copy.photos_html = '';
-      copy.photo_count = '0';
-      return copy;
-    }
-
-    form.addEventListener('submit', async (e) => {
+    form.addEventListener('submit', (e) => {
       e.preventDefault();
       errorMsg.classList.remove('visible');
 
@@ -4166,84 +3970,27 @@
         date: data.get('date') || '—',
         time: data.get('time') || '—',
         to_email: INQUIRY_TO_EMAIL,
-        reply_to: data.get('email'),
-        /* Always present, even with no photos, so the template never renders a
-           missing variable — the Instagram bot sends these empty too. */
-        photos_html: '',
-        photo_count: '0'
+        reply_to: data.get('email')
       };
 
       submitBtn.disabled = true;
-
-      /* Resizing six phone photos takes a moment, and it happens before the
-         send, so the button says what is actually going on. */
-      const files = photoPicker.files();
-      let photos = [];
-      if (files.length && window.InquiryPhotos) {
-        submitLabel.textContent = files.length > 1 ? 'Preparing photos…' : 'Preparing photo…';
-        try {
-          const prepared = await InquiryPhotos.prepare(files);
-          photos = prepared.photos;
-          photos.forEach((photo) => { templateParams[photo.cid] = photo.base64; });
-          templateParams.photos_html = InquiryPhotos.buildMosaicHtml(photos, {
-            heading: `Reference photos (${photos.length})`
-          });
-          templateParams.photo_count = String(photos.length);
-          if (prepared.failed.length) {
-            photoPicker.say(
-              `Couldn't read ${prepared.failed.join(', ')} — the rest are attached.`, true);
-          }
-        } catch (err) {
-          console.error('Photo preparation failed:', err);
-        }
-      }
-
       submitLabel.textContent = 'Sending…';
 
-      /* The client's copy carries the same attachments, so their confirmation
-         shows them what they sent rather than telling them a number. The
-         mosaic is rebuilt rather than reused only because the heading is
-         addressed to them instead of to Deka — the photos are identical. */
-      const confirmClient = (params, sent) => {
-        // Best-effort: a copy for the client shouldn't block or fail the booking itself.
-        if (EMAILJS_CLIENT_TEMPLATE_ID === 'YOUR_CLIENT_TEMPLATE_ID') return;
-        const copy = Object.assign({}, params);
-        if (sent && sent.length) {
-          copy.photos_html = InquiryPhotos.buildMosaicHtml(sent, {
-            heading: `The photos you sent (${sent.length})`
-          });
-        }
-        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_CLIENT_TEMPLATE_ID, copy)
-          .catch((err) => console.error('EmailJS client confirmation failed:', err));
-      };
-
-      try {
-        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
-        revealSuccess();
-        confirmClient(templateParams, photos);
-      } catch (err) {
-        console.error('EmailJS send failed:', err);
-
-        /* The photos are the most likely thing to have been rejected — they are
-           the only part of the payload with a size limit on it. An inquiry that
-           arrives without its references still beats one that never arrives, so
-           it goes again without them and says so. */
-        if (photos.length) {
-          try {
-            const bare = withoutPhotos(templateParams);
-            await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, bare);
-            revealSuccess(true);
-            confirmClient(bare, null);
-            return;
-          } catch (retryErr) {
-            console.error('EmailJS retry without photos failed:', retryErr);
+      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+        .then(() => {
+          revealSuccess();
+          // Best-effort: a copy for the client shouldn't block or fail the booking itself.
+          if (EMAILJS_CLIENT_TEMPLATE_ID !== 'YOUR_CLIENT_TEMPLATE_ID') {
+            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_CLIENT_TEMPLATE_ID, templateParams)
+              .catch((err) => console.error('EmailJS client confirmation failed:', err));
           }
-        }
-
-        submitBtn.disabled = false;
-        submitLabel.textContent = 'Send Inquiry';
-        errorMsg.classList.add('visible');
-      }
+        })
+        .catch((err) => {
+          console.error('EmailJS send failed:', err);
+          submitBtn.disabled = false;
+          submitLabel.textContent = 'Send Inquiry';
+          errorMsg.classList.add('visible');
+        });
     });
 
     document.getElementById('contactAnother').addEventListener('click', () => {
@@ -4252,7 +3999,6 @@
       submitBtn.disabled = false;
       submitLabel.textContent = 'Send Inquiry';
       form.reset();
-      photoPicker.clear();
       form.style.display = '';
       gsap.fromTo(form, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power3.out' });
     });

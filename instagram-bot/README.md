@@ -175,10 +175,6 @@ of your own. Both live in `config.json`.
   assistant.
 - **Every failure falls back.** A missing API key, a refusal, or an outage sends
   the plain keyword reply instead — never silence.
-- **No reference photos.** The website's form lets people attach photos of the
-  look they want, and the shared template renders them as a mosaic. A DM cannot
-  carry them — the bot skips any message with an attachment — so that section
-  simply comes out empty here. See `../EMAIL-TEMPLATE.md`.
 
 Check the behaviour with `npm run test:agent`, which drives the whole flow
 (question turns, the hand-over, a failed email, a refusal) against a stubbed

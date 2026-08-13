@@ -191,8 +191,6 @@ const FULL_INQUIRY = {
     check('email carries the brief', /quinceañera/.test(params.brief));
     check('blank optional fields render as a dash', params.whatsapp === '—' && params.time === '—');
     check('reply-to is the client, not the inbox', params.reply_to === 'ana@example.com');
-    check('the photo mosaic is empty rather than missing',
-      params.photos_html === '' && params.photo_count === '0');
   }
 
   // --- conversations expire rather than accumulating
