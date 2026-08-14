@@ -1370,15 +1370,30 @@
   }
 
   /* The gallery name is always legible, not a hover reveal — on touch there is no hover. */
+  /* Sized against the tile's own height, which the masonry publishes as --tile-h
+     once it has placed everything. A landscape tile in a phone-width column is
+     only ~110px tall, and a caption built for a portrait tile — 38px of gradient
+     before the text even starts — covered the photograph completely. Every value
+     is clamped, so short tiles shrink the caption instead of hiding the image
+     and tall ones never inflate it. The fallback keeps the full-size caption if
+     the variable is ever missing. */
   .mos-cap{
-    position:absolute;left:0;right:0;bottom:0;z-index:2;padding:38px 15px 14px;
+    position:absolute;left:0;right:0;bottom:0;z-index:2;
+    padding:clamp(14px, calc(var(--tile-h, 260px) * .22), 38px) 15px
+            clamp(9px, calc(var(--tile-h, 260px) * .055), 14px);
     display:block;text-align:left;
     background:linear-gradient(to top, rgba(9,7,5,0.88), rgba(9,7,5,0.34) 52%, rgba(9,7,5,0));
     transition:opacity .4s var(--ease);
   }
-  .mos-cap b{display:block;font-family:var(--font-display);font-size:17px;font-weight:500;color:#F4E9D4;line-height:1.2;}
-  .mos-cap span{display:block;margin-top:4px;font-family:var(--font-ui);font-size:9.5px;
-    font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);}
+  .mos-cap b{
+    display:block;font-family:var(--font-display);font-weight:500;color:#F4E9D4;line-height:1.2;
+    font-size:clamp(13px, calc(var(--tile-h, 260px) * .075), 17px);
+  }
+  .mos-cap span{
+    display:block;margin-top:4px;font-family:var(--font-ui);
+    font-size:clamp(8px, calc(var(--tile-h, 260px) * .042), 9.5px);
+    font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);
+  }
   .mos-cell:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
 
   @media (max-width:640px){
@@ -3233,6 +3248,15 @@
     const isMobile = window.matchMedia('(max-width:640px)').matches;
     const ratios = Array.from(grid.children).map((c) => c.style.aspectRatio);
     layoutMasonryGrid(grid, wideSetOptions(ratios, isMobile ? 6 : 10));
+
+    /* Hand each tile its own height so the caption can size itself against it —
+       see .mos-cap. Read after the masonry rather than computed from the ratio
+       because the masonry is what decides the column width. No feedback loop:
+       the height comes from the cell's aspect-ratio, and the caption is
+       absolutely positioned, so nothing it does can change what it measured. */
+    Array.from(grid.children).forEach((cell) => {
+      cell.style.setProperty('--tile-h', cell.getBoundingClientRect().height + 'px');
+    });
   }
 
 
