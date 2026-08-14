@@ -52,32 +52,40 @@ Everything you will want to change lives in **`config.json`**. No code.
 | `rules[].name` | A label for your own reference and the logs. |
 | `rules[].keywords` | Any of these appearing as whole words in the message triggers the rule. |
 | `rules[].reply` | The message sent back, as `{"es": "...", "en": "..."}`. `\n` is a line break. |
-| `followUp` | A fill-in form sent as a **second** message after any reply. `null` switches it off. |
+| `followUp` | The fill-in form appended to every reply. `null` switches it off. |
+| `signature` | The last line of every message. `null` for none. |
 | `defaultLanguage` | Used only when a message is too short or too mixed to call. |
 
-### The fill-in form
+### What a reply actually looks like
 
-Every reply is followed by a second message: a numbered list the person can copy
-and fill in, so their answer comes back in one block instead of five scattered
-messages.
+Three config keys are joined into **one** message — the rule's `reply`, then
+`followUp`, then `signature`:
 
 ```
-📋 Para darte precio y confirmarte fecha, cópiame esta lista y llénala:
+¡Hola! Gracias por escribir 🙌
+
+Los precios dependen del tipo de sesión, la duración y cuántas
+fotos editadas quieras — por eso Deka necesita un par de datos.
+
+━━━━━━━━━━━━━━━━━━━━━━
+📋 CUÉNTAME DE TU SESIÓN
+━━━━━━━━━━━━━━━━━━━━━━
 
 1️⃣ Nombre:
-2️⃣ Tipo de sesión: (retrato / boda / quinceañera / evento / marca)
+2️⃣ Tipo de sesión:
+3️⃣ Fecha tentativa:
 …
+
+— Deka's Assistant
 ```
 
-It is **its own message on purpose.** Instagram selects a whole message at a
-time, so a form glued to the end of the reply could not be copied without the
-paragraph above it.
+The form is one block for all four rules, and the signature one line for all
+four, so neither can drift apart between them — edit each in a single place. To
+skip the form for one rule, add `"followUp": false` to it.
 
-One form serves every rule — the questions are the same whatever phrase brought
-them in, and one form is one thing to edit rather than four. To skip it for a
-particular rule, add `"followUp": false` to that rule. Sending it is
-best-effort: if that second message fails, the reply has already gone, which
-matters more.
+Note the voice: the messages speak **about** Deka in the third person, because
+they are signed by his assistant. If you change the signature back to a personal
+one, switch the replies to first person to match.
 
 ### Which language a reply is sent in
 

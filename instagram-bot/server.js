@@ -2,7 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
-const { matchRule, detectLanguage, pickReply, pickFollowUp } = require('./matching');
+const { matchRule, detectLanguage, composeMessage } = require('./matching');
 const { runAgent, createClient } = require('./agent');
 const { sendInquiry, configured: mailerConfigured } = require('./mailer');
 const { createHandleLookup } = require('./profile');
@@ -293,28 +293,14 @@ async function handleMessage(config, event) {
     return handleWithAgent({ config, senderId, text, language, active, ttlHours });
   }
 
-  const replyText = pickReply(rule, language, config.defaultLanguage);
+  const replyText = composeMessage(config, rule, language, config.defaultLanguage);
   if (!replyText) {
     return console.log(`rule "${rule.name}" has no usable reply — check config.json`);
   }
 
   await sendReply(senderId, replyText);
-  await sendFollowUp(config, rule, senderId, language);
   lastRepliedAt.set(senderId, Date.now());
   console.log(`replied to ${senderId} with rule "${rule.name}" in ${language}`);
-}
-
-/* The fill-in form, as its own message. Best-effort on purpose: the reply
-   itself has already gone, and losing the form is worth far less than throwing
-   away a delivered answer. */
-async function sendFollowUp(config, rule, senderId, language) {
-  const form = pickFollowUp(config, rule, language, config.defaultLanguage);
-  if (!form) return;
-  try {
-    await sendReply(senderId, form);
-  } catch (err) {
-    console.error(`follow-up form failed for ${senderId}: ${err.message}`);
-  }
 }
 
 /* The conversational path. Falls back to the keyword reply on any failure, so a
@@ -377,10 +363,9 @@ async function handleWithAgent({ config, senderId, text, language, active, ttlHo
 async function keywordFallback(config, senderId, text, language) {
   const rule = matchRule(config, text);
   if (!rule) return;
-  const replyText = pickReply(rule, language, config.defaultLanguage);
+  const replyText = composeMessage(config, rule, language, config.defaultLanguage);
   if (!replyText) return;
   await sendReply(senderId, replyText);
-  await sendFollowUp(config, rule, senderId, language);
   lastRepliedAt.set(senderId, Date.now());
   console.log(`fell back to rule "${rule.name}" for ${senderId}`);
 }

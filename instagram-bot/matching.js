@@ -108,4 +108,29 @@ function pickFollowUp(config, rule, language, defaultLanguage = 'es') {
   return pickReply({ reply: config.followUp }, language, defaultLanguage);
 }
 
-module.exports = { normalize, matchRule, detectLanguage, pickReply, pickFollowUp };
+/* The whole outgoing message: the rule's reply, the fill-in form, then the
+   signature — joined into one, because that is how it should land. Splitting it
+   across messages was worse in practice: Instagram stacks them as separate
+   bubbles, which reads as a bot firing twice rather than as one considered
+   answer.
+
+   Kept as three config keys rather than four copies of the same text, so the
+   form and the signature are each edited in one place and cannot drift apart
+   between rules. */
+function composeMessage(config, rule, language, defaultLanguage = 'es') {
+  const reply = pickReply(rule, language, defaultLanguage);
+  if (!reply) return null;
+
+  const parts = [reply];
+  const form = pickFollowUp(config, rule, language, defaultLanguage);
+  if (form) parts.push(form);
+
+  const signature = config.signature
+    ? pickReply({ reply: config.signature }, language, defaultLanguage)
+    : null;
+  if (signature) parts.push(signature);
+
+  return parts.join('\n\n');
+}
+
+module.exports = { normalize, matchRule, detectLanguage, pickReply, pickFollowUp, composeMessage };

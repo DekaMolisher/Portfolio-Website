@@ -1,9 +1,7 @@
 {
   "enabled": true,
-
   "_comment_cooldown": "Once someone gets an auto-reply, they won't get another for this many hours. Stops repeat replies during a back-and-forth.",
   "cooldownHours": 168,
-
   "_comment_agent": "When enabled, a matching keyword starts a real conversation instead of sending one canned reply: the assistant asks what they need, collects the details, and emails you the same template the website form sends. Needs ANTHROPIC_API_KEY and EMAILJS_PRIVATE_KEY set on the host — without them it quietly falls back to the canned replies. Check /admin/status?token=... to see whether it is actually ready. Set enabled to false to go back to plain keyword replies.",
   "_comment_startCooldown": "Replaces cooldownHours while the agent is on, and is short on purpose. cooldownHours stops the same canned reply going out twice; a conversation is meant to be a back-and-forth, so the week-long gate would instead silence anyone whose conversation was lost to a restart. This is only the gate on STARTING a new conversation.",
   "agent": {
@@ -15,16 +13,13 @@
     "businessContext": "Deka shoots portraits, weddings, quinceañeras, concerts, events and brand content, and also does videography and graphic design. He is based in San Diego and works in both English and Spanish.",
     "extraInstructions": ""
   },
-
-  "_comment_followUp": "Sent as a SECOND message right after the rule's reply, so it is a clean block to copy — Instagram selects a whole message at a time, and a form glued to the end of a paragraph comes with the paragraph. Same form for every rule; add \"followUp\": false to a rule to skip it there. Set to null to switch it off everywhere.",
+  "_comment_followUp": "Appended to the rule's reply so the whole thing arrives as ONE message, then the signature after it. Same form for every rule; add \"followUp\": false to a rule to skip it there. Set to null to switch it off everywhere.",
   "followUp": {
-    "es": "📋 Para darte precio y confirmarte fecha, cópiame esta lista y llénala:\n\n1️⃣ Nombre:\n2️⃣ Tipo de sesión: (retrato / boda / quinceañera / evento / marca)\n3️⃣ Fecha tentativa:\n4️⃣ Hora del día:\n5️⃣ Lugar o ciudad:\n6️⃣ Cuántas personas:\n7️⃣ La vibra que buscas:\n\nMándamela llena y te confirmo todo de una vez 🙌",
-    "en": "📋 To quote you and check the date, copy this list and fill it in:\n\n1️⃣ Name:\n2️⃣ Session type: (portrait / wedding / quinceañera / event / brand)\n3️⃣ Rough date:\n4️⃣ Time of day:\n5️⃣ Location or city:\n6️⃣ How many people:\n7️⃣ The vibe you're going for:\n\nSend it back filled in and I'll confirm everything in one go 🙌"
+    "es": "━━━━━━━━━━━━━━━━━━━━━━\n📋 CUÉNTAME DE TU SESIÓN\n━━━━━━━━━━━━━━━━━━━━━━\n\n1️⃣ Nombre:\n2️⃣ Tipo de sesión:\n3️⃣ Fecha tentativa:\n4️⃣ Hora del día:\n5️⃣ Lugar o ciudad:\n6️⃣ Cuántas personas:\n7️⃣ La vibra que buscas:\n\n━━━━━━━━━━━━━━━━━━━━━━\n\n✨ Copia la lista, llénala y mándala por aquí — con eso Deka te confirma precio y disponibilidad.\n\n🌐 O si prefieres, llénalo en la web:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact",
+    "en": "━━━━━━━━━━━━━━━━━━━━━━\n📋 TELL ME ABOUT YOUR SHOOT\n━━━━━━━━━━━━━━━━━━━━━━\n\n1️⃣ Name:\n2️⃣ Session type:\n3️⃣ Rough date:\n4️⃣ Time of day:\n5️⃣ Location or city:\n6️⃣ How many people:\n7️⃣ The vibe you're going for:\n\n━━━━━━━━━━━━━━━━━━━━━━\n\n✨ Copy the list, fill it in and send it back — Deka will confirm pricing and availability from that.\n\n🌐 Or fill it out on the web instead:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact"
   },
-
-  "_comment_language":"Each reply has an 'es' and an 'en' version. The whole message is scored to decide which to send, so a message that opens in one language but is mostly written in the other gets answered in the one it is mostly written in. defaultLanguage is used only when a message is too short or too mixed to call.",
+  "_comment_language": "Each reply has an 'es' and an 'en' version. The whole message is scored to decide which to send, so a message that opens in one language but is mostly written in the other gets answered in the one it is mostly written in. defaultLanguage is used only when a message is too short or too mixed to call.",
   "defaultLanguage": "es",
-
   "_comment_skipIfContains": "If a message contains ANY of these, it is never auto-replied to — even if it also matches a rule keyword. Use for your regulars and casual talk.",
   "skipIfContains": [
     "jajaja",
@@ -37,7 +32,6 @@
     "buenas noches",
     "good night"
   ],
-
   "_comment_rules": "Checked top to bottom — the FIRST rule with a matching keyword wins, so put specific rules above general ones. Keywords are matched case- and accent-insensitively anywhere in the message.",
   "rules": [
     {
@@ -71,8 +65,8 @@
         "quote"
       ],
       "reply": {
-        "es": "¡Hola! Gracias por escribir 🙌\n\nLos precios dependen del tipo de sesión (retrato, boda, quinceañera, evento o contenido de marca), la duración y cuántas fotos editadas quieres.\n\nCuéntame qué tienes en mente y te paso una cotización exacta — o llena el formulario aquí y te respondo con todos los detalles:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact\n\n— Deka",
-        "en": "Hey! Thanks for reaching out 🙌\n\nPricing depends on the type of session (portraits, weddings, quinceañeras, events or brand content), how long we shoot, and how many edited photos you want.\n\nTell me what you have in mind and I'll send you an exact quote — or fill out the form here and I'll come back with all the details:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact\n\n— Deka"
+        "es": "¡Hola! Gracias por escribir 🙌\n\nLos precios dependen del tipo de sesión, la duración y cuántas fotos editadas quieras — por eso Deka necesita un par de datos para pasarte un número exacto.",
+        "en": "Hey! Thanks for reaching out 🙌\n\nPricing depends on the type of session, how long the shoot runs and how many edited photos you want — so Deka needs a couple of details to give you an exact number."
       }
     },
     {
@@ -93,8 +87,8 @@
         "free on"
       ],
       "reply": {
-        "es": "¡Hola! Gracias por escribir 🙌\n\nSí manejo agenda — dime la fecha (o el rango de fechas) que tienes en mente y el tipo de sesión, y te confirmo disponibilidad.\n\nSi prefieres, mándame los detalles por aquí y te contesto con la agenda:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact\n\n— Deka",
-        "en": "Hey! Thanks for reaching out 🙌\n\nHappy to check — let me know the date (or range of dates) you have in mind and what kind of session it is, and I'll confirm availability.\n\nYou can also send the details through here and I'll get back to you with my schedule:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact\n\n— Deka"
+        "es": "¡Hola! Gracias por escribir 🙌\n\nDeka sí maneja agenda — dime la fecha (o el rango) que tienes en mente y te confirmamos disponibilidad.",
+        "en": "Hey! Thanks for reaching out 🙌\n\nDeka does keep a calendar — let me know the date (or range) you have in mind and we'll confirm availability."
       }
     },
     {
@@ -119,8 +113,8 @@
         "hire you"
       ],
       "reply": {
-        "es": "¡Hola! Qué gusto que quieras trabajar juntos 🙌\n\nPara agendar solo necesito: tipo de sesión, fecha tentativa, lugar y qué vibra buscas.\n\nMándamelo por aquí y te confirmo todo de una vez:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact\n\nTambién puedes contestarme por acá y lo vemos.\n\n— Deka",
-        "en": "Hey! Would love to shoot with you 🙌\n\nTo get you booked I just need: the type of session, a rough date, the location, and the vibe you're going for.\n\nSend that over here and I'll confirm everything in one go:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact\n\nOr just reply here and we'll figure it out.\n\n— Deka"
+        "es": "¡Hola! Qué gusto que quieras trabajar con Deka 🙌\n\nPara agendar solo faltan unos datos.",
+        "en": "Hey! Great that you want to shoot with Deka 🙌\n\nJust a few details and we can get you booked."
       }
     },
     {
@@ -138,9 +132,11 @@
         "packages"
       ],
       "reply": {
-        "es": "¡Hola! Gracias por escribir 🙌\n\nUna sesión típica incluye la planeación del concepto, la sesión completa y una selección de fotos editadas en alta resolución. El número de fotos y la duración se ajustan al paquete.\n\nAquí puedes ver el portafolio completo y mandarme los detalles de lo que buscas:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact\n\n— Deka",
-        "en": "Hey! Thanks for reaching out 🙌\n\nA typical session covers planning the concept, the shoot itself, and a set of edited high-resolution photos. The number of images and the shoot length depend on the package.\n\nYou can see the full portfolio here and send me the details of what you're after:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact\n\n— Deka"
+        "es": "¡Hola! Gracias por escribir 🙌\n\nUna sesión típica incluye la planeación del concepto, la sesión completa y una selección de fotos editadas en alta resolución. El número de fotos y la duración dependen del paquete.",
+        "en": "Hey! Thanks for reaching out 🙌\n\nA typical session covers planning the concept, the shoot itself, and a set of edited high-resolution photos. The number of images and the shoot length depend on the package."
       }
     }
-  ]
+  ],
+  "_comment_signature": "The last line of every reply. One place, so it never drifts between rules. Set to null for no signature.",
+  "signature": "— Deka's Assistant"
 }

@@ -107,9 +107,9 @@ for (const rule of config.rules) {
   }
 }
 
-/* The fill-in form that follows every reply as a second message. */
+/* The fill-in form and signature that every reply carries. */
 {
-  const { pickFollowUp } = require('./matching');
+  const { pickFollowUp, composeMessage } = require('./matching');
 
   for (const language of ['es', 'en']) {
     if (!pickFollowUp(config, null, language, config.defaultLanguage)) {
@@ -145,6 +145,31 @@ for (const rule of config.rules) {
     failures++;
   }
   console.log('ok    follow-up form: translated, fully numbered, opt-outable');
+
+  /* Every rule has to produce one message carrying all three parts. A rule that
+     silently lost the form or the signature would still send something
+     plausible, which is exactly the kind of drift worth catching here. */
+  for (const rule of config.rules) {
+    for (const language of ['es', 'en']) {
+      const message = composeMessage(config, rule, language, config.defaultLanguage);
+      const header = language === 'es' ? 'CUÉNTAME DE TU SESIÓN' : 'TELL ME ABOUT YOUR SHOOT';
+      if (!message.includes(header)) {
+        console.log(`FAIL  rule "${rule.name}" (${language}) lost the form`);
+        failures++;
+      }
+      if (!message.trim().endsWith(config.signature)) {
+        console.log(`FAIL  rule "${rule.name}" (${language}) is not signed`);
+        failures++;
+      }
+      /* The old templates signed off as Deka himself, which reads wrong now
+         the signature says it is his assistant writing. */
+      if (/—\s*Deka\s*$/.test(message.replace(config.signature, '').trim())) {
+        console.log(`FAIL  rule "${rule.name}" (${language}) still signs as Deka`);
+        failures++;
+      }
+    }
+  }
+  console.log('ok    every rule sends one message: reply + form + signature');
 }
 
 console.log(failures ? `\n${failures} failing` : '\nall passing');
