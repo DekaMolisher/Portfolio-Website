@@ -1413,8 +1413,9 @@
   /* The heavy inset frame belonged to the old print language; the portrait now sits
      flush and takes the same gold edge the gallery tiles use. */
   .about-frame{border:none;padding:0;position:relative;overflow:hidden;background:var(--surface);}
-  .about-frame img{aspect-ratio:4/5;object-fit:cover;transition:transform .9s var(--ease);}
-  .about-frame:hover img,.about-frame.is-hover img{transform:scale(1.04);}
+  .about-frame img{aspect-ratio:4/5;object-fit:cover;}
+  /* The zoom is driven from setupFrameCornerHover so there is one owner of the
+     transform; a CSS rule here as well fought the tween on the way back out. */
   /* Back to a corner rather than a full-height L, and now flush at 0. The 18px inset
      it used to carry was compensating for the corner being a child of .frame-inner,
      which scales to 1.05: the bracket was pushed outward with the photo and clipped by
@@ -3156,15 +3157,22 @@
     if(!frame) return;
     const isTouchDevice = window.matchMedia('(hover: none)').matches;
 
+    /* Zoom the photograph, not .frame-inner. Scaling the wrapper scales its own
+       overflow clip with it, so the picture grew out past its box into the frame's
+       padding — and the corner bracket, which does not scale, was left sitting a
+       few pixels inside the edge of what you could see. Scaling the <img> instead
+       leaves the clip where it is, so the visible edges never move and the bracket
+       stays on the corner in both states. */
+    const photo = frame.querySelector('img');
     function enter() {
       frame.classList.add('is-hover');
       gsap.to(frame, { duration: 0.5, y: -8, ease: 'power3.out' });
-      gsap.to(frame.querySelector('.frame-inner'), { duration: 0.8, scale: 1.05, ease: 'power3.out' });
+      gsap.to(photo, { duration: 0.8, scale: 1.05, ease: 'power3.out' });
     }
     function leave() {
       frame.classList.remove('is-hover');
       gsap.to(frame, { duration: 0.5, y: 0, ease: 'power3.out' });
-      gsap.to(frame.querySelector('.frame-inner'), { duration: 0.8, scale: 1, ease: 'power3.out' });
+      gsap.to(photo, { duration: 0.8, scale: 1, ease: 'power3.out' });
     }
 
     if(isTouchDevice) {
