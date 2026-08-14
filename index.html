@@ -2535,7 +2535,13 @@
       gsap.set(item, { x, y, width: colWidth });
       item.dataset.baseY = y;
 
-      colHeights[col] = y + item.getBoundingClientRect().height + gap;
+      /* offsetHeight, not getBoundingClientRect().height: the rect is measured
+         through any transform on an ancestor, while the colWidth above comes from
+         clientWidth, which is not. Entering a gallery scales #view-home, so a
+         relayout landing during that animation mixed scaled heights with unscaled
+         widths and stacked the tiles on top of each other — and the wrong numbers
+         outlived the transform, because they had already been written as positions. */
+      colHeights[col] = y + item.offsetHeight + gap;
     });
 
     container.style.width = (numCols * colWidth + (numCols - 1) * gap) + 'px';
@@ -3293,7 +3299,10 @@
        the height comes from the cell's aspect-ratio, and the caption is
        absolutely positioned, so nothing it does can change what it measured. */
     Array.from(grid.children).forEach((cell) => {
-      cell.style.setProperty('--tile-h', cell.getBoundingClientRect().height + 'px');
+      /* offsetHeight for the same reason the masonry uses it: a rect is measured
+         through an ancestor's transform, and this can run while the gallery-zoom
+         animation is on #view-home. */
+      cell.style.setProperty('--tile-h', cell.offsetHeight + 'px');
     });
   }
 
