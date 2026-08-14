@@ -1411,11 +1411,12 @@
   .about-frame{border:none;padding:0;position:relative;overflow:hidden;background:var(--surface);}
   .about-frame img{aspect-ratio:4/5;object-fit:cover;transition:transform .9s var(--ease);}
   .about-frame:hover img,.about-frame.is-hover img{transform:scale(1.04);}
-  /* Back to a corner rather than a full-height L. It also has to sit inside the frame's
-     clip: .frame-inner is scaled to 1.05 on hover, which pushes its bottom-left about
-     2.5% further out, and .about-frame clips — flush at 0 the corner was scaled straight
-     out of view, which is why it never appeared. */
-  .about-frame .frame-corner{width:78px;height:78px;left:18px;bottom:18px;}
+  /* Back to a corner rather than a full-height L, and now flush at 0. The 18px inset
+     it used to carry was compensating for the corner being a child of .frame-inner,
+     which scales to 1.05: the bracket was pushed outward with the photo and clipped by
+     .about-frame. It is a sibling of .frame-inner now, so it holds the corner while the
+     photo zooms behind it and needs no inset. */
+  .about-frame .frame-corner{width:78px;height:78px;left:0;bottom:0;}
   .about-frame .frame-corner .edge{background:var(--gold);}
   .about-frame .frame-corner .edge-v{width:2px;height:100%;}
   .about-frame .frame-corner .edge-h{height:2px;width:100%;}
@@ -1594,12 +1595,15 @@
         <div class="about-frame" id="aboutFrame">
           <div class="frame-inner" id="aboutFrameInner">
             <img src="creator-about.webp" alt="Giancarlo (Deka) Rosete portrait" style="aspect-ratio:3/4;object-position:center 18%;">
-            <span class="frame-corner">
-              <span class="glow"></span>
-              <span class="edge edge-v"></span>
-              <span class="edge edge-h"></span>
-            </span>
           </div>
+          <!-- Outside .frame-inner deliberately: that element is scaled to 1.05 on
+               reveal, and while the corner lived inside it the bracket rode the zoom
+               and drifted off the corner it is meant to mark. -->
+          <span class="frame-corner">
+            <span class="glow"></span>
+            <span class="edge edge-v"></span>
+            <span class="edge edge-h"></span>
+          </span>
         </div>
         <div class="about-copy" id="aboutCopy">
           <span class="eyebrow">Meet your friendly creator</span>
@@ -1620,12 +1624,14 @@
         <div class="social-frame" id="socialFrame">
           <div class="frame-inner" id="socialFrameInner">
             <img src="creator-social.webp" alt="Giancarlo (Deka) Rosete portrait">
-            <span class="frame-corner">
-              <span class="glow"></span>
-              <span class="edge edge-v"></span>
-              <span class="edge edge-h"></span>
-            </span>
           </div>
+          <!-- Outside .frame-inner for the same reason as the About portrait: the
+               bracket marks the frame's corner, so it must not scale with the photo. -->
+          <span class="frame-corner">
+            <span class="glow"></span>
+            <span class="edge edge-v"></span>
+            <span class="edge edge-h"></span>
+          </span>
         </div>
         <div class="social-copy">
           <span class="eyebrow">Stay Connected</span>
