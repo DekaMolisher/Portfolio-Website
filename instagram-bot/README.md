@@ -83,9 +83,10 @@ The form is one block for all four rules, and the signature one line for all
 four, so neither can drift apart between them — edit each in a single place. To
 skip the form for one rule, add `"followUp": false` to it.
 
-Note the voice: the messages speak **about** Deka in the third person, because
-they are signed by his assistant. If you change the signature back to a personal
-one, switch the replies to first person to match.
+The voice is first person — "te confirmo disponibilidad", "I'll get you an exact
+quote" — with the signature making clear who is speaking. Keep it that way if
+you edit them: an assistant coordinating on Deka's behalf can say "I", but it
+should not claim to be holding the camera.
 
 ### Which language a reply is sent in
 

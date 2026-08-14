@@ -15,8 +15,8 @@
   },
   "_comment_followUp": "Appended to the rule's reply so the whole thing arrives as ONE message, then the signature after it. Same form for every rule; add \"followUp\": false to a rule to skip it there. Set to null to switch it off everywhere.",
   "followUp": {
-    "es": "━━━━━━━━━━━━━━━━━━━━━━\n📋 CUÉNTAME DE TU SESIÓN\n━━━━━━━━━━━━━━━━━━━━━━\n\n1️⃣ Nombre:\n2️⃣ Tipo de sesión:\n3️⃣ Fecha tentativa:\n4️⃣ Hora del día:\n5️⃣ Lugar o ciudad:\n6️⃣ Cuántas personas:\n7️⃣ La vibra que buscas:\n\n━━━━━━━━━━━━━━━━━━━━━━\n\n✨ Copia la lista, llénala y mándala por aquí — con eso Deka te confirma precio y disponibilidad.\n\n🌐 O si prefieres, llénalo en la web:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact",
-    "en": "━━━━━━━━━━━━━━━━━━━━━━\n📋 TELL ME ABOUT YOUR SHOOT\n━━━━━━━━━━━━━━━━━━━━━━\n\n1️⃣ Name:\n2️⃣ Session type:\n3️⃣ Rough date:\n4️⃣ Time of day:\n5️⃣ Location or city:\n6️⃣ How many people:\n7️⃣ The vibe you're going for:\n\n━━━━━━━━━━━━━━━━━━━━━━\n\n✨ Copy the list, fill it in and send it back — Deka will confirm pricing and availability from that.\n\n🌐 Or fill it out on the web instead:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact"
+    "es": "━━━━━━━━━━━━━━━━━━━━━━\n📋 CUÉNTAME DE TU SESIÓN\n━━━━━━━━━━━━━━━━━━━━━━\n\n1️⃣ Nombre:\n2️⃣ Tipo de sesión:\n3️⃣ Fecha tentativa:\n4️⃣ Hora del día:\n5️⃣ Lugar o ciudad:\n6️⃣ Cuántas personas:\n7️⃣ La vibra que buscas:\n\n━━━━━━━━━━━━━━━━━━━━━━\n\n✨ Copia la lista, llénala y mándala por aquí — con eso te confirmo precio y disponibilidad.\n\n🌐 O si prefieres, llénalo en la web:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact",
+    "en": "━━━━━━━━━━━━━━━━━━━━━━\n📋 TELL ME ABOUT YOUR SHOOT\n━━━━━━━━━━━━━━━━━━━━━━\n\n1️⃣ Name:\n2️⃣ Session type:\n3️⃣ Rough date:\n4️⃣ Time of day:\n5️⃣ Location or city:\n6️⃣ How many people:\n7️⃣ The vibe you're going for:\n\n━━━━━━━━━━━━━━━━━━━━━━\n\n✨ Copy the list, fill it in and send it back — I'll confirm pricing and availability from that.\n\n🌐 Or fill it out on the web instead:\nhttps://dekamolisher.github.io/Portfolio-Website/#/contact"
   },
   "_comment_language": "Each reply has an 'es' and an 'en' version. The whole message is scored to decide which to send, so a message that opens in one language but is mostly written in the other gets answered in the one it is mostly written in. defaultLanguage is used only when a message is too short or too mixed to call.",
   "defaultLanguage": "es",
@@ -65,8 +65,8 @@
         "quote"
       ],
       "reply": {
-        "es": "¡Hola! Gracias por escribir 🙌\n\nLos precios dependen del tipo de sesión, la duración y cuántas fotos editadas quieras — por eso Deka necesita un par de datos para pasarte un número exacto.",
-        "en": "Hey! Thanks for reaching out 🙌\n\nPricing depends on the type of session, how long the shoot runs and how many edited photos you want — so Deka needs a couple of details to give you an exact number."
+        "es": "¡Hola! Gracias por escribir 🙌\n\nLos precios dependen del tipo de sesión, la duración y cuántas fotos editadas quieras — con un par de datos te paso una cotización exacta.",
+        "en": "Hey! Thanks for reaching out 🙌\n\nPricing depends on the type of session, how long the shoot runs and how many edited photos you want — with a couple of details I can get you an exact quote."
       }
     },
     {
@@ -87,8 +87,8 @@
         "free on"
       ],
       "reply": {
-        "es": "¡Hola! Gracias por escribir 🙌\n\nDeka sí maneja agenda — dime la fecha (o el rango) que tienes en mente y te confirmamos disponibilidad.",
-        "en": "Hey! Thanks for reaching out 🙌\n\nDeka does keep a calendar — let me know the date (or range) you have in mind and we'll confirm availability."
+        "es": "¡Hola! Gracias por escribir 🙌\n\nClaro que sí — dime la fecha (o el rango) que tienes en mente y te confirmo disponibilidad.",
+        "en": "Hey! Thanks for reaching out 🙌\n\nHappy to check — tell me the date (or range) you have in mind and I'll confirm availability."
       }
     },
     {
@@ -113,8 +113,8 @@
         "hire you"
       ],
       "reply": {
-        "es": "¡Hola! Qué gusto que quieras trabajar con Deka 🙌\n\nPara agendar solo faltan unos datos.",
-        "en": "Hey! Great that you want to shoot with Deka 🙌\n\nJust a few details and we can get you booked."
+        "es": "¡Hola! Qué gusto que quieras trabajar con Deka 🙌\n\nPara agendarte solo me faltan unos datos.",
+        "en": "Hey! Great that you want to shoot with Deka 🙌\n\nJust a few details and I can get you booked in."
       }
     },
     {
