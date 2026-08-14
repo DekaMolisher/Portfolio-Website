@@ -880,6 +880,10 @@
   .social-frame{position:relative;border:1px solid var(--line);padding:14px;overflow:hidden;max-width:330px;}
   .social-frame img{width:100%;height:100%;object-fit:cover;aspect-ratio:3/4;display:block;position:relative;z-index:1;}
   .social-frame.is-hover .frame-corner .glow{opacity:1;}
+  /* Inset by the frame's own padding so the bracket lands on the photograph's
+     corner rather than out on the border. It sits outside .frame-inner (which the
+     reveal scales), so it holds that corner while the photo zooms behind it. */
+  .social-frame .frame-corner{left:14px;bottom:14px;}
   .social-copy .eyebrow{margin-bottom:16px;display:inline-block;}
   .social-copy h2{font-size:clamp(28px,5vw,50px);margin-bottom:16px;line-height:1.1;}
   .social-copy p{color:var(--ink-soft);font-size:15.5px;line-height:1.85;margin-bottom:32px;font-family:var(--font-body);max-width:420px;}
@@ -1846,6 +1850,13 @@
 <script>
   gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
+  /* On a phone the address bar slides away as you scroll and back when you stop,
+     and each move fires a resize. ScrollTrigger refreshes on resize by default,
+     which recalculates every trigger on the page and can shove the scroll position
+     — landing just after you stop, which is precisely when the jump was reported.
+     This flag makes it ignore resizes that are only the address bar. */
+  ScrollTrigger.config({ ignoreMobileResize: true });
+
   /* ============ EMAILJS CONFIG ============ */
   /* Fill these in from your EmailJS dashboard (Account > General for the public key,
      Email Services for the service ID, Email Templates for the template ID) before
@@ -2726,10 +2737,19 @@
   }
 
   let masonryResizeTimeout;
+  let lastLayoutWidth = window.innerWidth;
   window.addEventListener('resize', () => {
+    /* Width only. Every masonry here is laid out from its container's width, so a
+       height-only resize has nothing to recompute — and on a phone height-only is
+       all the address bar ever does, dozens of times per scroll. Relayouting on
+       those meant a ScrollTrigger.refresh() firing 150ms after you stopped
+       scrolling, which is when the page was reported to jump. */
+    if(window.innerWidth === lastLayoutWidth) return;
+    lastLayoutWidth = window.innerWidth;
     clearTimeout(masonryResizeTimeout);
     masonryResizeTimeout = setTimeout(() => {
       layoutShootGrid();
+      layoutConceptMosaic();
       relayoutEndless();
     }, 150);
   });
@@ -3148,17 +3168,15 @@
     }
 
     if(isTouchDevice) {
-      /* Was a tap toggle on the photograph itself. Two things wrong with that: the
-         edge only ever drew for someone who thought to tap a portrait, and the tap
-         left handlers on an element people press to stop a fling — which is the
-         gesture a scroll-jump on the Social portrait was reported against.
-         It plays itself on the way in now, the way hover does with a mouse, and
-         nothing listens for a tap here at all. Class only, no tween: the lift and
-         zoom are hover affordances, and left applied they would strand the frame
-         8px above where the layout puts it. */
-      ScrollTrigger.create({
-        trigger: frame, start: 'top 80%', once: true,
-        onEnter: () => frame.classList.add('is-hover')
+      /* Tap to play it, tap away to reset — the touch equivalent of hover. This was
+         briefly moved onto a scroll trigger while chasing a scroll-jump reported on
+         the Social portrait; taking the handler away did not stop the jump, so the
+         gesture is not the cause and the interaction is back. */
+      frame.addEventListener('click', () => {
+        frame.classList.contains('is-hover') ? leave() : enter();
+      });
+      document.addEventListener('click', (e) => {
+        if(!frame.contains(e.target)) leave();
       });
     } else {
       frame.addEventListener('mouseenter', enter);
