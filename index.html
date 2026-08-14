@@ -3148,11 +3148,17 @@
     }
 
     if(isTouchDevice) {
-      frame.addEventListener('click', () => {
-        frame.classList.contains('is-hover') ? leave() : enter();
-      });
-      document.addEventListener('click', (e) => {
-        if(!frame.contains(e.target)) leave();
+      /* Was a tap toggle on the photograph itself. Two things wrong with that: the
+         edge only ever drew for someone who thought to tap a portrait, and the tap
+         left handlers on an element people press to stop a fling — which is the
+         gesture a scroll-jump on the Social portrait was reported against.
+         It plays itself on the way in now, the way hover does with a mouse, and
+         nothing listens for a tap here at all. Class only, no tween: the lift and
+         zoom are hover affordances, and left applied they would strand the frame
+         8px above where the layout puts it. */
+      ScrollTrigger.create({
+        trigger: frame, start: 'top 80%', once: true,
+        onEnter: () => frame.classList.add('is-hover')
       });
     } else {
       frame.addEventListener('mouseenter', enter);
