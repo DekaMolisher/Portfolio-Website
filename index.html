@@ -1243,25 +1243,46 @@
     mask-image:linear-gradient(to bottom, #000 90%, transparent 100%);
   }
   .hero-photo{width:100%;height:100%;}
+  /* The frame is 16:9 and the subject sits just right of its centre. Full-bleed, that put
+     him behind the wordmark; the photograph is inset from the left instead, so it holds the
+     right three-quarters and the copy gets the left quarter to itself. The left edge is
+     masked to nothing so the inset reads as the image dissolving into the page rather than
+     as a panel with a seam down it. Insetting is what actually moves him: on any viewport
+     wider than 16:9 the image covers by width, so there is no horizontal slack for
+     background-position to take up. */
+  .hero-bg-img{
+    left:22%;
+    background-position:56% 44%;
+    -webkit-mask-image:linear-gradient(to right, transparent 0%, #000 30%);
+    mask-image:linear-gradient(to right, transparent 0%, #000 30%);
+  }
   /* Everything that belonged to the framed print goes: the drawn border, the corner
      bars, and the sheen that swept across on hover. Full-bleed, they only put a box and
      a moving highlight over the photograph. */
   .hero-figure .shot-edge{display:none;}
   .hero-print::after{display:none;}
   .hero-photo::after{display:none;}
-  /* Carries the type. Strongest at the top where the text sits, easing to nothing by
-     mid-frame so the photograph is not veiled for the sake of a few lines. */
+  /* Carries the type, and it runs sideways rather than downwards because the copy does:
+     it is heaviest on the left column and gone by the time it reaches the subject. A
+     top-down scrim was right when the type spanned the full width, but against this frame
+     it blacked out the band the sun and his face sit in — the whole reason for the picture.
+     The second, much lighter pass down the top is only there to hold the nav. */
   .hero-scrim{
     position:absolute;inset:0;z-index:1;pointer-events:none;
-    background:linear-gradient(to bottom,
-      var(--bg) 0%,
-      color-mix(in srgb, var(--bg) 88%, transparent) 30%,
-      color-mix(in srgb, var(--bg) 62%, transparent) 55%,
-      color-mix(in srgb, var(--bg) 30%, transparent) 78%,
-      transparent 100%);
+    background:
+      linear-gradient(to right,
+        var(--bg) 0%,
+        color-mix(in srgb, var(--bg) 92%, transparent) 24%,
+        color-mix(in srgb, var(--bg) 66%, transparent) 42%,
+        color-mix(in srgb, var(--bg) 28%, transparent) 58%,
+        transparent 70%),
+      linear-gradient(to bottom,
+        color-mix(in srgb, var(--bg) 70%, transparent) 0%,
+        color-mix(in srgb, var(--bg) 26%, transparent) 20%,
+        transparent 42%);
   }
   @supports not (color: color-mix(in srgb, red 50%, blue)) {
-    .hero-scrim{background:linear-gradient(to bottom, var(--bg) 0%, var(--bg) 24%, transparent 100%);}
+    .hero-scrim{background:linear-gradient(to right, var(--bg) 0%, var(--bg) 24%, transparent 66%);}
   }
 
   /* Left at every width, not just on phones. .hero-copy is a centring flex column in
@@ -1312,6 +1333,32 @@
 
   @media (max-width:900px){
     .hero{padding:118px 22px calc(64px + env(safe-area-inset-bottom, 0px));}
+    /* A phone hero is portrait: the 16:9 frame is cropped to a narrow vertical band, so
+       there is no left column to keep clear and the band is positioned on him instead.
+       The copy moves to the foot of the frame rather than the head of it, because his face
+       and the sun sit in the top third of the photograph and a scrim over the type would
+       otherwise land squarely on them — the copy and the subject were competing for the
+       same band. Bottom-aligned, each gets its own half and the scrim runs upwards. */
+    .hero{align-items:flex-end;padding-top:96px;}
+    .hero-bg-img{left:0;background-position:63% center;-webkit-mask-image:none;mask-image:none;}
+    .hero-scrim{
+      background:
+        linear-gradient(to top,
+          var(--bg) 0%,
+          color-mix(in srgb, var(--bg) 90%, transparent) 30%,
+          color-mix(in srgb, var(--bg) 52%, transparent) 52%,
+          color-mix(in srgb, var(--bg) 18%, transparent) 72%,
+          transparent 88%),
+        /* The sky is blown out right where the nav sits, and the logo and the two icon
+           buttons are hairline gold on it. Short and shallow so it stops well above the
+           sun rather than dimming the thing the frame is about. */
+        linear-gradient(to bottom,
+          color-mix(in srgb, var(--bg) 78%, transparent) 0%,
+          color-mix(in srgb, var(--bg) 64%, transparent) 8%,
+          transparent 18%);
+    }
+    /* Bottom-aligned copy reaches the cue's corner, and it is the copy that matters. */
+    .scroll-cue{display:none;}
     .hero-lead{gap:20px;}
     .hero-copy p{font-size:14.5px;}
     /* Socials are in the menu and the footer already; on a phone they were a third copy
@@ -2785,7 +2832,7 @@
   /* ============ HERO BACKGROUND SLIDESHOW ============ */
   /* Placeholder hero frame. One line to swap for whichever photograph should carry the
      landing page — the scrim and the bottom mask are independent of which image it is. */
-  const HERO_STILL = 'jamjazz-13.webp';
+  const HERO_STILL = 'creator-hero.webp';
 
   function buildHeroBg() {
     const bg = document.getElementById('heroBg');
