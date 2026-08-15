@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dekagrophy Photography Contract</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;600;700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <style>
+    :root {
+      --text-primary: #F4E9D4;
+      --text-secondary: #7A6E5C;
+      --surface-bg: #1F1A14;
+      --page-bg: #090705;
+      --accent-primary: #BE9243;
+      --accent-secondary: #D6AE66;
+      --accent-deep: #C99A3C;
+      --border-color: #EADFC9;
+      --surface-muted: #F4EDDF;
+      --soft-text: #E8DCC8;
+
+      --font-display: 'Archivo Black', 'Archivo', sans-serif;
+      --font-ui: 'Archivo', sans-serif;
+      --font-body: 'Source Serif 4', Georgia, serif;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme="dark"]) {
+        --text-primary: #1F1A14;
+        --text-secondary: #3A342C;
+        --surface-bg: #FDFBF6;
+        --page-bg: #F4EDDF;
+        --accent-primary: #BE9243;
+        --accent-secondary: #D6AE66;
+        --accent-deep: #C99A3C;
+        --border-color: #EADFC9;
+        --surface-muted: #F4E9D4;
+        --soft-text: #4A4238;
+      }
+    }
+
+    [data-theme="light"] {
+      --text-primary: #1F1A14;
+      --text-secondary: #3A342C;
+      --surface-bg: #FDFBF6;
+      --page-bg: #F4EDDF;
+      --accent-primary: #BE9243;
+      --accent-secondary: #D6AE66;
+      --accent-deep: #C99A3C;
+      --border-color: #EADFC9;
+      --surface-muted: #F4E9D4;
+      --soft-text: #4A4238;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--page-bg);
+      color: var(--text-primary);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+
+    .theme-toggle {
+      position: sticky;
+      top: 1rem;
+      right: 1rem;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background-color: var(--surface-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      cursor: pointer;
+      font-family: var(--font-ui);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-primary);
+      transition: all 0.2s ease;
+    }
+
+    .theme-toggle:hover {
+      background-color: var(--surface-muted);
+      border-color: var(--accent-primary);
+    }
+
+    .theme-icon {
+      width: 16px;
+      height: 16px;
+      display: inline-block;
+    }
+
+    .progress-bar {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      height: 4px;
+      background-color: var(--surface-muted);
+      z-index: 999;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background-color: var(--accent-primary);
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 3rem 2rem;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .header h1 {
+      font-family: var(--font-display);
+      font-size: 3rem;
+      text-transform: uppercase;
+      letter-spacing: -0.005em;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+      font-weight: 900;
+      line-height: 1.1;
+    }
+
+    .header p {
+      font-family: var(--font-body);
+      font-style: italic;
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      font-weight: 400;
+    }
+
+    .header-intro {
+      margin-top: 1.5rem;
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      line-height: 1.8;
+    }
+
+    /* Form sections */
+    .form-section {
+      margin-bottom: 3rem;
+      padding: 2rem;
+      background-color: var(--surface-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+    }
+
+    .form-section h2 {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      text-transform: uppercase;
+      letter-spacing: -0.005em;
+      margin-bottom: 1.5rem;
+      color: var(--text-primary);
+      font-weight: 900;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--accent-primary);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-row.full {
+      grid-template-columns: 1fr;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      font-family: var(--font-ui);
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="date"],
+    select,
+    textarea {
+      font-family: var(--font-body);
+      font-size: 1rem;
+      padding: 0.75rem;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background-color: var(--page-bg);
+      color: var(--text-primary);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="tel"]:focus,
+    input[type="date"]:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(190, 146, 67, 0.1);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .checkbox-group,
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+
+    .checkbox-item,
+    .radio-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      cursor: pointer;
+    }
+
+    input[type="checkbox"],
+    input[type="radio"] {
+      width: 20px;
+      height: 20px;
+      margin-top: 0.2rem;
+      cursor: pointer;
+      accent-color: var(--accent-primary);
+      flex-shrink: 0;
+    }
+
+    .checkbox-label,
+    .radio-label {
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      cursor: pointer;
+      flex: 1;
+      line-height: 1.5;
+    }
+
+    .error-message {
+      color: #E74C3C;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .form-group.error input,
+    .form-group.error select,
+    .form-group.error textarea {
+      border-color: #E74C3C;
+    }
+
+    .display-field {
+      padding: 1rem;
+      background-color: var(--page-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-family: var(--font-body);
+      color: var(--text-secondary);
+    }
+
+    .legal-text {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      margin-bottom: 1rem;
+      font-style: italic;
+    }
+
+    /* Signature section */
+    .signature-section {
+      margin-bottom: 2rem;
+    }
+
+    .signature-tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .signature-tab {
+      font-family: var(--font-ui);
+      padding: 0.75rem 1rem;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      transition: all 0.2s ease;
+    }
+
+    .signature-tab.active {
+      color: var(--accent-primary);
+      border-bottom-color: var(--accent-primary);
+    }
+
+    .signature-tab:hover {
+      color: var(--text-primary);
+    }
+
+    .signature-method {
+      display: none;
+    }
+
+    .signature-method.active {
+      display: block;
+    }
+
+    #signatureCanvas {
+      border: 2px solid var(--border-color);
+      border-radius: 6px;
+      background-color: white;
+      cursor: crosshair;
+      display: block;
+      width: 100%;
+      max-width: 400px;
+      height: 150px;
+    }
+
+    .canvas-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    #signatureUpload {
+      padding: 0.75rem;
+      border: 2px dashed var(--border-color);
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+      background-color: var(--page-bg);
+      transition: all 0.2s ease;
+    }
+
+    #signatureUpload:hover {
+      border-color: var(--accent-primary);
+      background-color: var(--surface-bg);
+    }
+
+    #signaturePreview {
+      max-width: 300px;
+      max-height: 150px;
+      border-radius: 6px;
+      margin-top: 1rem;
+    }
+
+    #signatureTyped {
+      font-family: cursive;
+      font-size: 2rem;
+      letter-spacing: 0.1em;
+      padding: 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background-color: var(--page-bg);
+      min-height: 80px;
+    }
+
+    .signature-status {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 1rem;
+      padding: 1rem;
+      background-color: var(--page-bg);
+      border-radius: 6px;
+      border-left: 3px solid var(--accent-primary);
+      font-size: 0.95rem;
+      color: var(--text-primary);
+    }
+
+    .signature-status.pending {
+      display: none;
+    }
+
+    .checkmark {
+      color: var(--accent-primary);
+      font-weight: bold;
+    }
+
+    /* Buttons */
+    button {
+      font-family: var(--font-ui);
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background-color: var(--accent-primary);
+      color: var(--page-bg);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-secondary);
+    }
+
+    .btn-primary:active {
+      background-color: var(--accent-deep);
+    }
+
+    .btn-secondary {
+      background-color: var(--surface-muted);
+      color: var(--page-bg);
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--border-color);
+    }
+
+    .btn-danger {
+      background-color: #E74C3C;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background-color: #C0392B;
+    }
+
+    /* Export section */
+    .export-section {
+      text-align: center;
+      padding: 3rem 2rem;
+      border-top: 2px solid var(--border-color);
+      margin-top: 3rem;
+    }
+
+    .export-section h3 {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      text-transform: uppercase;
+      letter-spacing: -0.005em;
+      margin-bottom: 1.5rem;
+      color: var(--text-primary);
+    }
+
+    .export-section p {
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    #generatePdfBtn {
+      padding: 1rem 2rem;
+      font-size: 1rem;
+    }
+
+    /* Success message */
+    .success-message {
+      background-color: var(--accent-primary);
+      color: var(--page-bg);
+      padding: 1.5rem;
+      border-radius: 6px;
+      text-align: center;
+      margin-top: 1.5rem;
+      display: none;
+      font-weight: 600;
+    }
+
+    .success-message.show {
+      display: block;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-1rem);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Errors summary */
+    .errors-summary {
+      background-color: #E74C3C;
+      color: white;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-bottom: 2rem;
+      display: none;
+    }
+
+    .errors-summary.show {
+      display: block;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        padding: 1.5rem 1rem;
+      }
+
+      .header h1 {
+        font-size: 2rem;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      #signatureCanvas {
+        height: 120px;
+      }
+
+      .form-section {
+        padding: 1.5rem;
+      }
+
+      label {
+        font-size: 0.85rem;
+      }
+
+      input[type="text"],
+      input[type="email"],
+      input[type="tel"],
+      input[type="date"],
+      select,
+      textarea {
+        font-size: 16px;
+        padding: 1rem;
+        min-height: 48px;
+      }
+
+      .signature-tabs {
+        flex-wrap: wrap;
+      }
+    }
+
+    /* Print styles */
+    @media print {
+      .theme-toggle,
+      .progress-bar,
+      .export-section,
+      button {
+        display: none !important;
+      }
+
+      body {
+        background-color: white;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress-bar">
+    <div class="progress-fill"></div>
+  </div>
+
+  <button class="theme-toggle" id="themeToggle">
+    <span class="theme-icon" id="themeIcon">🌙</span>
+    <span>Theme</span>
+  </button>
+
+  <form id="contractForm">
+    <div class="container">
+      <!-- HEADER -->
+      <div class="header">
+        <h1>Dekagrophy</h1>
+        <p>Professional Image Creator</p>
+        <div class="header-intro">
+          <p>This is a professional photography services agreement. By completing and signing this contract, both you and Dekagrophy agree to the terms outlined below. The contract confirms your session details, our deliverables, and your rights as it relates to the images created.</p>
+        </div>
+      </div>
+
+      <div class="errors-summary" id="errorsSummary">
+        <strong>Please complete all required fields below:</strong>
+      </div>
+
+      <!-- SECTION 1: SESSION DETAILS -->
+      <div class="form-section">
+        <h2>Session Details</h2>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="clientName">Client Name *</label>
+            <input type="text" id="clientName" name="clientName" required>
+            <div class="error-message">Client name is required</div>
+          </div>
+          <div class="form-group">
+            <label for="clientEmail">Email *</label>
+            <input type="email" id="clientEmail" name="clientEmail" required>
+            <div class="error-message">Valid email is required</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="clientPhone">Phone / WhatsApp *</label>
+            <input type="tel" id="clientPhone" name="clientPhone" required>
+            <div class="error-message">Phone number is required</div>
+          </div>
+          <div class="form-group">
+            <label for="sessionDate">Preferred Date *</label>
+            <input type="date" id="sessionDate" name="sessionDate" required>
+            <div class="error-message">Session date is required</div>
+          </div>
+        </div>
+
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Session Type *</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item">
+                <input type="checkbox" name="sessionType" value="Creative Portrait">
+                <span class="checkbox-label">Creative Portrait</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="sessionType" value="Couples">
+                <span class="checkbox-label">Couples</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="sessionType" value="Wedding">
+                <span class="checkbox-label">Wedding</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="sessionType" value="Event">
+                <span class="checkbox-label">Event</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="sessionType" value="Documentary">
+                <span class="checkbox-label">Documentary</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="sessionType" value="Artistic Nude">
+                <span class="checkbox-label">Artistic Nude</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="sessionType" value="Erotic">
+                <span class="checkbox-label">Erotic</span>
+              </label>
+            </div>
+            <div class="error-message">At least one session type is required</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="sessionLocation">Session Location</label>
+            <input type="text" id="sessionLocation" name="sessionLocation" placeholder="City or venue">
+          </div>
+          <div class="form-group">
+            <label for="sessionDuration">Session Duration</label>
+            <select id="sessionDuration" name="sessionDuration">
+              <option value="">Select duration</option>
+              <option value="1 hour">1 Hour</option>
+              <option value="2 hours">2 Hours</option>
+              <option value="3 hours">3 Hours</option>
+              <option value="4 hours">4 Hours</option>
+              <option value="Full Day">Full Day</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 2: FEES & PAYMENT -->
+      <div class="form-section">
+        <h2>Fees & Payment</h2>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Session Fee</label>
+            <div class="display-field">To be confirmed by photographer</div>
+          </div>
+          <div class="form-group">
+            <label>Deposit (50%)</label>
+            <div class="display-field">To be confirmed by photographer</div>
+          </div>
+        </div>
+
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Balance Due</label>
+            <div class="display-field">Due within 3 days of session completion</div>
+          </div>
+        </div>
+
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Payment Acknowledgments</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item">
+                <input type="checkbox" name="cancelPolicy" value="true">
+                <span class="checkbox-label">I understand that cancellations within 14 days forfeit the deposit</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="paymentTerms" value="true">
+                <span class="checkbox-label">I agree to payment terms (balance due within 3 days of session)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 3: DELIVERABLES -->
+      <div class="form-section">
+        <h2>Deliverables</h2>
+
+        <div class="form-row full">
+          <div class="form-group">
+            <p class="legal-text">You will receive a selection of professionally edited digital images in high resolution. The exact number and delivery timeline will be confirmed based on your package.</p>
+            <p class="legal-text">Delivery: 2–4 weeks post-session via secure cloud link.</p>
+          </div>
+        </div>
+
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Deliverables Acknowledgment</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item">
+                <input type="checkbox" name="deliverableAck" value="true">
+                <span class="checkbox-label">I understand and accept the deliverables listed above</span>
+              </label>
+            </div>
+            <div class="error-message">You must accept the deliverables terms</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 4: COPYRIGHT & USAGE RIGHTS -->
+      <div class="form-section">
+        <h2>Copyright & Usage Rights</h2>
+
+        <div class="form-row full">
+          <div class="form-group">
+            <p class="legal-text">Dekagrophy retains full copyright ownership of all images created during your session. You receive a non-exclusive license to use the images for personal use only. Any commercial use, reproduction, or publication of the images requires written permission from Dekagrophy.</p>
+            <label>Copyright Acknowledgment</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item">
+                <input type="checkbox" name="copyrightAck" value="true">
+                <span class="checkbox-label">I understand and accept the copyright terms</span>
+              </label>
+            </div>
+            <div class="error-message">You must accept the copyright terms</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 5: MODEL RELEASE & CONSENT -->
+      <div class="form-section">
+        <h2>Model Release & Consent</h2>
+
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Age & Consent Verification *</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item">
+                <input type="checkbox" name="ageConfirm" value="true" required>
+                <span class="checkbox-label">I confirm I am 18 years or older</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="idConfirm" value="true" required>
+                <span class="checkbox-label">I have provided valid government-issued ID</span>
+              </label>
+            </div>
+            <div class="error-message">Age verification is required</div>
+          </div>
+        </div>
+
+        <div class="form-row full">
+          <div class="form-group">
+            <label>What Will Be Photographed</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item">
+                <input type="checkbox" name="contentType" value="Implied nudity (breasts, torso visible)">
+                <span class="checkbox-label">Implied nudity (breasts, torso visible)</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="contentType" value="Full frontal nudity">
+                <span class="checkbox-label">Full frontal nudity</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="contentType" value="Erotic/sexually suggestive poses and content">
+                <span class="checkbox-label">Erotic/sexually suggestive poses and content</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="contentType" value="Props or accessories as discussed">
+                <span class="checkbox-label">Props or accessories as discussed</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="contentType" value="Other (please specify)">
+                <span class="checkbox-label">Other (please specify)</span>
+              </label>
+            </div>
+            <input type="text" name="contentOther" placeholder="Other content details (optional)" style="margin-top: 0.75rem;">
+          </div>
+        </div>
+
+        <div class="form-row full">
+          <div class="form-group">
+            <p class="legal-text">I understand I can pause or stop the shoot at any time without penalty.</p>
+            <label>Right to Stop</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item">
+                <input type="checkbox" name="rightToStop" value="true">
+                <span class="checkbox-label">I acknowledge this right</span>
+              </label>
+            </div>
+            <div class="error-message">You must acknowledge your right to stop</div>
+          </div>
+        </div>
+
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Image Distribution Consent *</label>
+            <p class="legal-text" style="margin-bottom: 1rem;">How may Dekagrophy use the images created during this session?</p>
+            <div class="radio-group">
+              <label class="radio-item">
+                <input type="radio" name="distributionConsent" value="Private Delivery Only" required>
+                <span class="radio-label"><strong>Private Delivery Only</strong> — No portfolio, website, or marketing use</span>
+              </label>
+              <label class="radio-item">
+                <input type="radio" name="distributionConsent" value="Portfolio Use (Face Shown)" required>
+                <span class="radio-label"><strong>Portfolio Use (Face Shown)</strong> — May appear on website, social media, printed portfolio</span>
+              </label>
+              <label class="radio-item">
+                <input type="radio" name="distributionConsent" value="Portfolio Use (Face Obscured)" required>
+                <span class="radio-label"><strong>Portfolio Use (Face Obscured)</strong> — Images may be used with face cropped or blurred</span>
+              </label>
+              <label class="radio-item">
+                <input type="radio" name="distributionConsent" value="Stock/Publication Use" required>
+                <span class="radio-label"><strong>Stock/Publication Use</strong> — Images may be submitted to stock agencies or publications</span>
+              </label>
+            </div>
+            <div class="error-message">You must select an image distribution option</div>
+          </div>
+        </div>
+
+        <div class="form-row full">
+          <div class="form-group">
+            <p class="legal-text">Images will be stored securely and retained for 2 years; deletion upon request.</p>
+            <label>Storage & Privacy</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item">
+                <input type="checkbox" name="storageAck" value="true">
+                <span class="checkbox-label">I understand the storage and privacy terms</span>
+              </label>
+            </div>
+            <div class="error-message">You must acknowledge storage terms</div>
+          </div>
+        </div>
+
+        <div class="form-row full">
+          <div class="form-group">
+            <p class="legal-text">You may revoke consent for future portfolio use in writing at any time. This does not affect images already published.</p>
+            <label>Right to Revoke Consent</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item">
+                <input type="checkbox" name="revokeRight" value="true">
+                <span class="checkbox-label">I understand I can revoke consent for future portfolio use</span>
+              </label>
+            </div>
+            <div class="error-message">You must acknowledge your right to revoke consent</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 6: LIABILITY & CONDUCT -->
+      <div class="form-section">
+        <h2>Liability & Conduct</h2>
+
+        <div class="form-row full">
+          <div class="form-group">
+            <p class="legal-text">Dekagrophy is not responsible for lost, stolen, or damaged personal belongings during the session. The client agrees to conduct themselves professionally and respectfully during the session. Failure to do so may result in termination of the session without refund.</p>
+            <label>Liability Acknowledgment</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item">
+                <input type="checkbox" name="liabilityAck" value="true">
+                <span class="checkbox-label">I acknowledge and accept these terms</span>
+              </label>
+            </div>
+            <div class="error-message">You must accept the liability terms</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 7: FINAL CONSENT & SIGNATURE -->
+      <div class="form-section">
+        <h2>Client Signature & Consent</h2>
+
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Signature *</label>
+            <div class="signature-section">
+              <div class="signature-tabs">
+                <button type="button" class="signature-tab active" data-method="draw">Draw Signature</button>
+                <button type="button" class="signature-tab" data-method="upload">Upload Image</button>
+                <button type="button" class="signature-tab" data-method="type">Type Signature</button>
+              </div>
+
+              <!-- Draw -->
+              <div class="signature-method active" id="drawMethod">
+                <canvas id="signatureCanvas" width="400" height="150"></canvas>
+                <div class="canvas-buttons">
+                  <button type="button" class="btn-secondary" id="clearCanvas">Clear</button>
+                  <button type="button" class="btn-primary" id="acceptDrawnSig">Accept Signature</button>
+                </div>
+              </div>
+
+              <!-- Upload -->
+              <div class="signature-method" id="uploadMethod">
+                <label for="signatureInput" style="cursor: pointer; display: block; margin-bottom: 1rem;">
+                  <div id="signatureUpload">
+                    <p>Click to upload signature image (.jpg, .png, .webp)</p>
+                  </div>
+                  <input type="file" id="signatureInput" accept=".jpg,.jpeg,.png,.webp" style="display: none;">
+                </label>
+                <img id="signaturePreview" style="display: none;">
+                <button type="button" class="btn-primary" id="acceptUploadedSig" style="display: none;">Use This Signature</button>
+              </div>
+
+              <!-- Type -->
+              <div class="signature-method" id="typeMethod">
+                <input type="text" id="signatureTyped" placeholder="Enter your signature name...">
+                <button type="button" class="btn-primary" id="acceptTypedSig">Use Typed Signature</button>
+              </div>
+            </div>
+
+            <div class="signature-status" id="signatureStatus">
+              <span class="checkmark">✓</span>
+              <span>Signature captured</span>
+            </div>
+            <div class="error-message">Signature is required</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="printedName">Printed Name *</label>
+            <input type="text" id="printedName" name="printedName" required>
+            <div class="error-message">Printed name is required</div>
+          </div>
+          <div class="form-group">
+            <label for="signDate">Date *</label>
+            <input type="date" id="signDate" name="signDate" required>
+            <div class="error-message">Date is required</div>
+          </div>
+        </div>
+
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Photographer Signature</label>
+            <div class="display-field">
+              <strong>Giancarlo (Deka) Rosete</strong><br>
+              Dekagrophy<br>
+              <span id="photoDate"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXPORT -->
+      <div class="export-section">
+        <h3>Generate Your Contract</h3>
+        <p>Review all information above and click the button below to generate and download your signed contract as a PDF.</p>
+        <button type="button" class="btn-primary" id="generatePdfBtn">Generate & Download PDF</button>
+        <div class="success-message" id="successMessage">✓ Contract saved and ready to send</div>
+      </div>
+    </div>
+  </form>
+
+  <script>
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const html = document.documentElement;
+
+    const savedTheme = localStorage.getItem('dekagrophy_theme') || 'dark';
+    html.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+
+    function updateThemeIcon(theme) {
+      themeIcon.textContent = theme === 'dark' ? '🌙' : '☀️';
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = html.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', newTheme);
+      localStorage.setItem('dekagrophy_theme', newTheme);
+      updateThemeIcon(newTheme);
+    });
+
+    // Progress bar
+    const progressFill = document.querySelector('.progress-fill');
+
+    function updateProgress() {
+      const formHeight = document.getElementById('contractForm').scrollHeight;
+      const windowHeight = window.innerHeight;
+      const scrollHeight = document.documentElement.scrollHeight - windowHeight;
+      const scrolled = window.scrollY;
+      const progress = (scrolled / scrollHeight) * 100;
+      progressFill.style.width = Math.min(progress, 100) + '%';
+    }
+
+    window.addEventListener('scroll', updateProgress);
+
+    // Set initial date
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('signDate').value = today;
+    document.getElementById('photoDate').textContent = new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    // Signature handling
+    const signatureTabs = document.querySelectorAll('.signature-tab');
+    const signatureMethods = document.querySelectorAll('.signature-method');
+    const canvas = document.getElementById('signatureCanvas');
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+    let signatureData = null;
+    let signatureMethod = 'draw';
+
+    // Canvas setup
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = 400 * dpr;
+    canvas.height = 150 * dpr;
+    ctx.scale(dpr, dpr);
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+
+    canvas.addEventListener('mousedown', (e) => {
+      isDrawing = true;
+      const rect = canvas.getBoundingClientRect();
+      ctx.beginPath();
+      ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (!isDrawing) return;
+      const rect = canvas.getBoundingClientRect();
+      ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+      ctx.stroke();
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      isDrawing = false;
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      isDrawing = false;
+    });
+
+    // Touch support
+    canvas.addEventListener('touchstart', (e) => {
+      isDrawing = true;
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches[0];
+      ctx.beginPath();
+      ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+      if (!isDrawing) return;
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches[0];
+      ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+      ctx.stroke();
+    });
+
+    canvas.addEventListener('touchend', () => {
+      isDrawing = false;
+    });
+
+    document.getElementById('clearCanvas').addEventListener('click', (e) => {
+      e.preventDefault();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+
+    document.getElementById('acceptDrawnSig').addEventListener('click', (e) => {
+      e.preventDefault();
+      signatureData = canvas.toDataURL('image/png');
+      signatureMethod = 'draw';
+      showSignatureStatus();
+    });
+
+    // Upload signature
+    document.getElementById('signatureInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = document.getElementById('signaturePreview');
+        img.src = event.target.result;
+        img.style.display = 'block';
+        document.getElementById('acceptUploadedSig').style.display = 'block';
+        signatureData = event.target.result;
+        signatureMethod = 'upload';
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById('acceptUploadedSig').addEventListener('click', (e) => {
+      e.preventDefault();
+      signatureMethod = 'upload';
+      showSignatureStatus();
+    });
+
+    document.getElementById('acceptTypedSig').addEventListener('click', (e) => {
+      e.preventDefault();
+      const typed = document.getElementById('signatureTyped').value;
+      if (typed.trim()) {
+        signatureData = typed;
+        signatureMethod = 'type';
+        showSignatureStatus();
+      }
+    });
+
+    function showSignatureStatus() {
+      const status = document.getElementById('signatureStatus');
+      status.classList.remove('pending');
+      const errorMsg = document.querySelector('[data-field="signature"]');
+      if (errorMsg) errorMsg.classList.remove('show');
+    }
+
+    // Tab switching
+    signatureTabs.forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        e.preventDefault();
+        const method = tab.dataset.method;
+
+        signatureTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        signatureMethods.forEach(m => m.classList.remove('active'));
+        document.getElementById(method + 'Method').classList.add('active');
+      });
+    });
+
+    // Form validation and PDF generation
+    document.getElementById('generatePdfBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+
+      // Clear previous errors
+      document.querySelectorAll('.form-group.error').forEach(g => g.classList.remove('error'));
+      document.querySelectorAll('.error-message.show').forEach(m => m.classList.remove('show'));
+      document.getElementById('errorsSummary').classList.remove('show');
+
+      // Validate
+      const errors = validateForm();
+
+      if (errors.length > 0) {
+        document.getElementById('errorsSummary').classList.add('show');
+        errors.forEach(fieldName => {
+          const field = document.querySelector(`[name="${fieldName}"]`) || document.getElementById(fieldName);
+          if (field) {
+            let group = field.closest('.form-group');
+            if (!group) {
+              group = field.parentElement.closest('.form-group');
+            }
+            if (group) {
+              group.classList.add('error');
+              const errorMsg = group.querySelector('.error-message');
+              if (errorMsg) errorMsg.classList.add('show');
+            }
+          }
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
+      generatePDF();
+    });
+
+    function validateForm() {
+      const errors = [];
+
+      // Required text fields
+      const clientName = document.getElementById('clientName').value.trim();
+      if (!clientName) errors.push('clientName');
+
+      const clientEmail = document.getElementById('clientEmail').value.trim();
+      if (!clientEmail || !isValidEmail(clientEmail)) errors.push('clientEmail');
+
+      const clientPhone = document.getElementById('clientPhone').value.trim();
+      if (!clientPhone) errors.push('clientPhone');
+
+      const sessionDate = document.getElementById('sessionDate').value;
+      if (!sessionDate) errors.push('sessionDate');
+
+      // Session type
+      const sessionTypes = document.querySelectorAll('input[name="sessionType"]:checked');
+      if (sessionTypes.length === 0) errors.push('sessionType');
+
+      // Deliverables
+      if (!document.querySelector('input[name="deliverableAck"]:checked')) errors.push('deliverableAck');
+
+      // Copyright
+      if (!document.querySelector('input[name="copyrightAck"]:checked')) errors.push('copyrightAck');
+
+      // Age & ID
+      if (!document.querySelector('input[name="ageConfirm"]:checked')) errors.push('ageConfirm');
+      if (!document.querySelector('input[name="idConfirm"]:checked')) errors.push('idConfirm');
+
+      // Right to stop
+      if (!document.querySelector('input[name="rightToStop"]:checked')) errors.push('rightToStop');
+
+      // Distribution consent
+      if (!document.querySelector('input[name="distributionConsent"]:checked')) errors.push('distributionConsent');
+
+      // Storage
+      if (!document.querySelector('input[name="storageAck"]:checked')) errors.push('storageAck');
+
+      // Revoke right
+      if (!document.querySelector('input[name="revokeRight"]:checked')) errors.push('revokeRight');
+
+      // Liability
+      if (!document.querySelector('input[name="liabilityAck"]:checked')) errors.push('liabilityAck');
+
+      // Printed name
+      const printedName = document.getElementById('printedName').value.trim();
+      if (!printedName) errors.push('printedName');
+
+      // Date
+      const signDate = document.getElementById('signDate').value;
+      if (!signDate) errors.push('signDate');
+
+      // Signature
+      if (!signatureData) errors.push('signature');
+
+      return errors;
+    }
+
+    function isValidEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function generatePDF() {
+      const element = document.getElementById('contractForm');
+      const opt = {
+        margin: 10,
+        filename: `Dekagrophy_Contract_${document.getElementById('clientName').value}_${new Date().toISOString().split('T')[0]}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(element).save().then(() => {
+        document.getElementById('successMessage').classList.add('show');
+        setTimeout(() => {
+          document.getElementById('successMessage').classList.remove('show');
+        }, 3000);
+      });
+    }
+
+    // Clear errors on input
+    document.querySelectorAll('input, select, textarea').forEach(field => {
+      field.addEventListener('change', () => {
+        const group = field.closest('.form-group');
+        if (group) {
+          group.classList.remove('error');
+          const errorMsg = group.querySelector('.error-message');
+          if (errorMsg) errorMsg.classList.remove('show');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
