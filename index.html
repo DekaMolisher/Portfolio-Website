@@ -1237,10 +1237,20 @@
   /* The photograph itself fades out over the last few percent of the hero, so the
      section hands off to the page rather than ending on a hard edge. A mask, not an
      overlay, so it really goes to zero opacity instead of being painted over. */
+  /* The fade out of the bottom used to be a straight ramp over the last tenth of the
+     frame. Ninety percent of the way down the photograph was still fully opaque, so what
+     should have been a dissolve read as a line across the page — worst where the lit
+     boardwalk runs to the edge. It is long and eased now: the stops approximate an ease-out
+     rather than a straight line, because a linear ramp holds its mid-tones long enough to
+     show its own edge. Only the ground goes; the subject is well above where it starts. */
   .hero-print{
     position:absolute;inset:0;width:100%;height:100%;margin:0;max-width:none;aspect-ratio:auto;
-    -webkit-mask-image:linear-gradient(to bottom, #000 90%, transparent 100%);
-    mask-image:linear-gradient(to bottom, #000 90%, transparent 100%);
+    -webkit-mask-image:linear-gradient(to bottom,
+      #000 46%, rgba(0,0,0,.95) 58%, rgba(0,0,0,.82) 68%,
+      rgba(0,0,0,.62) 77%, rgba(0,0,0,.38) 86%, rgba(0,0,0,.16) 94%, transparent 100%);
+    mask-image:linear-gradient(to bottom,
+      #000 46%, rgba(0,0,0,.95) 58%, rgba(0,0,0,.82) 68%,
+      rgba(0,0,0,.62) 77%, rgba(0,0,0,.38) 86%, rgba(0,0,0,.16) 94%, transparent 100%);
   }
   .hero-photo{width:100%;height:100%;}
   /* The frame is 16:9 and the subject sits just right of its centre. Full-bleed, that put
@@ -1280,6 +1290,15 @@
         color-mix(in srgb, var(--bg) 70%, transparent) 0%,
         color-mix(in srgb, var(--bg) 26%, transparent) 20%,
         transparent 42%);
+    /* The line across the page at the foot of the hero was this, not the photograph. The
+       scrim paints flat --bg, the silk gradient behind the page is lighter than --bg, and
+       an opaque layer that simply stops at the section boundary steps straight into it —
+       measured at 12,10,6 above the edge against 29,25,19 below. Fading the scrim out too
+       means both dissolves land together and the hero ends on nothing at all. */
+    -webkit-mask-image:linear-gradient(to bottom,
+      #000 52%, rgba(0,0,0,.74) 76%, rgba(0,0,0,.34) 90%, transparent 100%);
+    mask-image:linear-gradient(to bottom,
+      #000 52%, rgba(0,0,0,.74) 76%, rgba(0,0,0,.34) 90%, transparent 100%);
   }
   @supports not (color: color-mix(in srgb, red 50%, blue)) {
     .hero-scrim{background:linear-gradient(to right, var(--bg) 0%, var(--bg) 24%, transparent 66%);}
@@ -1331,15 +1350,18 @@
   .hero-cta{display:flex;align-items:center;gap:22px;flex-wrap:wrap;}
   .hero-socials{gap:14px;}
 
-  @media (max-width:900px){
-    .hero{padding:118px 22px calc(64px + env(safe-area-inset-bottom, 0px));}
-    /* A phone hero is portrait: the 16:9 frame is cropped to a narrow vertical band, so
-       there is no left column to keep clear and the band is positioned on him instead.
-       The copy moves to the foot of the frame rather than the head of it, because his face
-       and the sun sit in the top third of the photograph and a scrim over the type would
-       otherwise land squarely on them — the copy and the subject were competing for the
-       same band. Bottom-aligned, each gets its own half and the scrim runs upwards. */
-    .hero{align-items:flex-end;padding-top:96px;}
+  /* The left column the photograph is inset for only exists when the viewport is wider
+     than it is tall. Keyed on width alone, a portrait screen above the breakpoint — a
+     tablet held upright, or a phone reporting a CSS width in the 900s — got the inset
+     anyway, and the frame was squeezed into a narrow column that cover-cropped to a
+     sliver with his face off the edge. Orientation is the real condition, so it is the one
+     asked; width still governs the type sizes below, which is a separate question.
+
+     Portrait also stacks rather than sits side by side: the copy moves to the foot of the
+     frame, because his face and the sun are in the top third of the photograph and a scrim
+     over type at the top would land squarely on them. Bottom-aligned, each gets a half. */
+  @media (max-aspect-ratio: 1/1){
+    .hero{align-items:flex-end;}
     .hero-bg-img{left:0;background-position:63% center;-webkit-mask-image:none;mask-image:none;}
     .hero-scrim{
       background:
@@ -1356,9 +1378,18 @@
           color-mix(in srgb, var(--bg) 78%, transparent) 0%,
           color-mix(in srgb, var(--bg) 64%, transparent) 8%,
           transparent 18%);
+      /* Short, unlike the landscape fade: here the scrim is the copy's ground right down
+         to the last line, so it can only be released below the type — enough to meet the
+         silk without a step, not so much that the copy loses its footing. */
+      -webkit-mask-image:linear-gradient(to bottom, #000 87%, transparent 100%);
+      mask-image:linear-gradient(to bottom, #000 87%, transparent 100%);
     }
     /* Bottom-aligned copy reaches the cue's corner, and it is the copy that matters. */
     .scroll-cue{display:none;}
+  }
+
+  @media (max-width:900px){
+    .hero{padding:118px 22px calc(64px + env(safe-area-inset-bottom, 0px));}
     .hero-lead{gap:20px;}
     .hero-copy p{font-size:14.5px;}
     /* Socials are in the menu and the footer already; on a phone they were a third copy
