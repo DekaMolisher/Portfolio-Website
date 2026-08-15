@@ -58,10 +58,13 @@
     --font-accent:'Source Serif 4', Georgia, serif;
     --font-script:'Source Serif 4', Georgia, serif;
     --font-serif:'Source Serif 4', Georgia, serif;
-    /* Title case, not uppercase: the display face is heavy enough to carry the
-       hierarchy on its own, and a long sentence set in black caps is a wall. */
-    --heading-transform:none;
-    --heading-tracking:-.02em;
+    /* Caps on the headings, which are short titles — "The Gallery", "Follow Along".
+       The one long one, the About statement, opts out in its own rule: it is a
+       sentence rather than a title, and a sentence set in black caps is a wall.
+       Tracking eases off for caps; -.02em was set for lowercase, and caps in a
+       face this heavy start colliding at that. */
+    --heading-transform:uppercase;
+    --heading-tracking:-.005em;
     --heading-weight:400;
     --heading-style:normal;
     --ease:cubic-bezier(.22,.61,.36,1);
@@ -95,8 +98,10 @@
     --font-accent:'Source Serif 4', Georgia, serif;
     --font-script:'Source Serif 4', Georgia, serif;
     --font-serif:'Source Serif 4', Georgia, serif;
-    --heading-transform:none;
-    --heading-tracking:-.02em;
+    /* Matches the dark theme above — these tokens are the type system, not a
+       theme choice, so they must not diverge between the two. */
+    --heading-transform:uppercase;
+    --heading-tracking:-.005em;
     --heading-weight:400;
     --heading-style:normal;
   }
@@ -1282,8 +1287,12 @@
   /* Order is the point: studio name, then role, then the person. */
   .hero h1{
     font-family:var(--font-display);font-weight:var(--heading-weight);
-    font-size:clamp(46px,6.6vw,88px);line-height:1.08;letter-spacing:-.02em;
-    text-transform:none;color:var(--ink);margin:0;
+    font-size:clamp(46px,6.6vw,88px);line-height:1.02;
+    /* Follows the heading tokens rather than opting out, so the wordmark is set
+       like every other title. Line-height tightens with the caps: there are no
+       descenders to leave room for. */
+    text-transform:var(--heading-transform);letter-spacing:var(--heading-tracking);
+    color:var(--ink);margin:0;
   }
   .hero-eyebrow{
     display:block;margin-top:12px;font-family:var(--font-ui);font-size:12px;font-weight:600;
@@ -1474,8 +1483,9 @@
   .contact-header .eyebrow::after{content:"";width:52px;height:1px;background:var(--gold);opacity:.55;}
   .contact-header h1{
     font-family:var(--font-display);font-weight:var(--heading-weight);
-    font-size:clamp(34px,4.6vw,62px);line-height:1.04;letter-spacing:-.02em;
-    text-transform:none;margin-bottom:20px;
+    font-size:clamp(34px,4.6vw,62px);line-height:1.0;
+    text-transform:var(--heading-transform);letter-spacing:var(--heading-tracking);
+    margin-bottom:20px;
   }
   .contact-header p{max-width:38ch;}
   .contact-aside{
