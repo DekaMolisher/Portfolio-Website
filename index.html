@@ -4949,8 +4949,11 @@
     setupEndless();
     setupFloatingTab();
 
+    /* Featured Work rather than the wall. It is the section directly below the hero, and it
+       opens on a handful of frames instead of every category at once — and its own arrow
+       carries on down to the wall, so nothing is cut off by stopping here first. */
     document.getElementById('viewGalleryBtn').addEventListener('click', () => {
-      gsapScrollTo({ y: '#portfolio', offsetY: 0 });
+      gsapScrollTo({ y: '#featured', offsetY: 0 });
     });
     // "Home" links should always jump to the hero, even when the hash is already '#/' and
     // no hashchange event fires (e.g. scrolled down on the home page and clicking Home).
