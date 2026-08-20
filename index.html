@@ -1710,9 +1710,12 @@
     transition:transform .8s var(--ease), filter .45s var(--ease);
     filter:saturate(.86) brightness(.86);
   }
-  .fw-card.is-active img{filter:saturate(1) brightness(1);}
+  /* Being the centred card is itself worth a push-in, the same move the category tiles
+     make on the wall below — it holds the middle of the rail without the rail having to
+     grow the card. Hover then goes a little further still. */
+  .fw-card.is-active img{filter:saturate(1) brightness(1);transform:scale(1.06);}
   .fw-card.is-active:hover img,
-  .fw-card:focus-visible img{transform:scale(1.05);}
+  .fw-card:focus-visible img{transform:scale(1.1);}
 
   /* Carries the caption. Sits inside the clipped shell so it follows the rounded corner. */
   .fw-card-veil{
@@ -1758,12 +1761,20 @@
       color-mix(in srgb, var(--accent) 22%, transparent) 44%,
       transparent 74%);
     transition:opacity .34s var(--ease);
+    /* Twenty percent bigger than the box above, grown from the card's floor so the base
+       stays put and it spreads upwards and outwards. Scaling rather than restating the
+       four offsets keeps the amount legible as an amount. */
+    transform:scale(1.2);transform-origin:50% 100%;
   }
   @supports not (color: color-mix(in srgb, red 50%, blue)) {
     .fw-card-glow{background:radial-gradient(ellipse at 50% 100%, rgba(227,185,95,.58) 0%, rgba(227,185,95,.22) 44%, transparent 74%);}
   }
   .fw-card.is-confirmed .fw-card-glow{opacity:1;transition-duration:.08s;}
-  .fw-card.is-confirmed{transform:translate(-50%,-50%) scale(1.02);}
+  /* The bump goes on the shell, not the card. layout() writes the card's transform as an
+     inline style on every move, and a stylesheet rule cannot outrank that — set here it
+     was simply never applied. The shell has no inline transform to fight. */
+  .fw-card-shell{transition:transform .3s var(--ease);}
+  .fw-card.is-confirmed .fw-card-shell{transform:scale(1.03);}
 
   .fw-cue{
     margin:52px auto 0;text-align:center;
