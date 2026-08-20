@@ -1780,14 +1780,24 @@
     margin:52px auto 0;text-align:center;
     font-family:var(--font-body);font-size:14.5px;line-height:1.8;color:var(--ink-soft);
   }
-  .fw-cue-link{
-    display:inline;margin-left:6px;padding:0;border:none;background:none;cursor:pointer;
-    font-family:var(--font-ui);font-size:11.5px;font-weight:600;
-    letter-spacing:.17em;text-transform:uppercase;color:var(--accent);
-    border-bottom:1px solid var(--accent-pale);
-    transition:color .3s ease, border-color .3s ease;
+  /* An arrow rather than a link. The section hands off to the gallery directly below it,
+     so the honest instruction is "keep going", not a second route to a place the page was
+     already taking you. It still clicks, because an arrow that only nods is a waste of a
+     target the pointer is already near. */
+  .fw-cue-arrow{
+    display:block;margin:24px auto 0;padding:10px;border:none;background:none;
+    cursor:pointer;color:var(--accent);
+    transition:color .3s ease;
+    animation:fwCueBounce 2.1s ease-in-out infinite;
   }
-  .fw-cue-link:hover{color:var(--accent-deep);border-color:var(--accent);}
+  .fw-cue-arrow svg{display:block;width:26px;height:26px;stroke:currentColor;}
+  .fw-cue-arrow:hover{color:var(--accent-deep);}
+  /* Its own keyframes rather than the hero cue's: that one is absolutely positioned and
+     carries a translateX(-50%) through every step, which would drag this off centre. */
+  @keyframes fwCueBounce{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(8px);}
+  }
 
   @media (max-width:900px){
     #featured{--fw-card-w:clamp(150px, 34vw, 200px);--fw-gap:18px;}
@@ -1804,8 +1814,8 @@
       -webkit-mask-image:linear-gradient(to right, transparent 0%, #000 22%, #000 78%, transparent 100%);
       mask-image:linear-gradient(to right, transparent 0%, #000 22%, #000 78%, transparent 100%);
     }
-    .fw-cue{display:flex;flex-direction:column;align-items:center;gap:12px;}
-    .fw-cue-link{margin-left:0;}
+    .fw-cue-arrow{margin-top:18px;}
+    .fw-cue-arrow svg{width:23px;height:23px;}
   }
 
   /* No pulse and no particles when motion is turned down; the section still reads, it
@@ -1814,6 +1824,7 @@
     .fw-glow{animation:none;opacity:.4;}
     .fw-card{transition-duration:.001s;}
     .fw-card img{transition:none;}
+    .fw-cue-arrow{animation:none;}
   }
 
   /* ---- The invitation at the foot of a gallery ---- */
@@ -1934,10 +1945,10 @@
           </div>
         </div>
 
-        <p class="fw-cue">
-          Every category holds more than one story.
-          <button type="button" class="fw-cue-link" id="fwCueLink">See the full gallery</button>
-        </p>
+        <p class="fw-cue">Every category holds more than one story.</p>
+        <button type="button" class="fw-cue-arrow" id="fwCueArrow" aria-label="Continue to the gallery">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+        </button>
       </div>
 
       <canvas class="fw-burst" id="fwBurst" aria-hidden="true"></canvas>
@@ -3809,7 +3820,7 @@
       select(active + (e.deltaX > 0 ? 1 : -1), true);
     }, { passive:false });
 
-    document.getElementById('fwCueLink')?.addEventListener('click', () => {
+    document.getElementById('fwCueArrow')?.addEventListener('click', () => {
       gsapScrollTo({ y: '#portfolio', offsetY: 0 });
     });
 
@@ -3850,6 +3861,13 @@
     gsap.from('.fw-cue', {
       scrollTrigger: { trigger: '#featured', start: 'top 52%', once: true },
       opacity: 0, y: 18, duration: 0.8
+    });
+    /* Opacity only on the arrow. Its bounce is a CSS animation on transform, and an
+       animation outranks an inline style for the property it animates — a y here would be
+       silently discarded rather than blended, so the tween is kept to what can land. */
+    gsap.from('.fw-cue-arrow', {
+      scrollTrigger: { trigger: '#featured', start: 'top 52%', once: true },
+      opacity: 0, duration: 0.8, delay: 0.12
     });
   }
 
