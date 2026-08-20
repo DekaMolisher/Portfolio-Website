@@ -3,6 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- GitHub Pages serves static files and cannot set response headers, so the policy has to
+     travel in the document. Two consequences worth knowing rather than discovering later:
+     frame-ancestors is ignored in a meta CSP (clickjacking cover needs a host that can send
+     real headers), and script-src has to keep 'unsafe-inline' because the page's own script
+     is inline and a static host has no way to mint a nonce. What it still buys is the part
+     that matters here — nothing can be fetched from, or posted to, an origin not named
+     below, so an injected script has nowhere to send anything. -->
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src 'self' https://fonts.gstatic.com;
+  img-src 'self' data: blob:;
+  connect-src 'self' https://api.emailjs.com;
+  form-action 'self';
+  base-uri 'self';
+  object-src 'none';
+  upgrade-insecure-requests">
+<!-- Gallery URLs name the client and the shoot. Send the origin and never the path when
+     someone follows a link out to Instagram or Facebook. -->
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Dekagrophy — Photographer, Videographer &amp; Graphic Designer</title>
 <meta name="description" content="Giancarlo (Deka) Rosete — photographer, videographer and graphic designer. Portraits, weddings, quinceañeras, concerts, events and brand visuals, shot and designed end to end.">
 <meta name="author" content="Giancarlo (Deka) Rosete">
@@ -1153,6 +1174,10 @@
   .submit-btn{align-self:flex-start;margin-top:8px;}
   .submit-btn[disabled]{opacity:.6;cursor:not-allowed;}
   .form-error{display:none;font-family:var(--font-body);font-size:13.5px;color:var(--ink-soft);margin-top:14px;line-height:1.6;}
+  /* Honeypot: moved out of sight rather than hidden. display:none is the first thing a
+     form-filling script checks for and skips; a field it cannot tell is off-screen, it
+     fills. aria-hidden and tabindex="-1" on the markup keep it away from real people. */
+  .hp-field{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;}
   .form-error.visible{display:block;}
   .form-error a{color:var(--accent-deep);text-decoration:underline;}
 
@@ -2230,6 +2255,14 @@
             <label for="fTime">Preferred Time <span class="optional">(optional)</span></label>
             <input type="time" id="fTime" name="time">
           </div>
+        </div>
+
+        <!-- Honeypot. Hidden from people and from screen readers, irresistible to the
+             scripts that fill every input on a page and submit. Off-screen rather than
+             display:none, because some bots skip fields they can tell are not rendered. -->
+        <div class="hp-field" aria-hidden="true">
+          <label for="fWebsite">Website</label>
+          <input type="text" id="fWebsite" name="website" tabindex="-1" autocomplete="off">
         </div>
 
         <button type="submit" class="btn-accent submit-btn"><span>Send Inquiry</span></button>
@@ -4869,9 +4902,22 @@
       });
     }
 
+    /* Spam control for a form with no server in front of it. Three cheap gates, none of
+       which a person ever meets: the honeypot, a floor on how fast the form can be filled,
+       and a minimum gap between sends. There is nothing here to stop a determined attacker
+       — that needs a captcha or a server — but the traffic this form will actually see is
+       scripted, and scripted traffic fails all three. Silent on purpose: a bot told why it
+       failed is a bot that can be adjusted. */
+    const formOpenedAt = Date.now();
+    let lastSentAt = 0;
+
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       errorMsg.classList.remove('visible');
+
+      if (form.website.value !== '') return;                       // honeypot filled
+      if (Date.now() - formOpenedAt < 3000) return;                // filled impossibly fast
+      if (Date.now() - lastSentAt < 30000) return;                 // resubmitting too soon
 
       const isConfigured = EMAILJS_PUBLIC_KEY !== 'YOUR_PUBLIC_KEY' && window.emailjs;
       if (!isConfigured) {
@@ -4879,6 +4925,7 @@
         return;
       }
 
+      lastSentAt = Date.now();
       const data = new FormData(form);
       const templateParams = {
         first_name: data.get('firstName'),

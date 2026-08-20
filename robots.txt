@@ -1,0 +1,25 @@
+# Dekagrophy — crawler policy
+#
+# The galleries are meant to be found, so the site is open by default. Two things are
+# not, and they are listed below.
+#
+# What this file cannot do is worth stating plainly: robots.txt is a request, not a
+# control. Well-behaved crawlers honour it; scrapers, AI harvesters and anyone with the
+# URL do not. Every photograph on this host is a public file. Nothing here — and nothing
+# available on a static host at all — keeps an image private. That decision has to be made
+# before a file is committed, not after.
+
+User-agent: *
+
+# A consent form naming nudity and erotic content. Not for search results, and the
+# page carries its own noindex tag as well, because a Disallow only stops the crawl —
+# a page linked from elsewhere can still be listed without it.
+Disallow: /dekagrophy-contract.html
+
+# Nothing here for a crawler, and it is where the shape of the site is described.
+Disallow: /instagram-bot/
+Disallow: /email-templates/
+
+# No Sitemap line on purpose: there is no sitemap.xml yet, and pointing a crawler at a
+# 404 is worse than saying nothing. Add one here when the custom domain is live, since
+# the URLs in it have to be absolute and will change with the domain.

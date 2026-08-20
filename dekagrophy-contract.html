@@ -3,6 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Nothing on this page should ever be in a search result. It is a consent form naming
+       nudity and erotic content, and it is reachable by URL on a public host — indexing it
+       would put that in front of people it was never meant for, and attach the studio's
+       name to the phrasing out of context. -->
+  <meta name="robots" content="noindex, nofollow, noarchive, noimageindex">
+  <!-- Everything here stays in the browser: no field is ever posted anywhere. connect-src
+       'none' and form-action 'none' are what make that a guarantee rather than a claim —
+       if a future edit ever tried to send this data somewhere, the browser would refuse. -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src 'self' https://fonts.gstatic.com;
+    img-src 'self' data: blob:;
+    connect-src 'none';
+    form-action 'none';
+    base-uri 'self';
+    object-src 'none';
+    upgrade-insecure-requests">
+  <meta name="referrer" content="no-referrer">
   <title>Dekagrophy Photography Contract</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

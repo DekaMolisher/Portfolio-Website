@@ -108,7 +108,7 @@ app.use((req, _res, next) => {
 });
 
 /* Meta calls this once when you register the webhook URL. */
-app.get('/webhook', (req, res) => {
+app.get('/webhook', rateLimit(30), (req, res) => {
   if (
     req.query['hub.mode'] === 'subscribe' &&
     req.query['hub.verify_token'] === IG_VERIFY_TOKEN
@@ -124,15 +124,63 @@ app.get('/webhook', (req, res) => {
 });
 
 /* Setup helpers, reachable from a browser because the free hosting tier has no
-   shell. Guarded by IG_VERIFY_TOKEN, which is already a shared secret. */
+   shell. Guarded by IG_VERIFY_TOKEN, which is already a shared secret.
+
+   Two things the plain `===` this used to be got wrong. It compared byte by byte and
+   returned at the first mismatch, which leaks the token's prefix to anyone patient enough
+   to measure — the same attack the webhook signature already uses timingSafeEqual to
+   avoid, so the two checks now agree with each other. And it read the token only from the
+   query string, which is the part of a URL that ends up in platform logs, browser history
+   and Referer headers; an `x-admin-token` header is accepted first so the token need never
+   appear in a URL at all. The query form still works, because it is what makes these
+   routes usable from a phone. */
+function safeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  return bufA.length === bufB.length && crypto.timingSafeEqual(bufA, bufB);
+}
+
 function adminAuthed(req) {
-  return Boolean(IG_VERIFY_TOKEN) && req.query.token === IG_VERIFY_TOKEN;
+  if (!IG_VERIFY_TOKEN) return false;
+  const presented = req.get('x-admin-token') || req.query.token;
+  return safeEqual(String(presented || ''), IG_VERIFY_TOKEN);
+}
+
+/* A fixed window per IP, in memory. Not a defence against a distributed attacker — it
+   cannot be, on one free dyno with no shared store — but it puts a ceiling on what a
+   single source can cost. That matters for two different reasons: /admin/* calls out to
+   Meta's Graph API on every hit, and /webhook computes an HMAC over the body before it can
+   reject anything, so both do real work for requests that never authenticate. */
+const RATE_WINDOW_MS = 60_000;
+const rateBuckets = new Map();
+
+function rateLimit(max) {
+  return (req, res, next) => {
+    const key = `${req.path}:${req.ip}`;
+    const now = Date.now();
+    const bucket = rateBuckets.get(key);
+
+    if (!bucket || now > bucket.resetAt) {
+      rateBuckets.set(key, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    } else if (++bucket.count > max) {
+      res.set('Retry-After', String(Math.ceil((bucket.resetAt - now) / 1000)));
+      return res.status(429).json({ error: 'too many requests' });
+    }
+
+    /* Sweep on write rather than on a timer: the map only grows when requests arrive, so
+       there is nothing to clean up on an idle server and no interval holding it awake. */
+    if (rateBuckets.size > 500) {
+      for (const [k, v] of rateBuckets) if (now > v.resetAt) rateBuckets.delete(k);
+    }
+    next();
+  };
 }
 
 /* Reports whether the access token works and whether this Instagram account is
    actually subscribed to the app — configuring the webhook in the dashboard
    does not do this, and without it Meta delivers nothing. */
-app.get('/admin/status', async (req, res) => {
+app.get('/admin/status', rateLimit(20), async (req, res) => {
   if (!adminAuthed(req)) return res.status(403).json({ error: 'bad or missing ?token=' });
 
   const me = await graph('/me', { params: { fields: 'id,username' } });
@@ -181,7 +229,7 @@ app.get('/admin/status', async (req, res) => {
 });
 
 /* The step with no button in the dashboard. */
-app.get('/admin/subscribe', async (req, res) => {
+app.get('/admin/subscribe', rateLimit(10), async (req, res) => {
   if (!adminAuthed(req)) return res.status(403).json({ error: 'bad or missing ?token=' });
 
   const result = await graph('/me/subscribed_apps', {
@@ -212,7 +260,7 @@ function signatureValid(req) {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
-app.post('/webhook', async (req, res) => {
+app.post('/webhook', rateLimit(240), async (req, res) => {
   if (!signatureValid(req)) {
     /* Almost always IG_APP_SECRET not matching the app secret in the dashboard. */
     console.log('webhook REJECTED: bad signature — check IG_APP_SECRET');
@@ -223,7 +271,17 @@ app.post('/webhook', async (req, res) => {
      first and do the work after. */
   res.sendStatus(200);
 
-  console.log('webhook received:', JSON.stringify(req.body));
+  /* The body carries the message someone typed. People write to this account about nude
+     and boudoir sessions, and the host's log retention is not ours to control or purge —
+     so the shape of the event is logged, never its contents. The decision trail below
+     ("skipped: on cooldown", "replied with rule X") is what these logs are for, and none
+     of it needs the text. Set IG_LOG_BODIES=1 for a debugging session, never routinely. */
+  if (process.env.IG_LOG_BODIES === '1') {
+    console.log('webhook received (VERBOSE):', JSON.stringify(req.body));
+  } else {
+    const events = (req.body.entry || []).flatMap((e) => e.messaging || []);
+    console.log(`webhook received: object=${req.body.object} events=${events.length}`);
+  }
 
   const config = loadConfig();
   if (!config) return;

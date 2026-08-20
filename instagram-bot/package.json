@@ -11,7 +11,8 @@
     "start": "node server.js",
     "test": "node test-matching.js",
     "test:webhook": "node test-webhook.js",
-    "test:agent": "node test-agent.js"
+    "test:agent": "node test-agent.js",
+    "test:hardening": "node test-hardening.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.116.0",
