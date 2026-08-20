@@ -51,6 +51,17 @@
     --line:rgba(244,233,212,0.14);
     --glass:rgba(11,9,6,0.84);
     --elev-shadow:0 26px 46px -22px rgba(227,185,95,0.18);
+    /* Featured Work paints its own flat ground rather than letting the silk gradient
+       through, so the band reads as a room of its own between the hero and the gallery.
+       Deeper than --bg on purpose: the section should feel like a held breath. */
+    --fw-bg:#060504;
+    --fw-star:#F4E9D4;
+    --fw-glow:#E3B95F;
+    /* How far the neighbours and the outer pair are held back. Tokens rather than numbers
+       in script because the right amount is a property of the ground they sit on, and the
+       two themes do not agree about it. */
+    --fw-dim-1:0.85;
+    --fw-dim-2:0.40;
 
     --font-display:'Archivo Black', 'Archivo', sans-serif;
     --font-body:'Source Serif 4', Georgia, serif;
@@ -91,6 +102,16 @@
     --line:rgba(36,28,20,0.14);
     --glass:rgba(251,246,234,0.88);
     --elev-shadow:0 26px 42px -22px rgba(36,28,20,0.28);
+    /* Same idea inverted: a warmer, deeper cream than --bg. Stars go gold rather than
+       cream here — a pale particle on a pale ground is not a particle. */
+    --fw-bg:#F1E7D2;
+    --fw-star:#8A6526;
+    --fw-glow:#C99A3C;
+    /* Held back less than in the dark theme. A dimmed card loses contrast against cream
+       far faster than against near-black, and at 0.40 the outer pair stopped reading as
+       photographs at all rather than as photographs waiting their turn. */
+    --fw-dim-1:0.88;
+    --fw-dim-2:0.56;
 
     --font-display:'Archivo Black', 'Archivo', sans-serif;
     --font-body:'Source Serif 4', Georgia, serif;
@@ -1587,6 +1608,199 @@
     .contact-header h1{font-size:clamp(30px,8vw,42px);}
     .contact-header p{max-width:none;}
   }
+
+  /* ===================================================================
+     FEATURED WORK
+     A band between the hero and the gallery with a ground of its own. Kept in one
+     block, like the concept overrides above, so it reads and reverts as a unit.
+     =================================================================== */
+
+  /* Full bleed, unlike the default section box, because the ground is the point. */
+  #featured{
+    max-width:none;width:100%;margin:0;padding:0;
+    position:relative;overflow:hidden;
+    /* The carousel is the tallest thing here and it is sized off the card width, so the
+       section takes its height from the content rather than a fixed figure. */
+    --fw-card-w:clamp(168px, 15.5vw, 232px);
+    --fw-gap:26px;
+  }
+
+  /* Flat colour, not the silk gradient, and masked at both ends. The top fade is short —
+     it only has to meet the hero, which has already dissolved to nothing by its own foot.
+     The bottom is long and eased for the same reason the hero's is: a linear ramp holds
+     its mid-tones long enough to draw its own edge. */
+  .fw-bg{
+    position:absolute;inset:0;z-index:0;pointer-events:none;
+    background:var(--fw-bg);
+    -webkit-mask-image:linear-gradient(to bottom,
+      transparent 0%, rgba(0,0,0,.55) 4%, #000 11%, #000 58%,
+      rgba(0,0,0,.92) 72%, rgba(0,0,0,.62) 83%, rgba(0,0,0,.28) 92%, transparent 100%);
+    mask-image:linear-gradient(to bottom,
+      transparent 0%, rgba(0,0,0,.55) 4%, #000 11%, #000 58%,
+      rgba(0,0,0,.92) 72%, rgba(0,0,0,.62) 83%, rgba(0,0,0,.28) 92%, transparent 100%);
+  }
+
+  /* The pulse the brief asks for, 5% to 85%. The gradient underneath is deliberately weak
+     so that eighty-five percent of it is a warm bloom behind the cards rather than a lamp
+     pointed at the reader. */
+  .fw-glow{
+    position:absolute;left:50%;top:56%;transform:translate(-50%,-50%);
+    width:min(128vw,1560px);height:min(94vh,920px);
+    background:radial-gradient(ellipse at center,
+      color-mix(in srgb, var(--fw-glow) 30%, transparent) 0%,
+      color-mix(in srgb, var(--fw-glow) 16%, transparent) 38%,
+      transparent 70%);
+    opacity:.05;
+    animation:fwPulse 7.5s ease-in-out infinite alternate;
+  }
+  @supports not (color: color-mix(in srgb, red 50%, blue)) {
+    .fw-glow{background:radial-gradient(ellipse at center, rgba(227,185,95,.30) 0%, rgba(227,185,95,.16) 38%, transparent 70%);}
+  }
+  @keyframes fwPulse{ from{opacity:.05;} to{opacity:.85;} }
+
+  .fw-stars{position:absolute;inset:0;width:100%;height:100%;display:block;}
+  /* In front of the cards, unlike the stars: hover and confirm particles come off the
+     bottom edge of a card and must not be painted behind the one next to it. */
+  .fw-burst{position:absolute;inset:0;z-index:3;width:100%;height:100%;display:block;pointer-events:none;}
+
+  .fw-inner{
+    position:relative;z-index:2;
+    max-width:1280px;margin:0 auto;padding:118px 40px 104px;
+  }
+  #featured .section-head{margin-bottom:44px;}
+
+  /* The stage reserves the row's height so the section does not resize when a card grows
+     on hover; the viewport inside it clips and fades the ends of the rail. */
+  .fw-stage{position:relative;height:calc(var(--fw-card-w) * 4 / 3 + 74px);}
+  .fw-viewport{
+    position:absolute;inset:0;overflow:hidden;outline:none;
+    -webkit-mask-image:linear-gradient(to right, transparent 0%, #000 17%, #000 83%, transparent 100%);
+    mask-image:linear-gradient(to right, transparent 0%, #000 17%, #000 83%, transparent 100%);
+    touch-action:pan-y;
+  }
+  .fw-viewport:focus-visible{
+    -webkit-mask-image:none;mask-image:none;
+    box-shadow:inset 0 0 0 1px var(--accent-pale);
+  }
+  .fw-track{position:absolute;inset:0;}
+
+  /* Placed by transform from the centre rather than laid out in a row: the distance from
+     the middle is the only thing that decides a card's position, size and opacity, so one
+     number drives the whole rail. */
+  .fw-card{
+    position:absolute;left:50%;top:50%;
+    width:var(--fw-card-w);aspect-ratio:3/4;
+    margin:0;padding:0;border:none;background:var(--surface);
+    border-radius:3px;overflow:visible;cursor:pointer;
+    transform:translate(-50%,-50%);
+    transition:transform .52s var(--ease), opacity .52s var(--ease);
+    will-change:transform,opacity;
+    -webkit-tap-highlight-color:transparent;
+    /* A press that turns into a text or image selection is a press the rail never sees:
+       the browser cancels the pointer stream to run its own gesture instead. */
+    user-select:none;-webkit-user-select:none;
+  }
+  .fw-card img{-webkit-user-drag:none;user-drag:none;}
+  .fw-card-shell{
+    position:absolute;inset:0;overflow:hidden;border-radius:3px;
+    box-shadow:0 24px 44px -26px rgba(0,0,0,.9);
+  }
+  .fw-card img{
+    width:100%;height:100%;object-fit:cover;display:block;
+    transition:transform .8s var(--ease), filter .45s var(--ease);
+    filter:saturate(.86) brightness(.86);
+  }
+  .fw-card.is-active img{filter:saturate(1) brightness(1);}
+  .fw-card.is-active:hover img,
+  .fw-card:focus-visible img{transform:scale(1.05);}
+
+  /* Carries the caption. Sits inside the clipped shell so it follows the rounded corner. */
+  .fw-card-veil{
+    position:absolute;left:0;right:0;bottom:0;height:62%;pointer-events:none;
+    background:linear-gradient(to top, rgba(6,5,4,.94) 0%, rgba(6,5,4,.72) 38%, transparent 100%);
+  }
+  .fw-cap{
+    position:absolute;left:0;right:0;bottom:0;z-index:2;
+    padding:0 14px 15px;text-align:center;pointer-events:none;
+  }
+  .fw-cap b{
+    display:block;font-family:var(--font-display);font-weight:var(--heading-weight);
+    text-transform:var(--heading-transform);letter-spacing:-.01em;
+    font-size:clamp(12px, calc(var(--fw-card-w) * .082), 17px);
+    line-height:1.12;color:#F4E9D4;
+  }
+  .fw-cap span{
+    display:block;margin-top:5px;font-family:var(--font-ui);font-weight:600;
+    font-size:clamp(8px, calc(var(--fw-card-w) * .042), 9.5px);
+    letter-spacing:.2em;text-transform:uppercase;color:var(--gold);
+    opacity:0;transition:opacity .4s var(--ease);
+  }
+  .fw-card.is-active .fw-cap span{opacity:.92;}
+
+  /* Hairline that draws itself on the centred card, so the middle of the rail is legible
+     as the selection without needing a caption to say so. */
+  .fw-card-edge{
+    position:absolute;inset:-1px;z-index:3;pointer-events:none;border-radius:4px;
+    border:1px solid transparent;transition:border-color .45s var(--ease);
+  }
+  .fw-card.is-active .fw-card-edge{border-color:var(--accent-pale);}
+
+  /* The confirm glow: a gradient rising off the floor of the card, switched on for as long
+     as the burst runs. Outside the clipped shell so it spills past the edge. */
+  .fw-card-glow{
+    position:absolute;left:-18%;right:-18%;bottom:-14%;height:72%;z-index:1;
+    pointer-events:none;opacity:0;
+    background:radial-gradient(ellipse at 50% 100%,
+      color-mix(in srgb, var(--accent) 62%, transparent) 0%,
+      color-mix(in srgb, var(--accent) 26%, transparent) 42%,
+      transparent 72%);
+    transition:opacity .5s var(--ease);
+  }
+  @supports not (color: color-mix(in srgb, red 50%, blue)) {
+    .fw-card-glow{background:radial-gradient(ellipse at 50% 100%, rgba(227,185,95,.62) 0%, rgba(227,185,95,.26) 42%, transparent 72%);}
+  }
+  .fw-card.is-confirmed .fw-card-glow{opacity:1;}
+  .fw-card.is-confirmed{transform:translate(-50%,-50%) scale(1.03);}
+
+  .fw-cue{
+    margin:52px auto 0;text-align:center;
+    font-family:var(--font-body);font-size:14.5px;line-height:1.8;color:var(--ink-soft);
+  }
+  .fw-cue-link{
+    display:inline;margin-left:6px;padding:0;border:none;background:none;cursor:pointer;
+    font-family:var(--font-ui);font-size:11.5px;font-weight:600;
+    letter-spacing:.17em;text-transform:uppercase;color:var(--accent);
+    border-bottom:1px solid var(--accent-pale);
+    transition:color .3s ease, border-color .3s ease;
+  }
+  .fw-cue-link:hover{color:var(--accent-deep);border-color:var(--accent);}
+
+  @media (max-width:900px){
+    #featured{--fw-card-w:clamp(150px, 34vw, 200px);--fw-gap:18px;}
+    .fw-inner{padding:88px 22px 82px;}
+    #featured .section-head{margin-bottom:34px;}
+    .fw-cue{margin-top:38px;font-size:13.5px;}
+  }
+  @media (max-width:640px){
+    /* Three cards rather than five: at this width a fifth is a sliver of colour with no
+       photograph left in it, which reads as a rendering fault rather than as more to come.
+       The rail still fades at both ends, so it still says it can be moved. */
+    #featured{--fw-card-w:clamp(146px, 46vw, 196px);--fw-gap:14px;}
+    .fw-viewport{
+      -webkit-mask-image:linear-gradient(to right, transparent 0%, #000 22%, #000 78%, transparent 100%);
+      mask-image:linear-gradient(to right, transparent 0%, #000 22%, #000 78%, transparent 100%);
+    }
+    .fw-cue{display:flex;flex-direction:column;align-items:center;gap:12px;}
+    .fw-cue-link{margin-left:0;}
+  }
+
+  /* No pulse and no particles when motion is turned down; the section still reads, it
+     just stops moving. The canvases are emptied in script for the same reason. */
+  @media (prefers-reduced-motion: reduce){
+    .fw-glow{animation:none;opacity:.4;}
+    .fw-card{transition-duration:.001s;}
+    .fw-card img{transition:none;}
+  }
 </style>
 </head>
 <body>
@@ -1660,6 +1874,38 @@
       <div class="scroll-cue" id="scrollCue">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
       </div>
+    </section>
+
+    <!-- FEATURED WORK — one upright frame per category, on a ground of its own between
+         the hero and the gallery. The two canvases sit either side of the cards: stars
+         rise behind them, card particles play in front. -->
+    <section id="featured" aria-labelledby="featuredTitle">
+      <div class="fw-bg" aria-hidden="true">
+        <div class="fw-glow"></div>
+        <canvas class="fw-stars" id="fwStars"></canvas>
+      </div>
+
+      <div class="fw-inner">
+        <div class="section-head" id="featuredHead">
+          <span class="eyebrow">Featured Work</span>
+          <h2 id="featuredTitle">One From Each</h2>
+          <div class="rule"></div>
+        </div>
+
+        <div class="fw-stage">
+          <div class="fw-viewport" id="fwViewport" role="group" aria-roledescription="carousel"
+               aria-label="Featured work by category" tabindex="0">
+            <div class="fw-track" id="fwTrack"></div>
+          </div>
+        </div>
+
+        <p class="fw-cue">
+          Every category holds more than one story.
+          <button type="button" class="fw-cue-link" id="fwCueLink">See the full gallery</button>
+        </p>
+      </div>
+
+      <canvas class="fw-burst" id="fwBurst" aria-hidden="true"></canvas>
     </section>
 
     <section id="portfolio">
@@ -2293,12 +2539,15 @@
       previews:['mavee-01-thumb.webp','mavee-02-thumb.webp','mavee-03-thumb.webp'],
       description:'Placeholder copy — a short line here will set the mood for editorial and runway work: bold styling, confident movement, images built for print.' },
     { id:'celebrations', name:'Celebrations',    tag:'XV, Weddings & Couples', sourceShootId:'nancyjuan',
+      featured:'carmen-20-thumb.webp', featuredShootId:'carmen',
       previews:['nancyjuan-01-thumb.webp','nancyjuan-02-thumb.webp','nancyjuan-03-thumb.webp'],
       description:'Placeholder copy — a short line here will cover quinceañeras, weddings and couples: the vows, the first dance, and every look shared in between.' },
     { id:'social',    name:'Social Events',      tag:'Gatherings & Moments', sourceShootId:'alfombraroja',
+      featured:'alfombraroja-18-thumb.webp', featuredShootId:'alfombraroja',
       previews:['alfombraroja-01-thumb.webp','alfombraroja-02-thumb.webp','alfombraroja-03-thumb.webp'],
       description:'Placeholder copy — a short line here will cover the energy of a room: parties, launches, and nights worth remembering.' },
     { id:'portraits', name:'Creative Portraits', tag:'Personal & Expressive',sourceShootId:'mavee',
+      featured:'mavee-05-thumb.webp', featuredShootId:'mavee',
       previews:['mavee-01-thumb.webp','mavee-02-thumb.webp','mavee-03-thumb.webp'],
       description:'Placeholder copy — a short line here will describe portraits built around a single person’s story, mood, and light.' },
     { id:'boudoir',   name:'Boudoir',            tag:'Intimate & Empowering',sourceShootId:'mavee',
@@ -2306,12 +2555,15 @@
       description:'Placeholder copy — a short line here will frame boudoir work as intimate, confident, and entirely on the client’s terms.' },
     /* First category with real work of its own: two concert albums, no borrowing. */
     { id:'concert',   name:'Concert',            tag:'Live Music & Stage',    sourceShootId:'jamjazz',
+      featured:'rollocalifornia-09-thumb.webp', featuredShootId:'rollocalifornia',
       previews:['jamjazz-01-thumb.webp','jamjazz-02-thumb.webp','jamjazz-05-thumb.webp'],
       description:'Placeholder copy — a short line here will capture the stage: lights, motion, and the roar of a crowd caught mid-song.' },
     { id:'family',    name:'Family',             tag:'Generations & Bonds',  sourceShootId:'negrete',
+      featured:'negrete-09-thumb.webp', featuredShootId:'negrete',
       previews:['negrete-01-thumb.webp','negrete-02-thumb.webp','negrete-03-thumb.webp'],
       description:'Placeholder copy — a short line here will center the warmth of family sessions: generations, pets, and everyday bonds.' },
     { id:'documental', name:'Documental',        tag:'Documentary Work',     sourceShootId:'cronoskumiai',
+      featured:'pride2025-08-thumb.webp', featuredShootId:'pride2025',
       previews:['cronoskumiai-01-thumb.webp','cronoskumiai-02-thumb.webp','cronoskumiai-03-thumb.webp'],
       description:'Placeholder copy — a short line here will describe documentary work: people and places recorded as they are.' }
   ];
@@ -2320,7 +2572,13 @@
      is one line in `shoots` and nothing else. `sourceShootId` still exists, but only to
      pick the photo a category shows on the home page — it no longer decides what opens
      when you click through. Categories with nothing of their own yet return [] and get
-     an empty state rather than another category's photographs under the wrong heading. */
+     an empty state rather than another category's photographs under the wrong heading.
+
+     `featured` is the one frame that category puts up in the Featured Work carousel, and
+     `featuredShootId` the gallery a confirmed card opens. Both are deliberately separate
+     from `previews` and `sourceShootId`: the carousel wants a single upright picture that
+     carries a 3:4 card on its own, which is a different job from a preview strip. Swapping
+     one is a filename, and only the six categories that have work carry them. */
   const galleriesFor = (catId) => shoots.filter(s => s.categoryId === catId);
   const categoryOf   = (shootId) => {
     const s = shoots.find(x => x.id === shootId);
@@ -3172,6 +3430,378 @@
       .from('#viewGalleryBtn', { opacity: 0, y: 14, duration: 0.8 }, 1.0)
       .from('#scrollCue', { opacity: 0, duration: 0.6 }, 1.2);
     return tl;
+  }
+
+  /* ============ FEATURED WORK ============ */
+  /*
+    A rail of upright cards, one per category, on a ground of its own. Three moving parts:
+    the rail itself (position is a pure function of distance from centre), a star field
+    rising behind it, and particles that come off a card on hover and on confirm.
+
+    Both canvases are driven from GSAP's ticker rather than a second requestAnimationFrame
+    loop — the page already runs one, and two independent loops on the same frame is how a
+    section like this starts costing more than it is worth. The whole thing idles when the
+    section is off-screen, when the tab is hidden, and when the reader has asked for less
+    motion, in which case it never starts at all.
+  */
+  const fwReduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* One pre-rendered dot, drawn scaled. A radial gradient per particle per frame is the
+     expensive way to do this, and shadowBlur is worse. */
+  function fwMakeSprite(rgb) {
+    const S = 32, c = document.createElement('canvas');
+    c.width = c.height = S;
+    const g = c.getContext('2d');
+    const grad = g.createRadialGradient(S/2, S/2, 0, S/2, S/2, S/2);
+    grad.addColorStop(0,    `rgba(${rgb},1)`);
+    grad.addColorStop(0.28, `rgba(${rgb},0.55)`);
+    grad.addColorStop(1,    `rgba(${rgb},0)`);
+    g.fillStyle = grad;
+    g.fillRect(0, 0, S, S);
+    return c;
+  }
+
+  /* The token is a hex string in the stylesheet; the canvas wants channels. */
+  function fwRgbFromVar(name, fallback) {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    const m = /^#?([0-9a-f]{6})$/i.exec(v);
+    if(!m) return fallback;
+    const n = parseInt(m[1], 16);
+    return `${(n>>16)&255},${(n>>8)&255},${n&255}`;
+  }
+
+  function setupFeatured() {
+    const section = document.getElementById('featured');
+    const track   = document.getElementById('fwTrack');
+    const viewport= document.getElementById('fwViewport');
+    if(!section || !track || !viewport) return;
+
+    const cats = categories.filter(c => c.featured && galleriesFor(c.id).length);
+    if(!cats.length) { section.remove(); return; }
+
+    /* ---- cards ---- */
+    const cards = cats.map((cat, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'fw-card';
+      b.dataset.index = String(i);
+      b.setAttribute('aria-label', `${cat.name} — featured work`);
+      b.innerHTML =
+        '<span class="fw-card-glow"></span>' +
+        '<span class="fw-card-shell">' +
+          // draggable="false" is load-bearing, not tidiness: an <img> is draggable by
+          // default, so pressing on one starts a native image drag that fires
+          // pointercancel on the very next move and takes the rail's own drag with it.
+          `<img src="${cat.featured}" alt="${cat.name}" loading="lazy" decoding="async" draggable="false">` +
+          '<span class="fw-card-veil"></span>' +
+          `<span class="fw-cap"><b>${cat.name}</b><span>${cat.tag}</span></span>` +
+        '</span>' +
+        '<span class="fw-card-edge"></span>';
+      track.appendChild(b);
+      return b;
+    });
+
+    /* Creative Portraits opens in the middle, as the brief asks. Falling back to the true
+       middle keeps that honest if the category list is ever reordered or renamed. */
+    const wanted = cats.findIndex(c => c.id === 'portraits');
+    let active = wanted >= 0 ? wanted : Math.floor(cats.length / 2);
+
+    const visibleEachSide = () => window.matchMedia('(max-width:640px)').matches ? 1 : 2;
+
+    function layout() {
+      // offsetWidth, not the --fw-card-w token: the token is a clamp() and an unregistered
+      // custom property hands back the clamp expression verbatim rather than the resolved
+      // length. Layout width is also the honest number — it is what the card really is.
+      const cs    = getComputedStyle(section);
+      const cardW = cards[0].offsetWidth || 200;
+      const gap   = parseFloat(cs.getPropertyValue('--fw-gap')) || 20;
+      const dim1  = parseFloat(cs.getPropertyValue('--fw-dim-1')) || 0.85;
+      const dim2  = parseFloat(cs.getPropertyValue('--fw-dim-2')) || 0.4;
+      const step  = cardW + gap;
+      const maxD  = visibleEachSide();
+      cards.forEach((el, i) => {
+        const d = i - active, ad = Math.abs(d);
+        const hidden = ad > maxD;
+        // Beyond the last visible slot the cards stack up rather than marching off to
+        // infinity, so a long list does not translate a card a thousand pixels out.
+        const slot = Math.sign(d) * Math.min(ad, maxD + 0.6);
+        const scale = ad === 0 ? 1 : (ad === 1 ? 0.9 : 0.82);
+        const op = hidden ? 0 : (ad === 0 ? 1 : (ad === 1 ? dim1 : dim2));
+        el.style.transform = `translate(-50%,-50%) translateX(${(slot * step).toFixed(1)}px) scale(${scale})`;
+        el.style.opacity = op;
+        el.style.zIndex = String(50 - ad);
+        el.classList.toggle('is-active', ad === 0);
+        el.tabIndex = hidden ? -1 : 0;
+        el.setAttribute('aria-hidden', hidden ? 'true' : 'false');
+      });
+    }
+
+    function select(next, viaPointer) {
+      const clamped = Math.max(0, Math.min(cats.length - 1, next));
+      if(clamped === active) return false;
+      active = clamped;
+      layout();
+      if(!viaPointer) cards[active].focus({ preventScroll:true });
+      return true;
+    }
+
+    /* ---- particles ---- */
+    const starCanvas  = document.getElementById('fwStars');
+    const burstCanvas = document.getElementById('fwBurst');
+    const sctx = starCanvas.getContext('2d');
+    const bctx = burstCanvas.getContext('2d');
+    let starSprite = fwMakeSprite(fwRgbFromVar('--fw-star', '244,233,212'));
+    let glowSprite = fwMakeSprite(fwRgbFromVar('--accent', '227,185,95'));
+    let stars = [], burst = [];
+    let W = 0, H = 0, dpr = 1;
+
+    function sizeCanvases() {
+      const r = section.getBoundingClientRect();
+      W = Math.round(r.width); H = Math.round(r.height);
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      [starCanvas, burstCanvas].forEach((c) => {
+        c.width = Math.round(W * dpr); c.height = Math.round(H * dpr);
+        c.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+      });
+    }
+
+    /* Density from area so a wide monitor is not sparse and a phone is not a snowstorm. */
+    const starTarget = () => Math.min(90, Math.max(18, Math.round((W * H) / 17000)));
+
+    function spawnStar(atBottom) {
+      // Each one only travels part of the way up before it goes: the brief asks for them to
+      // vanish shortly after rising, not to cross the whole band. Speed is drawn once and
+      // the lifetime derived from it, so the fade really does run out at the top of the
+      // rise rather than at some unrelated moment.
+      const speed = 7 + Math.random() * 17;         // px per second
+      const rise  = H * (0.2 + Math.random() * 0.3);
+      return {
+        x: Math.random() * W,
+        y: atBottom ? H + Math.random() * 40 : Math.random() * H,
+        vy: -speed,
+        drift: (Math.random() - 0.5) * 5,
+        r: 0.55 + Math.random() * 1.15,
+        life: 0,
+        span: rise / speed,
+        tw: Math.random() * Math.PI * 2
+      };
+    }
+
+    function emitFromCard(el, mode) {
+      if(fwReduceMotion) return;
+      const s = section.getBoundingClientRect(), c = el.getBoundingClientRect();
+      const floorY = c.bottom - s.top, midX = c.left - s.left + c.width / 2;
+      const n = mode === 'confirm' ? 46 : 6;
+      for(let i = 0; i < n; i++) {
+        const t = Math.random();
+        if(mode === 'confirm') {
+          // Outwards along the floor, both ways, with just enough lift to arc.
+          const dir = Math.random() < 0.5 ? -1 : 1;
+          burst.push({
+            x: midX + (t - 0.5) * c.width * 0.8, y: floorY - Math.random() * 6,
+            vx: dir * (40 + Math.random() * 170), vy: -(10 + Math.random() * 70),
+            g: 90, r: 0.8 + Math.random() * 2.2, life: 0, span: 0.55 + Math.random() * 0.7
+          });
+        } else {
+          burst.push({
+            x: c.left - s.left + t * c.width, y: floorY - Math.random() * 4,
+            vx: (Math.random() - 0.5) * 26, vy: -(24 + Math.random() * 46),
+            g: 0, r: 0.6 + Math.random() * 1.5, life: 0, span: 0.42 + Math.random() * 0.45
+          });
+        }
+      }
+      if(burst.length > 320) burst.splice(0, burst.length - 320);
+    }
+
+    function draw(dt) {
+      sctx.clearRect(0, 0, W, H);
+      const want = starTarget();
+      while(stars.length < want) stars.push(spawnStar(stars.length > want - 4));
+      sctx.globalCompositeOperation = 'lighter';
+      for(let i = stars.length - 1; i >= 0; i--) {
+        const p = stars[i];
+        p.life += dt;
+        p.y += p.vy * dt; p.x += p.drift * dt; p.tw += dt * 3;
+        const k = p.life / p.span;
+        if(k >= 1 || p.y < -20) { stars[i] = spawnStar(true); continue; }
+        // Up quickly, down slowly, with a slight twinkle riding on top.
+        const fade = k < 0.18 ? k / 0.18 : 1 - (k - 0.18) / 0.82;
+        const a = Math.max(0, fade) * (0.55 + 0.45 * Math.sin(p.tw)) * 0.85;
+        const d = p.r * 7;
+        sctx.globalAlpha = a;
+        sctx.drawImage(starSprite, p.x - d / 2, p.y - d / 2, d, d);
+      }
+      sctx.globalAlpha = 1; sctx.globalCompositeOperation = 'source-over';
+
+      bctx.clearRect(0, 0, W, H);
+      if(burst.length) {
+        bctx.globalCompositeOperation = 'lighter';
+        for(let i = burst.length - 1; i >= 0; i--) {
+          const p = burst[i];
+          p.life += dt;
+          if(p.life >= p.span) { burst.splice(i, 1); continue; }
+          p.vy += p.g * dt;
+          p.x += p.vx * dt; p.y += p.vy * dt;
+          const k = p.life / p.span;
+          const a = (k < 0.12 ? k / 0.12 : 1 - (k - 0.12) / 0.88);
+          const d = p.r * 7;
+          bctx.globalAlpha = Math.max(0, a) * 0.9;
+          bctx.drawImage(glowSprite, p.x - d / 2, p.y - d / 2, d, d);
+        }
+        bctx.globalAlpha = 1; bctx.globalCompositeOperation = 'source-over';
+      }
+    }
+
+    let running = false, onScreen = false;
+    /* GSAP hands the callback (time, deltaTime, ...) with time in SECONDS and deltaTime in
+       MILLISECONDS. Deriving dt from the first argument gives a step a thousand times too
+       small, which does not stop anything — every particle simply sits at the very start of
+       its fade-in, at an alpha that rounds to nothing, and the canvas looks switched off. */
+    function tick(time, deltaTime) {
+      draw(Math.min(0.05, (deltaTime || 16) / 1000));
+    }
+    function setRunning(on) {
+      if(on === running) return;
+      running = on;
+      if(on) gsap.ticker.add(tick); else gsap.ticker.remove(tick);
+    }
+
+    if(!fwReduceMotion) {
+      const io = new IntersectionObserver((entries) => {
+        onScreen = entries[0].isIntersecting;
+        setRunning(onScreen && !document.hidden);
+      }, { rootMargin: '120px' });
+      io.observe(section);
+      document.addEventListener('visibilitychange', () => setRunning(onScreen && !document.hidden));
+    }
+
+    /* ---- interaction ---- */
+    let hoverTimer = 0, hovered = null;
+    function startHover(el) {
+      if(fwReduceMotion || hovered === el) return;
+      hovered = el;
+      clearInterval(hoverTimer);
+      emitFromCard(el, 'hover');
+      hoverTimer = setInterval(() => {
+        if(hovered !== el) { clearInterval(hoverTimer); return; }
+        emitFromCard(el, 'hover');
+      }, 90);
+    }
+    function endHover() { hovered = null; clearInterval(hoverTimer); }
+
+    function confirm(i) {
+      const el = cards[i], cat = cats[i];
+      el.classList.add('is-confirmed');
+      emitFromCard(el, 'confirm');
+      setTimeout(() => el.classList.remove('is-confirmed'), 900);
+      // The card is a way into the gallery, not a dead end: confirming filters the wall to
+      // that category and takes the reader to it.
+      setTimeout(() => {
+        const tabIndex = conceptTabs.findIndex(t => t.id === cat.id);
+        if(tabIndex > 0) selectConceptTab(tabIndex);
+        gsapScrollTo({ y: '#portfolio', offsetY: 0 });
+      }, 480);
+    }
+
+    cards.forEach((el, i) => {
+      el.addEventListener('mouseenter', () => startHover(el));
+      el.addEventListener('mouseleave', endHover);
+      el.addEventListener('focus', () => startHover(el));
+      el.addEventListener('blur', endHover);
+      /* A thumb never fires mouseenter, so on touch the tap itself is the cue. One burst
+         on the way down rather than the repeating trickle a hover gets: a tap is an
+         instant, and there is nothing to keep feeding. */
+      el.addEventListener('pointerdown', (e) => {
+        if(e.pointerType === 'touch' || e.pointerType === 'pen') emitFromCard(el, 'hover');
+      });
+      el.addEventListener('click', () => {
+        // First press centres the card, a second on the centred card confirms it — the
+        // "click or tap twice" of the brief, and it works the same for a thumb.
+        if(i === active) confirm(i); else select(i, true);
+      });
+    });
+
+    /* Drag and swipe. Bound on the viewport rather than the cards so the gaps between them
+       drag too, and it never swallows a vertical page scroll. */
+    let dragging = false, sx = 0, sy = 0, moved = false;
+    viewport.addEventListener('pointerdown', (e) => {
+      dragging = true; moved = false; sx = e.clientX; sy = e.clientY;
+    });
+    viewport.addEventListener('pointermove', (e) => {
+      if(!dragging) return;
+      const dx = e.clientX - sx, dy = e.clientY - sy;
+      if(Math.abs(dy) > Math.abs(dx)) { dragging = false; return; }
+      if(Math.abs(dx) < 46) return;
+      moved = true; dragging = false;
+      select(active + (dx < 0 ? 1 : -1), true);
+    });
+    const endDrag = () => { dragging = false; };
+    viewport.addEventListener('pointerup', endDrag);
+    viewport.addEventListener('pointercancel', endDrag);
+    // A drag that moved the rail must not also land as a click on the card underneath.
+    viewport.addEventListener('click', (e) => { if(moved) { e.stopPropagation(); moved = false; } }, true);
+
+    viewport.addEventListener('keydown', (e) => {
+      if(e.key === 'ArrowRight') { e.preventDefault(); select(active + 1); }
+      else if(e.key === 'ArrowLeft') { e.preventDefault(); select(active - 1); }
+      else if(e.key === 'Enter' || e.key === ' ') {
+        if(document.activeElement === viewport) { e.preventDefault(); confirm(active); }
+      }
+    });
+
+    /* A sideways wheel or trackpad swipe steps the rail; a vertical one is the page's. */
+    let wheelLock = 0;
+    viewport.addEventListener('wheel', (e) => {
+      if(Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+      e.preventDefault();
+      const now = performance.now();
+      if(now - wheelLock < 320) return;
+      wheelLock = now;
+      select(active + (e.deltaX > 0 ? 1 : -1), true);
+    }, { passive:false });
+
+    document.getElementById('fwCueLink')?.addEventListener('click', () => {
+      gsapScrollTo({ y: '#portfolio', offsetY: 0 });
+    });
+
+    /* Particle colour and the two dim levels are all theme tokens, and none of them are
+       read again on their own: the sprites are baked once and the rail's opacities are
+       written as inline styles. Both have to be redone when the theme flips. */
+    new MutationObserver(() => {
+      starSprite = fwMakeSprite(fwRgbFromVar('--fw-star', '244,233,212'));
+      glowSprite = fwMakeSprite(fwRgbFromVar('--accent', '227,185,95'));
+      layout();
+    }).observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
+
+    let rt;
+    window.addEventListener('resize', () => {
+      clearTimeout(rt);
+      rt = setTimeout(() => { sizeCanvases(); stars = []; layout(); }, 150);
+    });
+
+    sizeCanvases();
+    layout();
+    // Card art and fonts settle after first paint and both change the section's height.
+    window.addEventListener('load', () => { sizeCanvases(); layout(); });
+  }
+
+  function setupFeaturedReveal() {
+    gsap.from('#featuredHead', {
+      scrollTrigger: { trigger: '#featured', start: 'top 72%', once: true },
+      opacity: 0, y: 30, duration: 0.9
+    });
+    /* The stage, not the cards. Every card carries an inline transform and opacity that
+       the rail owns and rewrites on every move; a stagger over the cards themselves would
+       be two authors writing to one property, and the rail would come back wrong the first
+       time anything re-laid it out. Moving the container leaves that alone. */
+    gsap.from('.fw-stage', {
+      scrollTrigger: { trigger: '#featured', start: 'top 64%', once: true },
+      opacity: 0, y: 34, duration: 0.95, ease: 'power3.out'
+    });
+    gsap.from('.fw-cue', {
+      scrollTrigger: { trigger: '#featured', start: 'top 52%', once: true },
+      opacity: 0, y: 18, duration: 0.8
+    });
   }
 
   function setupPortfolioReveal() {
@@ -4179,6 +4809,8 @@
     setupSilkWaves();
     heroAnimation();
     heroBgSlideshow();
+    setupFeatured();
+    setupFeaturedReveal();
     setupPortfolioReveal();
     setupAboutReveal();
     setupSocialReveal();
