@@ -1745,22 +1745,25 @@
   }
   .fw-card.is-active .fw-card-edge{border-color:var(--accent-pale);}
 
-  /* The confirm glow: a gradient rising off the floor of the card, switched on for as long
-     as the burst runs. Outside the clipped shell so it spills past the edge. */
+  /* The confirm glow: a gradient off the floor of the card. Kept tight to the card and
+     played as a flash rather than a swell — it is an acknowledgement of a press, and a
+     slow bloom the size of the card read as an effect in its own right instead. Up almost
+     instantly, then out over a beat. Outside the clipped shell so it still spills a little
+     past the edge. */
   .fw-card-glow{
-    position:absolute;left:-18%;right:-18%;bottom:-14%;height:72%;z-index:1;
+    position:absolute;left:-7%;right:-7%;bottom:-6%;height:42%;z-index:1;
     pointer-events:none;opacity:0;
     background:radial-gradient(ellipse at 50% 100%,
-      color-mix(in srgb, var(--accent) 62%, transparent) 0%,
-      color-mix(in srgb, var(--accent) 26%, transparent) 42%,
-      transparent 72%);
-    transition:opacity .5s var(--ease);
+      color-mix(in srgb, var(--accent) 58%, transparent) 0%,
+      color-mix(in srgb, var(--accent) 22%, transparent) 44%,
+      transparent 74%);
+    transition:opacity .34s var(--ease);
   }
   @supports not (color: color-mix(in srgb, red 50%, blue)) {
-    .fw-card-glow{background:radial-gradient(ellipse at 50% 100%, rgba(227,185,95,.62) 0%, rgba(227,185,95,.26) 42%, transparent 72%);}
+    .fw-card-glow{background:radial-gradient(ellipse at 50% 100%, rgba(227,185,95,.58) 0%, rgba(227,185,95,.22) 44%, transparent 74%);}
   }
-  .fw-card.is-confirmed .fw-card-glow{opacity:1;}
-  .fw-card.is-confirmed{transform:translate(-50%,-50%) scale(1.03);}
+  .fw-card.is-confirmed .fw-card-glow{opacity:1;transition-duration:.08s;}
+  .fw-card.is-confirmed{transform:translate(-50%,-50%) scale(1.02);}
 
   .fw-cue{
     margin:52px auto 0;text-align:center;
@@ -1800,6 +1803,26 @@
     .fw-glow{animation:none;opacity:.4;}
     .fw-card{transition-duration:.001s;}
     .fw-card img{transition:none;}
+  }
+
+  /* ---- The invitation at the foot of a gallery ---- */
+  .gal-cta{
+    max-width:640px;margin:96px auto 0;padding-top:52px;
+    border-top:1px solid var(--line);text-align:center;
+  }
+  .gal-cta .eyebrow{display:block;margin-bottom:14px;}
+  .gal-cta p{
+    font-family:var(--font-body);font-size:15.5px;line-height:1.8;
+    color:var(--ink-soft);margin:0 0 30px;
+  }
+  .gal-cta-actions{display:flex;align-items:center;justify-content:center;gap:26px;flex-wrap:wrap;}
+  /* The buttons set their own display, and a class selector outranks the user agent's
+     [hidden] rule — so without this the hidden attribute is set and nothing happens. */
+  .gal-cta [hidden]{display:none;}
+  @media (max-width:640px){
+    .gal-cta{margin-top:64px;padding-top:40px;}
+    .gal-cta p{font-size:14.5px;}
+    .gal-cta-actions{flex-direction:column;gap:18px;}
   }
 </style>
 </head>
@@ -1887,9 +1910,10 @@
 
       <div class="fw-inner">
         <div class="section-head" id="featuredHead">
-          <span class="eyebrow">Featured Work</span>
-          <h2 id="featuredTitle">One From Each</h2>
+          <h2 id="featuredTitle">Featured Work</h2>
           <div class="rule"></div>
+          <p>Selected work of my own, where the craft, the collaboration and the ideas all
+             came together — the sessions I would put my name to first.</p>
         </div>
 
         <div class="fw-stage">
@@ -2050,6 +2074,18 @@
       </div>
 
       <div class="shoot-grid" id="shootGrid"></div>
+
+      <!-- A gallery is reachable directly now — a Featured Work card opens straight into
+           one — so the way out to the rest of the category has to live at the end of it
+           rather than only in the back button at the top. -->
+      <div class="gal-cta" id="shootCta">
+        <span class="eyebrow" id="shootCtaEyebrow">More like this</span>
+        <p id="shootCtaLine">—</p>
+        <div class="gal-cta-actions">
+          <button type="button" class="btn-accent" id="shootCtaCategory"><span>—</span></button>
+          <button type="button" class="btn-ghost" id="shootCtaAll">All galleries</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -3596,11 +3632,13 @@
         const t = Math.random();
         if(mode === 'confirm') {
           // Outwards along the floor, both ways, with just enough lift to arc.
+          // Kept inside the flash's own length: the glow is a beat now, and particles
+          // still drifting a second after it has gone read as a separate event.
           const dir = Math.random() < 0.5 ? -1 : 1;
           burst.push({
             x: midX + (t - 0.5) * c.width * 0.8, y: floorY - Math.random() * 6,
-            vx: dir * (40 + Math.random() * 170), vy: -(10 + Math.random() * 70),
-            g: 90, r: 0.8 + Math.random() * 2.2, life: 0, span: 0.55 + Math.random() * 0.7
+            vx: dir * (46 + Math.random() * 150), vy: -(10 + Math.random() * 60),
+            g: 110, r: 0.7 + Math.random() * 1.8, life: 0, span: 0.38 + Math.random() * 0.42
           });
         } else {
           burst.push({
@@ -3693,14 +3731,14 @@
       const el = cards[i], cat = cats[i];
       el.classList.add('is-confirmed');
       emitFromCard(el, 'confirm');
-      setTimeout(() => el.classList.remove('is-confirmed'), 900);
-      // The card is a way into the gallery, not a dead end: confirming filters the wall to
-      // that category and takes the reader to it.
+      setTimeout(() => el.classList.remove('is-confirmed'), 520);
+      /* Straight into the gallery the featured frame came from, rather than filtering the
+         wall further down the page and scrolling to it. The card is a work, not a filter,
+         so opening the work is the thing it promises. The gallery it lands on carries a
+         CTA back out to the whole category, which is what makes going in this deep safe. */
       setTimeout(() => {
-        const tabIndex = conceptTabs.findIndex(t => t.id === cat.id);
-        if(tabIndex > 0) selectConceptTab(tabIndex);
-        gsapScrollTo({ y: '#portfolio', offsetY: 0 });
-      }, 480);
+        location.hash = '#/shoot/' + cat.featuredShootId;
+      }, 340);
     }
 
     cards.forEach((el, i) => {
@@ -4233,6 +4271,30 @@
     const parent = categoryOf(s.id);
     document.getElementById('shootBackLabel').textContent =
       parent ? 'Back to ' + parent.name : 'Back to Gallery';
+
+    /* The closing invitation. It names the category and says how much else is in it, so it
+       is an offer rather than a signpost — and it counts the siblings rather than this
+       gallery, because "1 other gallery" is the honest number when there is one. A
+       category with nothing else to show gets the all-galleries route on its own instead
+       of an invitation that leads back to a page listing only what you just left. */
+    const cta = document.getElementById('shootCta');
+    const siblings = parent ? galleriesFor(parent.id).filter(g => g.id !== s.id).length : 0;
+    const catBtn = document.getElementById('shootCtaCategory');
+    if(parent && siblings > 0) {
+      document.getElementById('shootCtaEyebrow').textContent = 'More like this';
+      document.getElementById('shootCtaLine').textContent =
+        `${siblings} more ${siblings === 1 ? 'gallery' : 'galleries'} in ${parent.name}, and the rest of the work is a step further.`;
+      catBtn.querySelector('span').textContent = 'See ' + parent.name;
+      catBtn.hidden = false;
+      catBtn.dataset.categoryId = parent.id;
+    } else {
+      document.getElementById('shootCtaEyebrow').textContent = 'Keep looking';
+      document.getElementById('shootCtaLine').textContent =
+        'That is every frame from this one. The rest of the work is in the gallery.';
+      catBtn.hidden = true;
+      delete catBtn.dataset.categoryId;
+    }
+    cta.hidden = false;
 
     const grid = document.getElementById('shootGrid');
     grid.innerHTML = '';
@@ -4855,6 +4917,18 @@
 
     document.getElementById('categoryBack').addEventListener('click', () => {
       location.hash = '#/';
+    });
+
+    /* Foot-of-gallery CTA. The category button carries its destination on the element,
+       written by renderShoot, so the handler is bound once rather than per render. */
+    document.getElementById('shootCtaCategory').addEventListener('click', (e) => {
+      const id = e.currentTarget.dataset.categoryId;
+      if(id) location.hash = '#/category/' + id;
+    });
+    document.getElementById('shootCtaAll').addEventListener('click', () => {
+      location.hash = '#/';
+      // The home view is restored by the router; the wall is further down it.
+      setTimeout(() => gsapScrollTo({ y: '#portfolio', offsetY: 0 }), 90);
     });
     document.getElementById('contactBack').addEventListener('click', () => {
       location.hash = '#/';
