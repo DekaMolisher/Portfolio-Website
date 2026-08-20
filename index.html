@@ -62,6 +62,8 @@
        two themes do not agree about it. */
     --fw-dim-1:0.85;
     --fw-dim-2:0.40;
+    /* Near-black on a near-black ground: it lifts the card without ever being seen. */
+    --fw-card-shadow:0 24px 44px -26px rgba(0,0,0,0.9);
 
     --font-display:'Archivo Black', 'Archivo', sans-serif;
     --font-body:'Source Serif 4', Georgia, serif;
@@ -112,6 +114,11 @@
        photographs at all rather than as photographs waiting their turn. */
     --fw-dim-1:0.88;
     --fw-dim-2:0.56;
+    /* The dark theme's shadow is invisible against its own ground; on cream the same
+       shadow is a dark smudge under every card, and on a phone — where the three cards
+       reach both edges — the smudges join into a line across the page. Lighter, tighter,
+       and in the brown of the ink rather than black. */
+    --fw-card-shadow:0 14px 26px -20px rgba(36,28,20,0.34);
 
     --font-display:'Archivo Black', 'Archivo', sans-serif;
     --font-body:'Source Serif 4', Georgia, serif;
@@ -1623,21 +1630,41 @@
        section takes its height from the content rather than a fixed figure. */
     --fw-card-w:clamp(168px, 15.5vw, 232px);
     --fw-gap:26px;
+    /* How much room the hand-off to the page gets. One number, used twice: it sets both
+       where the ground starts fading and how much empty space is reserved under the arrow
+       for it to fade through, so the two can never drift apart. */
+    --fw-fade:200px;
   }
 
   /* Flat colour, not the silk gradient, and masked at both ends. The top fade is short —
      it only has to meet the hero, which has already dissolved to nothing by its own foot.
      The bottom is long and eased for the same reason the hero's is: a linear ramp holds
      its mid-tones long enough to draw its own edge. */
+  /* Stops in pixels from the bottom rather than percentages of the height. As percentages
+     the fade began at 58% — above the cards' own feet — so the ground was already thinning
+     out behind the closing line and the arrow, which on the cream theme left them sitting
+     on a wash instead of on the section. Measured from the bottom edge, the ground stays
+     solid past the arrow no matter how tall the section grows, and the fade is the same
+     length everywhere. */
   .fw-bg{
     position:absolute;inset:0;z-index:0;pointer-events:none;
     background:var(--fw-bg);
     -webkit-mask-image:linear-gradient(to bottom,
-      transparent 0%, rgba(0,0,0,.55) 4%, #000 11%, #000 58%,
-      rgba(0,0,0,.92) 72%, rgba(0,0,0,.62) 83%, rgba(0,0,0,.28) 92%, transparent 100%);
+      transparent 0, rgba(0,0,0,.5) 26px, #000 88px,
+      #000 calc(100% - var(--fw-fade)),
+      rgba(0,0,0,.9) calc(100% - var(--fw-fade) * .76),
+      rgba(0,0,0,.64) calc(100% - var(--fw-fade) * .52),
+      rgba(0,0,0,.34) calc(100% - var(--fw-fade) * .3),
+      rgba(0,0,0,.12) calc(100% - var(--fw-fade) * .13),
+      transparent 100%);
     mask-image:linear-gradient(to bottom,
-      transparent 0%, rgba(0,0,0,.55) 4%, #000 11%, #000 58%,
-      rgba(0,0,0,.92) 72%, rgba(0,0,0,.62) 83%, rgba(0,0,0,.28) 92%, transparent 100%);
+      transparent 0, rgba(0,0,0,.5) 26px, #000 88px,
+      #000 calc(100% - var(--fw-fade)),
+      rgba(0,0,0,.9) calc(100% - var(--fw-fade) * .76),
+      rgba(0,0,0,.64) calc(100% - var(--fw-fade) * .52),
+      rgba(0,0,0,.34) calc(100% - var(--fw-fade) * .3),
+      rgba(0,0,0,.12) calc(100% - var(--fw-fade) * .13),
+      transparent 100%);
   }
 
   /* The pulse the brief asks for, 5% to 85%. The gradient underneath is deliberately weak
@@ -1663,9 +1690,12 @@
      bottom edge of a card and must not be painted behind the one next to it. */
   .fw-burst{position:absolute;inset:0;z-index:3;width:100%;height:100%;display:block;pointer-events:none;}
 
+  /* The bottom padding is the fade plus a gap: it reserves the empty band the ground fades
+     through, so the arrow is the last thing standing on solid colour. */
   .fw-inner{
     position:relative;z-index:2;
-    max-width:1280px;margin:0 auto;padding:118px 40px 104px;
+    max-width:1280px;margin:0 auto;
+    padding:118px 40px calc(var(--fw-fade) + 30px);
   }
   #featured .section-head{margin-bottom:44px;}
 
@@ -1703,7 +1733,7 @@
   .fw-card img{-webkit-user-drag:none;user-drag:none;}
   .fw-card-shell{
     position:absolute;inset:0;overflow:hidden;border-radius:3px;
-    box-shadow:0 24px 44px -26px rgba(0,0,0,.9);
+    box-shadow:var(--fw-card-shadow);
   }
   .fw-card img{
     width:100%;height:100%;object-fit:cover;display:block;
@@ -1800,8 +1830,8 @@
   }
 
   @media (max-width:900px){
-    #featured{--fw-card-w:clamp(150px, 34vw, 200px);--fw-gap:18px;}
-    .fw-inner{padding:88px 22px 82px;}
+    #featured{--fw-card-w:clamp(150px, 34vw, 200px);--fw-gap:18px;--fw-fade:150px;}
+    .fw-inner{padding:88px 22px calc(var(--fw-fade) + 24px);}
     #featured .section-head{margin-bottom:34px;}
     .fw-cue{margin-top:38px;font-size:13.5px;}
   }
