@@ -85,6 +85,11 @@
     --fw-dim-2:0.40;
     /* Near-black on a near-black ground: it lifts the card without ever being seen. */
     --fw-card-shadow:0 24px 44px -26px rgba(0,0,0,0.9);
+    /* The selection flare has its own colour rather than borrowing --accent, because
+       --accent is cyan in the light theme and a teal wash rising out of a photograph reads
+       as a colour cast rather than as light. Warm in both themes: the glow always sits on
+       a picture, not on the page, so it answers to the picture. */
+    --fw-flare:#E9C173;
 
     --font-display:'Archivo Black', 'Archivo', sans-serif;
     --font-body:'Source Serif 4', Georgia, serif;
@@ -140,6 +145,9 @@
        reach both edges — the smudges join into a line across the page. Lighter, tighter,
        and in the brown of the ink rather than black. */
     --fw-card-shadow:0 14px 26px -20px rgba(36,28,20,0.34);
+    /* Deeper than the dark theme's: the same sparks also fall past the card onto cream,
+       where a pale amber would vanish. On the photograph itself it still reads as warm light. */
+    --fw-flare:#A9772A;
 
     --font-display:'Archivo Black', 'Archivo', sans-serif;
     --font-body:'Source Serif 4', Georgia, serif;
@@ -1803,26 +1811,24 @@
   }
   .fw-card.is-active .fw-card-edge{border-color:var(--accent-pale);}
 
-  /* The confirm glow: a gradient off the floor of the card. Kept tight to the card and
-     played as a flash rather than a swell — it is an acknowledgement of a press, and a
-     slow bloom the size of the card read as an effect in its own right instead. Up almost
-     instantly, then out over a beat. Outside the clipped shell so it still spills a little
-     past the edge. */
+  /* The confirm glow: light welling up off the floor of the photograph. It lives inside the
+     clipped shell now, so it lights the picture rather than haloing the card — spilling past
+     the edge made it read as an effect stuck on behind, and the light belongs to the frame.
+     Full bleed across the bottom, taller than it is wide in falloff, still played as a flash:
+     up in 80ms, out over a beat. */
   .fw-card-glow{
-    position:absolute;left:-7%;right:-7%;bottom:-6%;height:42%;z-index:1;
+    position:absolute;left:0;right:0;bottom:0;height:58%;z-index:1;
     pointer-events:none;opacity:0;
-    background:radial-gradient(ellipse at 50% 100%,
-      color-mix(in srgb, var(--accent) 58%, transparent) 0%,
-      color-mix(in srgb, var(--accent) 22%, transparent) 44%,
-      transparent 74%);
+    background:
+      radial-gradient(120% 100% at 50% 100%,
+        color-mix(in srgb, var(--fw-flare) 78%, transparent) 0%,
+        color-mix(in srgb, var(--fw-flare) 36%, transparent) 38%,
+        transparent 76%);
+    mix-blend-mode:screen;
     transition:opacity .34s var(--ease);
-    /* Twenty percent bigger than the box above, grown from the card's floor so the base
-       stays put and it spreads upwards and outwards. Scaling rather than restating the
-       four offsets keeps the amount legible as an amount. */
-    transform:scale(1.2);transform-origin:50% 100%;
   }
   @supports not (color: color-mix(in srgb, red 50%, blue)) {
-    .fw-card-glow{background:radial-gradient(ellipse at 50% 100%, rgba(227,185,95,.58) 0%, rgba(227,185,95,.22) 44%, transparent 74%);}
+    .fw-card-glow{background:radial-gradient(120% 100% at 50% 100%, rgba(233,193,115,.78) 0%, rgba(233,193,115,.36) 38%, transparent 76%);}
   }
   .fw-card.is-confirmed .fw-card-glow{opacity:1;transition-duration:.08s;}
   /* The bump goes on the shell, not the card. layout() writes the card's transform as an
@@ -3608,13 +3614,15 @@
       b.dataset.index = String(i);
       b.setAttribute('aria-label', `${cat.name} — featured work`);
       b.innerHTML =
-        '<span class="fw-card-glow"></span>' +
         '<span class="fw-card-shell">' +
           // draggable="false" is load-bearing, not tidiness: an <img> is draggable by
           // default, so pressing on one starts a native image drag that fires
           // pointercancel on the very next move and takes the rail's own drag with it.
           `<img src="${cat.featured}" alt="${cat.name}" loading="lazy" decoding="async" draggable="false">` +
           '<span class="fw-card-veil"></span>' +
+          // Inside the shell, so the shell's overflow:hidden clips it and the light reads
+          // as coming off the bottom of the photograph rather than out from behind the card.
+          '<span class="fw-card-glow"></span>' +
           `<span class="fw-cap"><b>${cat.name}</b><span>${cat.tag}</span></span>` +
         '</span>' +
         '<span class="fw-card-edge"></span>';
@@ -3672,7 +3680,7 @@
     const sctx = starCanvas.getContext('2d');
     const bctx = burstCanvas.getContext('2d');
     let starSprite = fwMakeSprite(fwRgbFromVar('--fw-star', '244,233,212'));
-    let glowSprite = fwMakeSprite(fwRgbFromVar('--accent', '227,185,95'));
+    let glowSprite = fwMakeSprite(fwRgbFromVar('--fw-flare', '233,193,115'));
     let stars = [], burst = [];
     let W = 0, H = 0, dpr = 1;
 
@@ -3708,14 +3716,34 @@
       };
     }
 
+    /* Three shapes, one engine.
+
+       hover   — a slow trickle up off the bottom edge, weightless, always running.
+       confirm — the same idea thrown outwards along the floor, to read as a release.
+       sparks  — tiny, heavy and brief, and the only one that fires on a selection alone,
+                 which is what lets them mean something. Gravity an order of magnitude above
+                 the others gives them a real arc, and a life short enough that they are gone
+                 before the page has finished travelling. The weight is the whole point:
+                 particles that drift away read as ambience, ones that fall read as an event. */
     function emitFromCard(el, mode) {
       if(fwReduceMotion) return;
       const s = section.getBoundingClientRect(), c = el.getBoundingClientRect();
       const floorY = c.bottom - s.top, midX = c.left - s.left + c.width / 2;
-      const n = mode === 'confirm' ? 46 : 6;
+      const n = mode === 'hover' ? 6 : (mode === 'sparks' ? 34 : 30);
+
       for(let i = 0; i < n; i++) {
         const t = Math.random();
-        if(mode === 'confirm') {
+        if(mode === 'sparks') {
+          burst.push({
+            x: midX + (t - 0.5) * c.width * 0.92,
+            y: floorY - 2 - Math.random() * 10,
+            vx: (Math.random() - 0.5) * 210,
+            vy: -(90 + Math.random() * 200),
+            g: 1250,                          // roughly eleven times the confirm spray
+            r: 0.26 + Math.random() * 0.46,   // barely more than a pixel
+            life: 0, span: 0.3 + Math.random() * 0.26
+          });
+        } else if(mode === 'confirm') {
           // Outwards along the floor, both ways, with just enough lift to arc.
           // Kept inside the flash's own length: the glow is a beat now, and particles
           // still drifting a second after it has gone read as a separate event.
@@ -3733,7 +3761,7 @@
           });
         }
       }
-      if(burst.length > 320) burst.splice(0, burst.length - 320);
+      if(burst.length > 340) burst.splice(0, burst.length - 340);
     }
 
     function draw(dt) {
@@ -3792,6 +3820,11 @@
     if(!fwReduceMotion) {
       const io = new IntersectionObserver((entries) => {
         onScreen = entries[0].isIntersecting;
+        /* Confirming a card navigates away mid-burst, which stops the ticker with particles
+           still in the air. Left there, they would pick up exactly where they froze the next
+           time the section scrolled into view — a puff of sparks for a selection made
+           minutes ago and on another page. The trickle from a hover has the same problem. */
+        if(!onScreen) { burst.length = 0; if(W && H) bctx.clearRect(0, 0, W, H); }
         setRunning(onScreen && !document.hidden);
       }, { rootMargin: '120px' });
       io.observe(section);
@@ -3816,14 +3849,22 @@
       const el = cards[i], cat = cats[i];
       el.classList.add('is-confirmed');
       emitFromCard(el, 'confirm');
+      emitFromCard(el, 'sparks');
       setTimeout(() => el.classList.remove('is-confirmed'), 520);
+
       /* Straight into the gallery the featured frame came from, rather than filtering the
          wall further down the page and scrolling to it. The card is a work, not a filter,
          so opening the work is the thing it promises. The gallery it lands on carries a
-         CTA back out to the whole category, which is what makes going in this deep safe. */
+         CTA back out to the whole category, which is what makes going in this deep safe.
+
+         The travel is the wall's own zoom, reused rather than reinvented: it scales the
+         whole home view out from this card's centre, so the neighbours and the section
+         around it come along instead of the card leaving on its own. Both ways into a
+         gallery — a tile on the wall and a card up here — now feel like the same move.
+         The burst canvas lives inside that view, so the sparks scale with it. */
       setTimeout(() => {
-        location.hash = '#/shoot/' + cat.featuredShootId;
-      }, 340);
+        zoomIntoGallery(el, '#/shoot/' + cat.featuredShootId);
+      }, 220);
     }
 
     cards.forEach((el, i) => {
@@ -3892,7 +3933,7 @@
        written as inline styles. Both have to be redone when the theme flips. */
     new MutationObserver(() => {
       starSprite = fwMakeSprite(fwRgbFromVar('--fw-star', '244,233,212'));
-      glowSprite = fwMakeSprite(fwRgbFromVar('--accent', '227,185,95'));
+      glowSprite = fwMakeSprite(fwRgbFromVar('--fw-flare', '233,193,115'));
       layout();
     }).observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
 
