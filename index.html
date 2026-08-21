@@ -1824,7 +1824,6 @@
         color-mix(in srgb, var(--fw-flare) 78%, transparent) 0%,
         color-mix(in srgb, var(--fw-flare) 36%, transparent) 38%,
         transparent 76%);
-    mix-blend-mode:screen;
     transition:opacity .34s var(--ease);
   }
   @supports not (color: color-mix(in srgb, red 50%, blue)) {
@@ -1878,6 +1877,15 @@
     .fw-cue-arrow{margin-top:18px;}
     .fw-cue-arrow svg{width:23px;height:23px;}
   }
+
+  /* While the section is travelling into a gallery it stops paying for anything per-frame
+     that it isn't using. will-change promotes each card to its own layer, which is right
+     while the rail is being dragged and pure overhead while the whole section is being
+     scaled as one; the pulse and the card transitions are invisible under the zoom anyway. */
+  .fw-stage.is-zooming, #featured.is-zooming{will-change:auto;}
+  #featured.is-zooming .fw-card{will-change:auto;transition:none;}
+  #featured.is-zooming .fw-glow{animation:none;}
+  #featured.is-zooming .fw-cue-arrow{animation:none;}
 
   /* No pulse and no particles when motion is turned down; the section still reads, it
      just stops moving. The canvases are emptied in script for the same reason. */
@@ -3519,6 +3527,12 @@
     let heroEl = null;
     function shaderIsVisible() {
       if(document.hidden) return false;
+      /* Nothing ambient draws while the page is travelling into a gallery. This shader is
+         the single most expensive thing on the page — measured at roughly fifty
+         milliseconds a frame on a throttled phone, which by itself holds the Featured
+         section to fourteen frames a second — so the zoom was starting with no budget left
+         and stuttering. It is behind an opaque section for the whole transition anyway. */
+      if(pageIsTravelling) return false;
       heroEl = heroEl || document.querySelector('.hero');
       if(!heroEl) return true;
       const r = heroEl.getBoundingClientRect();
@@ -3809,6 +3823,10 @@
        small, which does not stop anything — every particle simply sits at the very start of
        its fade-in, at an alpha that rounds to nothing, and the canvas looks switched off. */
     function tick(time, deltaTime) {
+      /* Sits out a transition. The canvases are inside the section being scaled, so every
+         frame drawn here is rasterized again at the new scale immediately afterwards —
+         paid for twice, to show particles nobody can follow at that speed. */
+      if(pageIsTravelling) return;
       draw(Math.min(0.05, (deltaTime || 16) / 1000));
     }
     function setRunning(on) {
@@ -4209,6 +4227,22 @@
 
   /* Selecting a gallery zooms the home page into it, the same move the category slider
      uses, anchored on the tile you picked so the page appears to travel toward it. */
+  /* Travel into a gallery: the thing you picked grows towards you and the page dissolves.
+
+     What gets scaled is the section the element sits in, not the whole home view. Scaling
+     the view meant handing the compositor a layer 412 by 7975 pixels holding 660 elements
+     and 61 photographs — every section of the page, almost all of it off-screen — to
+     re-rasterize on every frame of the animation. On a throttled phone that ran at seven
+     frames a second. The section around the element is what the eye is actually watching
+     travel, and it is a twentieth of the area.
+
+     The page still fades as one, because that is an opacity change on a layer that already
+     exists rather than a new rasterization, and it costs almost nothing by comparison. */
+  /* Read by the shader loop and by the Featured section's particle ticker: while this is
+     true the page is mid-transition and nothing ambient should be spending a frame on
+     something about to be replaced. */
+  let pageIsTravelling = false;
+
   function zoomIntoGallery(el, hash) {
     // the flare grows out of the tile's bottom edge while the page begins to travel
     const flare = el.querySelector('.mos-flare');
@@ -4216,17 +4250,37 @@
       gsap.fromTo(flare, { opacity: 0, scaleY: 0 },
                          { opacity: 0.85, scaleY: 1, duration: 0.42, ease: 'power2.out' });
     }
+
     const viewHome = document.getElementById('view-home');
+    const stage = el.closest('section') || viewHome;
+
+    /* Origin in the stage's own box, not the document's — the old sum of scrollY and the
+       element's top was right only while the thing being scaled started at the page top. */
+    const s = stage.getBoundingClientRect();
     const r = el.getBoundingClientRect();
-    const originX = r.left + r.width / 2;
-    const originY = window.scrollY + r.top + r.height / 2;
-    gsap.set(viewHome, { transformOrigin: originX + 'px ' + originY + 'px' });
+    gsap.set(stage, {
+      transformOrigin: (r.left + r.width / 2 - s.left) + 'px ' +
+                       (r.top + r.height / 2 - s.top) + 'px'
+    });
+
+    /* Tells the section to stop paying for anything it does not need mid-flight: blend
+       modes and promoted layers both force work per frame that the zoom is already
+       competing for. */
+    stage.classList.add('is-zooming');
+    pageIsTravelling = true;
     document.body.style.overflow = 'hidden';
+
     gsap.timeline({
-      onComplete: () => { location.hash = hash; document.body.style.overflow = ''; }
+      onComplete: () => {
+        location.hash = hash;
+        pageIsTravelling = false;
+        document.body.style.overflow = '';
+        stage.classList.remove('is-zooming');
+        gsap.set(stage, { clearProps: 'transform,transformOrigin' });
+      }
     })
-      .to(viewHome, { scale: 1.12, duration: 0.62, ease: 'power2.inOut' }, 0)
-      .to(viewHome, { opacity: 0, duration: 0.34, ease: 'power2.in' }, 0.3);
+      .to(stage,    { scale: 1.12, duration: 0.62, ease: 'power2.inOut' }, 0)
+      .to(viewHome, { opacity: 0,  duration: 0.34, ease: 'power2.in' }, 0.3);
   }
 
 
@@ -4923,6 +4977,21 @@
   }
 
   window.addEventListener('hashchange', router);
+
+  /* Self-healing for the travel state. A zoom that is interrupted — the back button, a
+     pasted URL, anything that changes the hash before the timeline finishes — would
+     otherwise leave pageIsTravelling stuck true, and with it every ambient animation on the
+     site paused for good, a section frozen at 1.12 and the body unable to scroll. Arriving
+     somewhere is the one thing that definitely ends a journey, so it is the hook. */
+  window.addEventListener('hashchange', () => {
+    if(!pageIsTravelling) return;
+    pageIsTravelling = false;
+    document.body.style.overflow = '';
+    document.querySelectorAll('.is-zooming').forEach((s) => {
+      s.classList.remove('is-zooming');
+      gsap.set(s, { clearProps: 'transform,transformOrigin' });
+    });
+  });
 
   /* ============ CONTACT FORM ============ */
   function setupContactForm() {
